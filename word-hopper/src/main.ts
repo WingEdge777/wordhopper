@@ -1,21 +1,20 @@
 import Phaser from 'phaser';
+import { BootScene } from './scenes/BootScene';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from './config/constants';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.CANVAS,
-  width: 800,
-  height: 450,
+  width: CANVAS_WIDTH,
+  height: CANVAS_HEIGHT,
   parent: document.body,
   backgroundColor: '#1a1a2e',
-  scene: {
-    create() {
-      const text = this.add.text(400, 225, 'Word Hopper', {
-        fontSize: '32px',
-        color: '#4ecdc4',
-        fontFamily: 'monospace',
-      });
-      text.setOrigin(0.5);
+  physics: {
+    default: 'arcade',
+    arcade: {
+      gravity: { x: 0, y: 0 },
     },
   },
+  scene: [BootScene],
 };
 
 new Phaser.Game(config);
