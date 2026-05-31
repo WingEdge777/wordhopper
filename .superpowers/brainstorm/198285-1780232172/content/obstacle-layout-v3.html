@@ -1,0 +1,149 @@
+<h2>Word Hopper — Layout v3</h2>
+<p class="subtitle">Score system, more plant types, English UI, fixed character direction & thorn spikes</p>
+
+<div class="section">
+<h3>1. Game Screen</h3>
+<div class="mockup">
+  <div class="mockup-header">Gameplay — obstacles scroll left, character runs right</div>
+  <div class="mockup-body" style="background:#1a1a2e;color:#eee;padding:0;position:relative;min-height:360px;font-family:monospace;font-size:13px;overflow:hidden;">
+    
+    <!-- HUD top-right -->
+    <div style="position:absolute;top:8px;right:12px;background:rgba(0,0,0,0.6);padding:8px 14px;border-radius:4px;font-size:14px;z-index:10;font-family:monospace;display:grid;grid-template-columns:auto 1fr;gap:0 8px;">
+      <span style="color:#4ecdc4;">Score:</span><span style="color:#4ecdc4;text-align:right;">1,248,560</span>
+      <span style="color:#ffd93d;">Speed:</span><span style="color:#ffd93d;text-align:right;">2.3x</span>
+    </div>
+    
+    <!-- Sky gradient -->
+    <div style="position:absolute;top:0;left:0;right:0;height:60px;background:linear-gradient(180deg,#16213e 0%,#1a1a2e 100%);"></div>
+    
+    <!-- Character facing right -->
+    <div style="position:absolute;bottom:50px;left:10%;font-size:32px;transform:scaleX(-1);">🏃</div>
+    
+    <!-- Scroll direction -->
+    <div style="position:absolute;top:14px;left:50%;transform:translateX(-50%);color:#4ecdc4;font-size:12px;opacity:0.5;">
+      ◀ scroll direction
+    </div>
+    
+    <!-- === Obstacle 1: Cactus pair (upper + lower) === -->
+    <!-- Upper cactus — grows from ceiling down -->
+    <div style="position:absolute;top:0;left:58%;display:flex;flex-direction:column;align-items:center;">
+      <div style="width:22px;height:110px;background:#2ecc71;border-radius:0 0 3px 3px;position:relative;">
+        <div style="position:absolute;bottom:20px;left:-11px;width:12px;height:18px;background:#27ae60;border-radius:7px 0 0 7px;"></div>
+        <div style="position:absolute;bottom:8px;right:-9px;width:10px;height:14px;background:#27ae60;border-radius:0 7px 7px 0;"></div>
+      </div>
+    </div>
+    <!-- Lower cactus -->
+    <div style="position:absolute;bottom:38px;left:58%;display:flex;flex-direction:column;align-items:center;">
+      <div style="width:22px;height:65px;background:#2ecc71;border-radius:3px;position:relative;">
+        <div style="position:absolute;top:8px;left:-10px;width:11px;height:16px;background:#27ae60;border-radius:7px 0 0 7px;"></div>
+        <div style="position:absolute;top:22px;right:-11px;width:12px;height:20px;background:#27ae60;border-radius:0 7px 7px 0;"></div>
+      </div>
+    </div>
+    <!-- Words in gap -->
+    <div style="position:absolute;top:120px;left:55%;width:60px;text-align:center;">
+      <div style="color:#4ecdc4;font-size:15px;font-weight:bold;text-shadow:0 0 8px rgba(78,205,196,0.5);">leaf</div>
+      <div style="color:#555;font-size:9px;margin:4px 0;">↕</div>
+      <div style="color:#ffd93d;font-size:15px;font-weight:bold;text-shadow:0 0 8px rgba(255,217,61,0.5);">run</div>
+    </div>
+    
+    <!-- === Obstacle 2: Hanging bramble (upper only) === -->
+    <div style="position:absolute;top:0;left:80%;width:40px;display:flex;flex-direction:column;align-items:center;">
+      <!-- Top bar (ceiling attachment) -->
+      <div style="width:55px;height:8px;background:#5D4037;border-radius:0 0 3px 3px;"></div>
+      <!-- Main bramble body -->
+      <div style="width:40px;height:100px;background:#2d5016;border-radius:4px;position:relative;">
+        <!-- Thorn spikes pointing DOWN from bottom edge, evenly spaced across 40px -->
+        <div style="position:absolute;bottom:-10px;left:3px;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:10px solid #c0392b;"></div>
+        <div style="position:absolute;bottom:-10px;left:12px;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:10px solid #c0392b;"></div>
+        <div style="position:absolute;bottom:-10px;left:21px;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:10px solid #c0392b;"></div>
+        <div style="position:absolute;bottom:-10px;left:30px;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:10px solid #c0392b;"></div>
+      </div>
+    </div>
+    <!-- Single word below bramble -->
+    <div style="position:absolute;bottom:90px;left:79%;text-align:center;">
+      <div style="color:#4ecdc4;font-size:15px;font-weight:bold;text-shadow:0 0 8px rgba(78,205,196,0.5);">spring</div>
+    </div>
+    <div style="position:absolute;bottom:72px;left:78%;color:#666;font-size:10px;">skip = no bonus</div>
+    
+    <!-- Ground -->
+    <div style="position:absolute;bottom:0;left:0;right:0;height:35px;background:#2d3436;border-top:2px solid #636e72;"></div>
+    <div style="position:absolute;bottom:35px;left:0;right:0;height:6px;background:linear-gradient(0deg,#636e72,transparent);"></div>
+    
+  </div>
+</div>
+</div>
+
+<div class="section">
+<h3>2. Score System</h3>
+<div style="background:rgba(0,0,0,0.3);padding:16px;border-radius:8px;font-family:monospace;font-size:13px;color:#ccc;line-height:2.2;">
+  <div><span style="color:#4ecdc4;">Base Score:</span> +1 per tick while alive (survival reward)</div>
+  <div><span style="color:#ffd93d;">Word Bonus:</span> +10 × word_length per word typed correctly</div>
+  <div><span style="color:#2ecc71;">Speed Multiplier:</span> score × current_speed (faster = more points)</div>
+  <div><span style="color:#e17055;">Skip Penalty:</span> typing nothing = 0 bonus (but you survive)</div>
+  <div style="border-top:1px solid #444;margin-top:8px;padding-top:8px;">
+    <span style="color:#888;">Example: Easy mode, speed 1.0x</span><br>
+    Type "leaf" (4 chars) → 10 × 4 × 1.0 = <span style="color:#2ecc71;">+40 points</span><br>
+    Skip typing → <span style="color:#e74c3c;">+0 bonus</span> (survive, but miss points)
+  </div>
+  <div style="border-top:1px solid #444;margin-top:8px;padding-top:8px;">
+    <span style="color:#888;">Example: Hard mode, speed 2.0x</span><br>
+    Type "adventure" (9 chars) → 10 × 9 × 2.0 = <span style="color:#2ecc71;">+180 points</span><br>
+    This makes Hard mode genuinely rewarding, not just harder.
+  </div>
+</div>
+</div>
+
+<div class="section">
+<h3>3. Plant Obstacle Types</h3>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+  <div style="background:rgba(0,0,0,0.3);padding:12px;border-radius:8px;">
+    <div style="font-size:22px;margin-bottom:4px;">🌵</div>
+    <div style="color:#2ecc71;font-size:13px;font-weight:bold;">Cactus</div>
+    <div style="color:#888;font-size:11px;">Tall, narrow. Appears as upper or lower. Classic obstacle.</div>
+  </div>
+  <div style="background:rgba(0,0,0,0.3);padding:12px;border-radius:8px;">
+    <div style="font-size:22px;margin-bottom:4px;">🌿🔻</div>
+    <div style="color:#2ecc71;font-size:13px;font-weight:bold;">Bramble / Thorns</div>
+    <div style="color:#888;font-size:11px;">Spikes point DOWN from top. Wide, low-hanging threat. Upper-only.</div>
+  </div>
+  <div style="background:rgba(0,0,0,0.3);padding:12px;border-radius:8px;">
+    <div style="font-size:22px;margin-bottom:4px;">🍄</div>
+    <div style="color:#e17055;font-size:13px;font-weight:bold;">Mushroom</div>
+    <div style="color:#888;font-size:11px;">Short, wide. Bottom only. Needs a small hop to clear.</div>
+  </div>
+  <div style="background:rgba(0,0,0,0.3);padding:12px;border-radius:8px;">
+    <div style="font-size:22px;margin-bottom:4px;">🌱↕</div>
+    <div style="color:#27ae60;font-size:13px;font-weight:bold;">Venus Flytrap</div>
+    <div style="color:#888;font-size:11px;">Wide jaws from bottom. Tall gap above. Upper+lower combo.</div>
+  </div>
+  <div style="background:rgba(0,0,0,0.3);padding:12px;border-radius:8px;">
+    <div style="font-size:22px;margin-bottom:4px;">🌳</div>
+    <div style="color:#8B4513;font-size:13px;font-weight:bold;">Tree Stump</div>
+    <div style="color:#888;font-size:11px;">Very wide, short. Bottom only. Forces a long low jump.</div>
+  </div>
+  <div style="background:rgba(0,0,0,0.3);padding:12px;border-radius:8px;">
+    <div style="font-size:22px;margin-bottom:4px;">🌿⬇</div>
+    <div style="color:#6ab04c;font-size:13px;font-weight:bold;">Hanging Vines</div>
+    <div style="color:#888;font-size:11px;">Long, thin. Dangles from top with thorns. Upper-only.</div>
+  </div>
+</div>
+<p style="color:#888;font-size:11px;margin-top:8px;">
+Each plant type has different width/height ratios, creating varied gap shapes and jump requirements.
+</p>
+</div>
+
+<div class="section">
+<h3>4. Start Screen Flow</h3>
+<div style="background:rgba(0,0,0,0.3);padding:16px;border-radius:8px;font-family:monospace;font-size:13px;color:#ccc;line-height:2;">
+  <div>① Title screen → <span style="color:#4ecdc4;">Select Difficulty</span></div>
+  <div style="padding-left:20px;">
+    <span style="color:#2ecc71;">Easy</span> (3-5 char) &nbsp;|&nbsp;
+    <span style="color:#ffd93d;">Medium</span> (5-10 char) &nbsp;|&nbsp;
+    <span style="color:#e74c3c;">Hard</span> (10+ char)
+  </div>
+  <div>② Click difficulty → <span style="color:#4ecdc4;">Press SPACE or click START</span></div>
+  <div>③ Game begins → run, type, survive</div>
+  <div>④ Death → <span style="color:#4ecdc4;">Score screen</span> with word stats & WPM</div>
+  <div>⑤ Press SPACE → back to difficulty select</div>
+</div>
+</div>

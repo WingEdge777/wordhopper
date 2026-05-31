@@ -1,0 +1,96 @@
+<h2>Word Hopper — 障碍物布局与间距设计</h2>
+<p class="subtitle">核心问题：障碍物间距如何与打字窗口期配合？</p>
+
+<div class="section">
+<h3>1. 屏幕布局（侧视图）</h3>
+<div class="mockup">
+  <div class="mockup-header">游戏画面 — 侧视图</div>
+  <div class="mockup-body" style="background:#1a1a2e;color:#eee;padding:1rem;position:relative;min-height:300px;font-family:monospace;font-size:13px;">
+    <div style="position:absolute;top:8px;right:12px;text-align:right;background:rgba(0,0,0,0.5);padding:6px 10px;border-radius:4px;">
+      <div>距离: 1,234m</div>
+      <div>速度: 1.2x</div>
+    </div>
+    
+    <!-- Upper obstacle -->
+    <div style="position:absolute;top:0;left:55%;width:40px;height:90px;background:#e74c3c;border-radius:0 0 4px 4px;"></div>
+    <div style="position:absolute;top:92px;left:55%;color:#aaa;font-size:11px;">↓ 上方障碍</div>
+    
+    <!-- Gap with words -->
+    <div style="position:absolute;top:100px;left:52%;width:46px;height:120px;border:1px dashed #4ecdc4;display:flex;flex-direction:column;align-items:center;justify-content:space-around;">
+      <span style="color:#4ecdc4;font-size:14px;font-weight:bold;">FLY</span>
+      <span style="color:#666;font-size:11px;">↕</span>
+      <span style="color:#ffd93d;font-size:14px;font-weight:bold;">HOP</span>
+    </div>
+    
+    <!-- Lower obstacle -->
+    <div style="position:absolute;bottom:40px;left:55%;width:40px;height:80px;background:#e74c3c;border-radius:4px 4px 0 0;"></div>
+    <div style="position:absolute;bottom:22px;left:54%;color:#aaa;font-size:11px;">↑ 下方障碍</div>
+    
+    <!-- Character -->
+    <div style="position:absolute;bottom:45px;left:12%;font-size:28px;">🏃</div>
+    
+    <!-- Ground -->
+    <div style="position:absolute;bottom:0;left:0;right:0;height:35px;background:#2d3436;border-top:2px solid #636e72;"></div>
+    
+    <!-- Spacing annotation -->
+    <div style="position:absolute;top:50%;left:20%;transform:translateY(-50%);color:#4ecdc4;font-size:11px;">
+      ← 打字窗口区 →<br>
+      <span style="color:#888;">(约屏幕宽度的 35-45%)</span>
+    </div>
+    
+    <!-- Arrow showing scroll direction -->
+    <div style="position:absolute;top:50%;right:2%;transform:translateY(-50%);color:#888;font-size:20px;">←</div>
+  </div>
+</div>
+</div>
+
+<div class="section">
+<h3>2. 间距计算公式</h3>
+<p style="color:#ccc;font-family:monospace;font-size:14px;background:rgba(0,0,0,0.3);padding:1rem;border-radius:6px;">
+障碍物间距 = 滚动速度 × 打字窗口时间<br><br>
+其中 打字窗口时间 = 字符数 × 0.25s + 0.8s（决策缓冲）<br><br>
+<span style="color:#4ecdc4;">示例（Easy 模式，初始速度 200px/s）：</span><br>
+• 4字母词窗口 = 4 × 0.25 + 0.8 = 1.8s<br>
+• 最小间距 = 200 × 1.8 = 360px<br>
+• 实际间距 = 最小间距 × 1.3（安全系数）= 468px
+</p>
+</div>
+
+<div class="section">
+<h3>3. 缺口大小设计</h3>
+<div class="options">
+  <div class="option" data-choice="fixed-gap" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>固定缺口高度</h3>
+      <p>缺口始终为角色高度的 3 倍（约 120px），两个词分布在缺口的上1/3和下1/3处。简单稳定，但随着速度加快，难度只来自打字速度而非空间判断。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="shrinking-gap" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>渐进缩小的缺口</h3>
+      <p>初期缺口大（角色4倍高），后期逐渐缩小（最小到2.5倍）。两词间距也随之收窄，选择精度要求更高。速度+空间双重难度递增。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="variable-gap" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>缺口高度随机波动</h3>
+      <p>每次障碍物缺口在 [2.5x, 4x] 角色高度之间随机，两词位置随缺口变化。增加不可预测性，但可能导致不公平的随机死亡。</p>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="section">
+<h3>4. 单词放置规则</h3>
+<p style="color:#ccc;line-height:1.8;">
+• 两个词<strong>竖直排列</strong>在缺口中央，上方词 = 高跳跃落点，下方词 = 低跳跃落点<br>
+• 词的水平位置 = 缺口水平位置（视觉绑定）<br>
+• <strong>上词位置</strong>：缺口顶部往下 1/4 处<br>
+• <strong>下词位置</strong>：缺口底部往上 1/4 处<br>
+• 玩家开始打字时，另一个词渐隐（减少干扰）<br>
+• 打完词后角色跳跃，已选词变亮消失，未选词渐隐
+</p>
+</div>
