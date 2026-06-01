@@ -210,7 +210,7 @@ export class GameScene extends Phaser.Scene {
 
   private die(): void {
     this.alive = false;
-    this.player.destroy();
+    this.player.die();
     this.time.delayedCall(500, () => {
       this.scene.start('DeathScene', {
         score: this.scoreSystem.getScore(),
