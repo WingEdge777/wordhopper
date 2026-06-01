@@ -56,7 +56,6 @@ export class DeathScene extends Phaser.Scene {
     });
 
     this.input.keyboard!.on('keydown', (event: KeyboardEvent) => {
-      event.stopImmediatePropagation();
       if (event.key === 'Enter') {
         this.input.keyboard?.off('keydown');
         this.scene.start('MenuScene');
