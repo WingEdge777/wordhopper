@@ -12,9 +12,15 @@
 </head>
 <body tabindex="0">
   <script>
-    document.addEventListener('keydown', function(e) {
-      e.preventDefault();
-    }, true);
+    window.addEventListener('load', function() {
+      var c = document.querySelector('canvas');
+      if (c) {
+        c.setAttribute('tabindex', '0');
+        c.focus();
+        c.addEventListener('blur', function() { setTimeout(function() { c.focus(); }, 0); });
+        document.addEventListener('click', function() { c.focus(); });
+      }
+    });
   </script>
   <script type="module" src="/src/main.ts"></script>
 </body>

@@ -3,7 +3,7 @@ import { Difficulty } from '../config/constants';
 
 export class MenuScene extends Phaser.Scene {
   private selectedDifficulty: Difficulty = 'easy';
-  private difficultyTexts: Record<Difficulty, Phaser.GameObjects.Rectangle> = {} as any;
+  private difficultyBtns: Record<Difficulty, Phaser.GameObjects.Container> = {} as any;
 
   constructor() {
     super({ key: 'MenuScene' });
@@ -11,7 +11,7 @@ export class MenuScene extends Phaser.Scene {
 
   create(): void {
     this.selectedDifficulty = 'easy';
-    this.difficultyTexts = {} as any;
+    this.difficultyBtns = {} as any;
 
     const { width, height } = this.cameras.main;
 
@@ -39,42 +39,52 @@ export class MenuScene extends Phaser.Scene {
     difficulties.forEach(({ key, label, color, desc }, i) => {
       const yPos = height * 0.48 + i * 52;
 
-      const btn = this.add.rectangle(width / 2, yPos, 260, 42, 0x1a1a2e);
-      btn.setStrokeStyle(2, Phaser.Display.Color.HexStringToColor(color).color);
-      btn.setInteractive({ useHandCursor: true });
+      const container = this.add.container(width / 2, yPos);
 
-      this.add.text(width / 2 - 50, yPos, label, {
+      const bg = this.add.rectangle(0, 0, 260, 42, 0x1a1a2e);
+      bg.setStrokeStyle(2, Phaser.Display.Color.HexStringToColor(color).color);
+
+      const labelText = this.add.text(-50, 0, label, {
         fontSize: '20px',
         color,
         fontFamily: 'monospace',
         fontStyle: 'bold',
       }).setOrigin(0, 0.5);
 
-      this.add.text(width / 2 + 60, yPos, desc, {
+      const descText = this.add.text(60, 0, desc, {
         fontSize: '14px',
         color: '#86868b',
         fontFamily: 'monospace',
       }).setOrigin(0, 0.5);
 
-      btn.on('pointerdown', () => {
+      container.add([bg, labelText, descText]);
+      container.setSize(260, 42);
+      container.setInteractive({ useHandCursor: true });
+
+      container.on('pointerdown', () => {
         this.selectedDifficulty = key;
         this.updateHighlight();
       });
 
-      this.difficultyTexts[key] = btn;
+      this.difficultyBtns[key] = container;
     });
 
-    const startBtn = this.add.rectangle(width / 2, height * 0.8, 300, 50, 0x4ecdc4, 0.2);
-    startBtn.setStrokeStyle(2, 0x4ecdc4);
-    startBtn.setInteractive({ useHandCursor: true });
+    const startContainer = this.add.container(width / 2, height * 0.8);
 
-    this.add.text(width / 2, height * 0.8, 'ENTER or Click to START', {
+    const startBg = this.add.rectangle(0, 0, 300, 50, 0x4ecdc4, 0.15);
+    startBg.setStrokeStyle(2, 0x4ecdc4);
+
+    const startLabel = this.add.text(0, 0, 'Click or ENTER to START', {
       fontSize: '18px',
       color: '#4ecdc4',
       fontFamily: 'monospace',
     }).setOrigin(0.5);
 
-    startBtn.on('pointerdown', () => {
+    startContainer.add([startBg, startLabel]);
+    startContainer.setSize(300, 50);
+    startContainer.setInteractive({ useHandCursor: true });
+
+    startContainer.on('pointerdown', () => {
       this.startGame();
     });
 
@@ -93,14 +103,15 @@ export class MenuScene extends Phaser.Scene {
       medium: 0xffd93d,
       hard: 0xe74c3c,
     };
-    (Object.keys(this.difficultyTexts) as Difficulty[]).forEach((key) => {
-      const btn = this.difficultyTexts[key];
+    (Object.keys(this.difficultyBtns) as Difficulty[]).forEach((key) => {
+      const container = this.difficultyBtns[key];
+      const bg = container.getAt(0) as Phaser.GameObjects.Rectangle;
       if (key === this.selectedDifficulty) {
-        btn.setAlpha(1);
-        btn.setFillStyle(colors[key], 0.3);
+        container.setAlpha(1);
+        bg.setFillStyle(colors[key], 0.3);
       } else {
-        btn.setAlpha(0.5);
-        btn.setFillStyle(0x1a1a2e, 1);
+        container.setAlpha(0.5);
+        bg.setFillStyle(0x1a1a2e, 1);
       }
     });
   }
