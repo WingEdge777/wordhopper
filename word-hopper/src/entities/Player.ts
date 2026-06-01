@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { PLAYER_X, PLAYER_HEIGHT, PLAYER_WIDTH, GROUND_Y, GRAVITY } from '../config/constants';
+import { PLAYER_X, PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_COLLISION_SHRINK, GROUND_Y, GRAVITY } from '../config/constants';
 
 export class Player {
   private container: Phaser.GameObjects.Container;
@@ -73,11 +73,13 @@ export class Player {
   }
 
   getBounds(): Phaser.Geom.Rectangle {
+    const sw = PLAYER_WIDTH * PLAYER_COLLISION_SHRINK;
+    const sh = PLAYER_HEIGHT * PLAYER_COLLISION_SHRINK;
     return new Phaser.Geom.Rectangle(
-      this.x - PLAYER_WIDTH / 2,
-      this.y - PLAYER_HEIGHT,
-      PLAYER_WIDTH,
-      PLAYER_HEIGHT
+      this.x - sw / 2,
+      this.y - PLAYER_HEIGHT + (PLAYER_HEIGHT - sh) / 2,
+      sw,
+      sh
     );
   }
 

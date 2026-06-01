@@ -3,6 +3,7 @@ export const CANVAS_HEIGHT = 450;
 export const PLAYER_X = 80;
 export const PLAYER_HEIGHT = 32;
 export const PLAYER_WIDTH = 24;
+export const PLAYER_COLLISION_SHRINK = 0.6;
 export const GROUND_Y = CANVAS_HEIGHT - 35;
 
 export const INITIAL_SCROLL_SPEED = 200;
@@ -10,8 +11,8 @@ export const MAX_SPEED_MULTIPLIER = 2.5;
 
 export const GRAVITY = 1200;
 
-export const GAP_MIN = 2.5 * PLAYER_HEIGHT;
-export const GAP_MAX = 4.5 * PLAYER_HEIGHT;
+export const GAP_MIN = 3.5 * PLAYER_HEIGHT;
+export const GAP_MAX = 5.5 * PLAYER_HEIGHT;
 
 export const SINGLE_OBSTACLE_CHANCE = 0.3;
 

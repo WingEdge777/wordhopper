@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { Difficulty, PLAYER_X, GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT } from '../config/constants';
+import { Difficulty, PLAYER_X, GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT, GRAVITY } from '../config/constants';
 import { Player } from '../entities/Player';
 import { Obstacle, ObstacleConfig } from '../entities/Obstacle';
 import { TypingSystem } from '../systems/TypingSystem';
@@ -23,6 +23,7 @@ export class GameScene extends Phaser.Scene {
   private scoreText!: Phaser.GameObjects.Text;
   private speedText!: Phaser.GameObjects.Text;
   private ground!: Phaser.GameObjects.Rectangle;
+  private timingLine!: Phaser.GameObjects.Graphics;
   private distance = 0;
   private alive = true;
   private tickAccumulator = 0;
@@ -58,6 +59,9 @@ export class GameScene extends Phaser.Scene {
     this.add.rectangle(CANVAS_WIDTH / 2, GROUND_Y + 1, CANVAS_WIDTH, 2, 0x636e72);
 
     this.player = new Player(this);
+
+    this.timingLine = this.add.graphics();
+    this.timingLine.setDepth(5);
 
     const hudBg = this.add.rectangle(CANVAS_WIDTH - 80, 30, 150, 45, 0x000000, 0.6);
     hudBg.setOrigin(0.5);
@@ -117,6 +121,8 @@ export class GameScene extends Phaser.Scene {
     for (const obstacle of this.obstacles) {
       obstacle.update(dt);
     }
+
+    this.updateTimingLine(speed);
 
     this.checkCollisions();
     this.cleanupObstacles();
@@ -237,5 +243,37 @@ export class GameScene extends Phaser.Scene {
   private updateHUD(): void {
     this.scoreText.setText(`Score: ${this.scoreSystem.getScore().toLocaleString()}`);
     this.speedText.setText(`Speed: ${this.speedManager.getSpeedMultiplier().toFixed(1)}x`);
+  }
+
+  private updateTimingLine(speed: number): void {
+    this.timingLine.clear();
+
+    const nearest = this.getNearestObstacle();
+    if (!nearest) return;
+
+    const config = nearest.getConfig();
+    const targetY = this.typingSystem.getProgress().selectedWord
+      ? (config.word1 === this.typingSystem.getProgress().selectedWord ? config.word1Y : config.word2Y)
+      : config.word1Y;
+
+    const jumpHeight = GROUND_Y - targetY;
+    if (jumpHeight <= 0) return;
+
+    const apexTime = Math.sqrt(2 * jumpHeight / GRAVITY);
+    const distToTravel = nearest.getX() - PLAYER_X;
+    const timeToArrive = distToTravel / speed;
+
+    const timingX = PLAYER_X + speed * (timeToArrive - apexTime);
+
+    if (timingX < PLAYER_X - 20 || timingX > CANVAS_WIDTH + 50) return;
+
+    const proximity = Math.abs(nearest.getX() - PLAYER_X);
+    const alpha = proximity < 200 ? 0.8 : 0.35;
+
+    this.timingLine.lineStyle(2, 0x4ecdc4, alpha);
+    this.timingLine.lineBetween(timingX, 30, timingX, GROUND_Y);
+
+    this.timingLine.fillStyle(0x4ecdc4, alpha);
+    this.timingLine.fillTriangle(timingX - 5, 30, timingX + 5, 30, timingX, 38);
   }
 }
