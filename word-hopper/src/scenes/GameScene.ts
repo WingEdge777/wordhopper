@@ -70,7 +70,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.input.keyboard!.on('keydown', (event: KeyboardEvent) => {
-      event.preventDefault();
+      event.stopImmediatePropagation();
       if (!this.alive) return;
       if (event.key.length !== 1) return;
       this.handleTyping(event.key);

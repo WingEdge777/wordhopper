@@ -79,7 +79,7 @@ export class MenuScene extends Phaser.Scene {
     });
 
     this.input.keyboard?.on('keydown', (event: KeyboardEvent) => {
-      event.preventDefault();
+      event.stopImmediatePropagation();
       if (event.key === 'Enter') {
         this.startGame();
       }
