@@ -137,10 +137,7 @@ export class GameScene extends Phaser.Scene {
       this.scoreSystem.addWordBonus(result.selectedWord, this.speedManager.getSpeedMultiplier());
       nearest.clearWords();
 
-      this.typingSystem.setWords('', '');
-      this.time.delayedCall(300, () => {
-        this.spawnObstacle();
-      });
+      this.spawnObstacle();
     }
   }
 
