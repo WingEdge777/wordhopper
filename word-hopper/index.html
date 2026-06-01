@@ -13,9 +13,8 @@
 <body tabindex="0">
   <script>
     document.addEventListener('keydown', function(e) {
-      if (e.key.length === 1 || e.key === 'Enter' || e.key === 'Backspace') return;
       e.preventDefault();
-    });
+    }, true);
   </script>
   <script type="module" src="/src/main.ts"></script>
 </body>
