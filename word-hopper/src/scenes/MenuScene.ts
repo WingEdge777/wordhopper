@@ -3,7 +3,7 @@ import { Difficulty } from '../config/constants';
 
 export class MenuScene extends Phaser.Scene {
   private selectedDifficulty: Difficulty = 'easy';
-  private difficultyTexts: Record<Difficulty, Phaser.GameObjects.Text> = {} as any;
+  private difficultyTexts: Record<Difficulty, Phaser.GameObjects.Rectangle> = {} as any;
   private startText: Phaser.GameObjects.Text | null = null;
 
   constructor() {
@@ -15,10 +15,7 @@ export class MenuScene extends Phaser.Scene {
   create(): void {
     const { width, height } = this.cameras.main;
 
-    this.input.setTopOnly(true);
-
-    const bg = this.add.rectangle(width / 2, height / 2, width, height, 0x0f0f23);
-    bg.setInteractive({ useHandCursor: false });
+    this.add.rectangle(width / 2, height / 2, width, height, 0x0f0f23);
 
     this.add.text(width / 2, height * 0.18, 'WORD HOPPER', {
       fontSize: '44px',
@@ -46,34 +43,38 @@ export class MenuScene extends Phaser.Scene {
       btn.setStrokeStyle(2, Phaser.Display.Color.HexStringToColor(color).color);
       btn.setInteractive({ useHandCursor: true });
 
-      const text = this.add.text(width / 2 - 50, yPos, label, {
+      this.add.text(width / 2 - 50, yPos, label, {
         fontSize: '20px',
         color,
         fontFamily: 'monospace',
         fontStyle: 'bold',
       }).setOrigin(0, 0.5);
 
-      const descText = this.add.text(width / 2 + 60, yPos, desc, {
+      this.add.text(width / 2 + 60, yPos, desc, {
         fontSize: '14px',
         color: '#86868b',
         fontFamily: 'monospace',
       }).setOrigin(0, 0.5);
 
-      btn.on('pointerdown', () => {
+      btn.on('pointerup', () => {
         this.selectedDifficulty = key;
         this.updateHighlight();
       });
 
-      this.difficultyTexts[key] = text;
+      this.difficultyTexts[key] = btn;
     });
+
+    const startBtn = this.add.rectangle(width / 2, height * 0.8, 300, 44, 0x4ecdc4, 0.15);
+    startBtn.setStrokeStyle(2, 0x4ecdc4);
+    startBtn.setInteractive({ useHandCursor: true });
 
     this.startText = this.add.text(width / 2, height * 0.8, 'ENTER or Click to START', {
       fontSize: '18px',
       color: '#4ecdc4',
       fontFamily: 'monospace',
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    }).setOrigin(0.5);
 
-    this.startText.on('pointerup', () => {
+    startBtn.on('pointerup', () => {
       this.startGame();
     });
 
@@ -85,14 +86,19 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private updateHighlight(): void {
+    const colors: Record<Difficulty, number> = {
+      easy: 0x2ecc71,
+      medium: 0xffd93d,
+      hard: 0xe74c3c,
+    };
     (Object.keys(this.difficultyTexts) as Difficulty[]).forEach((key) => {
-      const text = this.difficultyTexts[key];
+      const btn = this.difficultyTexts[key];
       if (key === this.selectedDifficulty) {
-        text.setAlpha(1);
-        text.setFontSize(22);
+        btn.setAlpha(1);
+        btn.setFillStyle(colors[key], 0.3);
       } else {
-        text.setAlpha(0.4);
-        text.setFontSize(20);
+        btn.setAlpha(0.5);
+        btn.setFillStyle(0x1a1a2e, 1);
       }
     });
   }

@@ -28,9 +28,9 @@ export class GameScene extends Phaser.Scene {
     super({ key: 'GameScene' });
   }
 
-  async init(data: { difficulty: Difficulty }): Promise<void> {
+  init(data: { difficulty: Difficulty }): void {
     this.difficulty = data.difficulty || 'easy';
-    await this.wordSpawner.loadWords(this.difficulty);
+    this.wordSpawner.loadWords(this.difficulty);
   }
 
   create(): void {

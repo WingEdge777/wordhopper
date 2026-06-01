@@ -1,22 +1,26 @@
-import { Difficulty, DIFFICULTY_CONFIG } from '../config/constants';
+import { Difficulty } from '../config/constants';
+import easyWords from '../data/words-easy.json';
+import mediumWords from '../data/words-medium.json';
+import hardWords from '../data/words-hard.json';
 
 export interface WordPair {
   word1: string;
   word2: string;
 }
 
+const WORD_CACHE: Record<Difficulty, string[]> = {
+  easy: (easyWords as string[]).filter((w) => w.length >= 3 && w.length <= 5),
+  medium: (mediumWords as string[]).filter((w) => w.length >= 6 && w.length <= 10),
+  hard: (hardWords as string[]).filter((w) => w.length >= 11),
+};
+
 export class WordSpawner {
   private words: string[] = [];
   private lastWord1 = '';
   private lastWord2 = '';
 
-  async loadWords(difficulty: Difficulty): Promise<void> {
-    const config = DIFFICULTY_CONFIG[difficulty];
-    const data = await import(`../data/${config.wordFile}`);
-    const allWords: string[] = data.default || data;
-    this.words = allWords.filter(
-      (w) => w.length >= config.minLen && w.length <= config.maxLen
-    );
+  loadWords(difficulty: Difficulty): void {
+    this.words = WORD_CACHE[difficulty] || [];
   }
 
   generatePair(): WordPair {
