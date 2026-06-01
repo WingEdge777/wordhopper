@@ -2,19 +2,30 @@ import Phaser from 'phaser';
 import { PLAYER_X, PLAYER_HEIGHT, PLAYER_WIDTH, GROUND_Y, GRAVITY } from '../config/constants';
 
 export class Player {
-  private sprite: Phaser.GameObjects.Rectangle;
+  private container: Phaser.GameObjects.Container;
   private velocityY = 0;
   private isGrounded = true;
+  private x = PLAYER_X;
+  private y = GROUND_Y;
 
   constructor(scene: Phaser.Scene) {
-    this.sprite = scene.add.rectangle(
-      PLAYER_X,
-      GROUND_Y - PLAYER_HEIGHT / 2,
-      PLAYER_WIDTH,
-      PLAYER_HEIGHT,
-      0x4ecdc4
-    );
-    this.sprite.setOrigin(0.5, 1);
+    this.container = scene.add.container(PLAYER_X, GROUND_Y);
+    this.container.setScale(1, 1);
+
+    const s = 3;
+
+    const head = scene.add.circle(0, -PLAYER_HEIGHT + 4, 5, 0xf5d6a8);
+    const body = scene.add.rectangle(0, -PLAYER_HEIGHT + 14, 6, 12, 0x4ecdc4);
+    const legL = scene.add.rectangle(-3, -3, 3, 6, 0x2d3436);
+    const legR = scene.add.rectangle(3, -3, 3, 6, 0x2d3436);
+    const armL = scene.add.rectangle(-6, -PLAYER_HEIGHT + 16, 3, 8, 0x4ecdc4);
+    armL.angle = -20;
+    const armR = scene.add.rectangle(6, -PLAYER_HEIGHT + 16, 3, 8, 0x4ecdc4);
+    armR.angle = 20;
+    const eye = scene.add.circle(2, -PLAYER_HEIGHT + 3, 1.5, 0x1a1a2e);
+
+    this.container.add([legL, legR, body, armL, armR, head, eye]);
+    this.container.setDepth(10);
   }
 
   update(deltaMs: number): void {
@@ -22,14 +33,16 @@ export class Player {
 
     if (!this.isGrounded) {
       this.velocityY += GRAVITY * dt;
-      this.sprite.y += this.velocityY * dt;
+      this.y += this.velocityY * dt;
 
-      if (this.sprite.y >= GROUND_Y) {
-        this.sprite.y = GROUND_Y;
+      if (this.y >= GROUND_Y) {
+        this.y = GROUND_Y;
         this.velocityY = 0;
         this.isGrounded = true;
       }
     }
+
+    this.container.setPosition(this.x, this.y);
   }
 
   jumpTo(targetY: number): void {
@@ -39,7 +52,8 @@ export class Player {
     const initialVelocity = -Math.sqrt(2 * GRAVITY * height);
     this.velocityY = initialVelocity;
     this.isGrounded = false;
-    this.sprite.y = GROUND_Y;
+    this.y = GROUND_Y;
+    this.container.setPosition(this.x, this.y);
   }
 
   jumpToWord(wordY: number): void {
@@ -47,33 +61,34 @@ export class Player {
   }
 
   getY(): number {
-    return this.sprite.y;
+    return this.y;
   }
 
   getIsGrounded(): boolean {
     return this.isGrounded;
   }
 
-  getSprite(): Phaser.GameObjects.Rectangle {
-    return this.sprite;
+  getContainer(): Phaser.GameObjects.Container {
+    return this.container;
   }
 
   getBounds(): Phaser.Geom.Rectangle {
     return new Phaser.Geom.Rectangle(
-      this.sprite.x - PLAYER_WIDTH / 2,
-      this.sprite.y - PLAYER_HEIGHT,
+      this.x - PLAYER_WIDTH / 2,
+      this.y - PLAYER_HEIGHT,
       PLAYER_WIDTH,
       PLAYER_HEIGHT
     );
   }
 
   reset(): void {
-    this.sprite.y = GROUND_Y;
+    this.y = GROUND_Y;
     this.velocityY = 0;
     this.isGrounded = true;
+    this.container.setPosition(this.x, this.y);
   }
 
   destroy(): void {
-    this.sprite.destroy();
+    this.container.destroy();
   }
 }

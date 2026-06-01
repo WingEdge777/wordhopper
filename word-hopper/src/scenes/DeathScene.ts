@@ -41,7 +41,7 @@ export class DeathScene extends Phaser.Scene {
       }).setOrigin(0.5);
     });
 
-    const restartText = this.add.text(width / 2, height * 0.82, 'Press SPACE to restart', {
+    const restartText = this.add.text(width / 2, height * 0.82, 'Press ENTER to restart', {
       fontSize: '16px',
       color: '#86868b',
       fontFamily: 'monospace',
@@ -55,7 +55,7 @@ export class DeathScene extends Phaser.Scene {
       repeat: -1,
     });
 
-    this.input.keyboard!.on('keydown-SPACE', () => {
+    this.input.keyboard!.on('keydown-ENTER', () => {
       this.scene.start('MenuScene');
     });
   }

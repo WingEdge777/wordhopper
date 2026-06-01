@@ -61,17 +61,19 @@ export class Obstacle {
     }
 
     this.word1Text = scene.add.text(config.x, config.word1Y, config.word1, {
-      fontSize: '14px',
+      fontSize: '18px',
       color: '#4ecdc4',
       fontFamily: 'monospace',
+      fontStyle: 'bold',
     });
     this.word1Text.setOrigin(0.5);
 
     if (config.word2) {
       this.word2Text = scene.add.text(config.x, config.word2Y, config.word2, {
-        fontSize: '14px',
+        fontSize: '18px',
         color: '#ffd93d',
         fontFamily: 'monospace',
+        fontStyle: 'bold',
       });
       this.word2Text.setOrigin(0.5);
     }
