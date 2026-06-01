@@ -70,12 +70,6 @@ export class GameScene extends Phaser.Scene {
       fontFamily: 'monospace',
     });
 
-    this.input.keyboard!.on('keydown', (event: KeyboardEvent) => {
-      if (!this.alive) return;
-      if (event.key.length !== 1) return;
-      this.handleTyping(event.key);
-    });
-
     const gameInput = document.getElementById('game-input') as HTMLInputElement;
     if (gameInput) {
       gameInput.value = '';
