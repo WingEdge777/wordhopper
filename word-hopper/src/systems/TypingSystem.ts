@@ -74,6 +74,10 @@ export class TypingSystem {
     return this.selectedWord;
   }
 
+  hasWords(): boolean {
+    return this.word1 !== '' || this.word2 !== '';
+  }
+
   getCharIndex(): number {
     return this.charIndex;
   }

@@ -220,6 +220,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private checkSpawn(): void {
+    if (this.typingSystem.hasWords()) return;
     const rightEdge = Math.max(...this.obstacles.map((o) => o.getX()), 0);
     if (this.obstacleSpawner.canSpawn(rightEdge)) {
       this.spawnObstacle();
