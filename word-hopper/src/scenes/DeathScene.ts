@@ -57,9 +57,24 @@ export class DeathScene extends Phaser.Scene {
 
     this.input.keyboard!.on('keydown', (event: KeyboardEvent) => {
       if (event.key === 'Enter') {
-        this.input.keyboard?.off('keydown');
-        this.scene.start('MenuScene');
+        this.goToMenu();
       }
     });
+
+    const gameInput = document.getElementById('game-input') as HTMLInputElement;
+    if (gameInput) {
+      gameInput.focus();
+      gameInput.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          this.goToMenu();
+        }
+      });
+    }
+  }
+
+  private goToMenu(): void {
+    this.input.keyboard?.off('keydown');
+    this.scene.start('MenuScene');
   }
 }

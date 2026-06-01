@@ -8,20 +8,11 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #1a1a2e; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
     canvas { image-rendering: pixelated; outline: none; }
+    #game-input { position: fixed; top: -100px; left: -100px; width: 1px; height: 1px; opacity: 0; }
   </style>
 </head>
 <body tabindex="0">
-  <script>
-    window.addEventListener('load', function() {
-      var c = document.querySelector('canvas');
-      if (c) {
-        c.setAttribute('tabindex', '0');
-        c.focus();
-        c.addEventListener('blur', function() { setTimeout(function() { c.focus(); }, 0); });
-        document.addEventListener('click', function() { c.focus(); });
-      }
-    });
-  </script>
+  <input id="game-input" type="text" autocomplete="off" autofocus>
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

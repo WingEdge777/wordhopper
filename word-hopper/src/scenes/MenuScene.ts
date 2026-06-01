@@ -4,6 +4,7 @@ import { Difficulty } from '../config/constants';
 export class MenuScene extends Phaser.Scene {
   private selectedDifficulty: Difficulty = 'easy';
   private difficultyBtns: Record<Difficulty, Phaser.GameObjects.Container> = {} as any;
+  private gameInputHandler: ((e: KeyboardEvent) => void) | null = null;
 
   constructor() {
     super({ key: 'MenuScene' });
@@ -94,6 +95,20 @@ export class MenuScene extends Phaser.Scene {
       }
     });
 
+    const gameInput = document.getElementById('game-input') as HTMLInputElement;
+    if (gameInput) {
+      gameInput.value = '';
+      gameInput.focus();
+      this.gameInputHandler = (e: KeyboardEvent) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          e.stopPropagation();
+          this.startGame();
+        }
+      };
+      gameInput.addEventListener('keydown', this.gameInputHandler);
+    }
+
     this.updateHighlight();
   }
 
@@ -117,6 +132,10 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private startGame(): void {
+    if (this.gameInputHandler) {
+      const gameInput = document.getElementById('game-input') as HTMLInputElement;
+      if (gameInput) gameInput.removeEventListener('keydown', this.gameInputHandler);
+    }
     this.input.keyboard?.off('keydown');
     this.scene.start('GameScene', { difficulty: this.selectedDifficulty });
   }
