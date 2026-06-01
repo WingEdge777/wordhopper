@@ -18,6 +18,8 @@ export class GameScene extends Phaser.Scene {
   private obstacleSpawner!: ObstacleSpawner;
   private difficulty: Difficulty = 'easy';
   private gameInputHandler: ((e: KeyboardEvent) => void) | null = null;
+  private inputBlurHandler: (() => void) | null = null;
+  private typingLock = false;
   private scoreText!: Phaser.GameObjects.Text;
   private speedText!: Phaser.GameObjects.Text;
   private ground!: Phaser.GameObjects.Rectangle;
@@ -76,15 +78,20 @@ export class GameScene extends Phaser.Scene {
       gameInput.focus();
       this.gameInputHandler = (e: KeyboardEvent) => {
         if (!this.alive) return;
+        if (this.typingLock) return;
         if (e.key.length !== 1) return;
         e.preventDefault();
         e.stopPropagation();
+        this.typingLock = true;
         this.handleTyping(e.key);
+        gameInput.value = '';
+        requestAnimationFrame(() => { this.typingLock = false; });
       };
       gameInput.addEventListener('keydown', this.gameInputHandler);
-      gameInput.addEventListener('blur', () => {
+      this.inputBlurHandler = () => {
         if (this.alive) gameInput.focus();
-      });
+      };
+      gameInput.addEventListener('blur', this.inputBlurHandler);
     }
 
     this.spawnObstacle();
