@@ -7,10 +7,13 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #1a1a2e; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
-    canvas { image-rendering: pixelated; }
+    canvas { image-rendering: pixelated; outline: none; }
   </style>
 </head>
-<body>
+<body tabindex="0">
+  <script>
+    document.addEventListener('keydown', function(e) { e.preventDefault(); }, true);
+  </script>
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

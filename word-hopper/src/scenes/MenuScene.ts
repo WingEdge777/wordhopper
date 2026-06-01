@@ -4,15 +4,15 @@ import { Difficulty } from '../config/constants';
 export class MenuScene extends Phaser.Scene {
   private selectedDifficulty: Difficulty = 'easy';
   private difficultyTexts: Record<Difficulty, Phaser.GameObjects.Rectangle> = {} as any;
-  private startText: Phaser.GameObjects.Text | null = null;
 
   constructor() {
     super({ key: 'MenuScene' });
   }
 
-  private started = false;
-
   create(): void {
+    this.selectedDifficulty = 'easy';
+    this.difficultyTexts = {} as any;
+
     const { width, height } = this.cameras.main;
 
     this.add.rectangle(width / 2, height / 2, width, height, 0x0f0f23);
@@ -56,7 +56,7 @@ export class MenuScene extends Phaser.Scene {
         fontFamily: 'monospace',
       }).setOrigin(0, 0.5);
 
-      btn.on('pointerup', () => {
+      btn.on('pointerdown', () => {
         this.selectedDifficulty = key;
         this.updateHighlight();
       });
@@ -64,22 +64,25 @@ export class MenuScene extends Phaser.Scene {
       this.difficultyTexts[key] = btn;
     });
 
-    const startBtn = this.add.rectangle(width / 2, height * 0.8, 300, 44, 0x4ecdc4, 0.15);
+    const startBtn = this.add.rectangle(width / 2, height * 0.8, 300, 50, 0x4ecdc4, 0.2);
     startBtn.setStrokeStyle(2, 0x4ecdc4);
     startBtn.setInteractive({ useHandCursor: true });
 
-    this.startText = this.add.text(width / 2, height * 0.8, 'ENTER or Click to START', {
+    this.add.text(width / 2, height * 0.8, 'ENTER or Click to START', {
       fontSize: '18px',
       color: '#4ecdc4',
       fontFamily: 'monospace',
     }).setOrigin(0.5);
 
-    startBtn.on('pointerup', () => {
+    startBtn.on('pointerdown', () => {
       this.startGame();
     });
 
-    this.input.keyboard?.on('keydown-ENTER', () => {
-      this.startGame();
+    this.input.keyboard?.on('keydown', (event: KeyboardEvent) => {
+      event.preventDefault();
+      if (event.key === 'Enter') {
+        this.startGame();
+      }
     });
 
     this.updateHighlight();
@@ -104,8 +107,7 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private startGame(): void {
-    if (this.started) return;
-    this.started = true;
+    this.input.keyboard?.off('keydown');
     this.scene.start('GameScene', { difficulty: this.selectedDifficulty });
   }
 }
