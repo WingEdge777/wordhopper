@@ -1,0 +1,161 @@
+<h2>Word Hopper: Retro Pixel Arcade Style</h2>
+<p class="subtitle">3 approaches for the pixel arcade aesthetic — pick the vibe you like</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0F172A; padding:24px; min-height:260px; position:relative; overflow:hidden; font-family:'Courier New',monospace;">
+      <!-- CRT scanlines overlay -->
+      <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.15) 2px,rgba(0,0,0,0.15) 4px);pointer-events:none;z-index:10;"></div>
+      
+      <!-- Starfield bg -->
+      <div style="position:absolute;top:10px;left:20px;color:#334155;font-size:8px;">✦ &nbsp; &nbsp; ✦ &nbsp; &nbsp; &nbsp; ✦ &nbsp; ✦</div>
+      <div style="position:absolute;top:60px;left:80px;color:#334155;font-size:8px;">&nbsp; ✦ &nbsp; &nbsp; ✦ &nbsp; &nbsp; ✦</div>
+      
+      <!-- Ground -->
+      <div style="position:absolute;bottom:40px;left:0;right:0;height:32px;background:#1B4332;border-top:3px solid #2D6A4F;"></div>
+      <div style="position:absolute;bottom:38px;left:0;right:0;height:3px;background:#40916C;opacity:0.6;"></div>
+      <!-- Grass tufts -->
+      <div style="position:absolute;bottom:72px;left:30px;color:#52B788;font-size:10px;">▓▒</div>
+      <div style="position:absolute;bottom:72px;left:120px;color:#52B788;font-size:10px;">▒▓</div>
+      <div style="position:absolute;bottom:72px;left:250px;color:#52B788;font-size:10px;">▓▒▓</div>
+      
+      <!-- Player (pixel stick figure) -->
+      <div style="position:absolute;bottom:72px;left:60px;color:#00FF88;font-size:14px;font-weight:bold;text-shadow:0 0 8px #00FF88;">
+        O<br>/|\<br>/ \
+      </div>
+      
+      <!-- Obstacle (cactus) -->
+      <div style="position:absolute;bottom:72px;left:280px;color:#22C55E;font-size:10px;font-family:monospace;text-shadow:0 0 4px #22C55E;">
+        &nbsp;██<br>&nbsp;██<br>████<br>&nbsp;██<br>&nbsp;██<br>&nbsp;██
+      </div>
+      <!-- Upper obstacle (hanging vines) -->
+      <div style="position:absolute;top:30px;left:278px;color:#6AB04C;font-size:10px;text-shadow:0 0 4px #6AB04C;">
+        ▓▓▓▓<br>&nbsp;▓▓<br>&nbsp;▓▓<br>&nbsp;▓▓
+      </div>
+      
+      <!-- Words in gap -->
+      <div style="position:absolute;top:140px;left:268px;color:#00FFCC;font-size:13px;font-weight:bold;text-shadow:0 0 6px #00FFCC;font-family:'Courier New',monospace;">jump</div>
+      <div style="position:absolute;top:190px;left:268px;color:#FFD93D;font-size:13px;font-weight:bold;text-shadow:0 0 6px #FFD93D;font-family:'Courier New',monospace;">leap</div>
+      
+      <!-- HUD -->
+      <div style="position:absolute;top:12px;right:12px;color:#00FF88;font-size:11px;font-family:'Courier New',monospace;text-shadow:0 0 4px #00FF88;">
+        SCORE: 1,240<br><span style="color:#FFD93D;">SPEED: 1.3x</span>
+      </div>
+      
+      <!-- Timing line -->
+      <div style="position:absolute;top:35px;left:180px;width:2px;height:200px;background:linear-gradient(180deg,rgba(0,255,204,0.8),rgba(0,255,204,0.2));"></div>
+      <div style="position:absolute;top:30px;left:175px;color:#00FFCC;font-size:8px;">▼</div>
+    </div>
+    <div class="card-body">
+      <h3>A: Neon Pixel Night</h3>
+      <p>Dark void background with neon glow on everything. Stars, pixel art obstacles with glow halos. Bright neon green player, cyan/yellow words. CRT scanlines. Feels like playing on a retro CRT monitor.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Most visually striking</li><li>Glow effects hide simple shapes</li><li>Classic arcade feel</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Glow can strain eyes over time</li><li>Accessibility concerns (low contrast neon)</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#1A1A2E; padding:24px; min-height:260px; position:relative; overflow:hidden; font-family:'Courier New',monospace;">
+      <!-- Subtle gradient sky -->
+      <div style="position:absolute;top:0;left:0;right:0;bottom:40px;background:linear-gradient(180deg,#0F172A 0%,#1E293B 60%,#334155 100%);"></div>
+      
+      <!-- Moon -->
+      <div style="position:absolute;top:20px;right:60px;width:24px;height:24px;border-radius:50%;background:#FDE68A;box-shadow:0 0 20px #FDE68A,0 0 40px rgba(253,230,138,0.3);"></div>
+      
+      <!-- Distant hills -->
+      <div style="position:absolute;bottom:60px;left:0;right:0;height:40px;background:#1B4332;border-radius:40px 60px 0 0;"></div>
+      
+      <!-- Ground -->
+      <div style="position:absolute;bottom:40px;left:0;right:0;height:32px;background:#2D6A4F;border-top:2px solid #40916C;"></div>
+      <div style="position:absolute;bottom:38px;left:0;right:0;height:2px;background:#52B788;opacity:0.5;"></div>
+      
+      <!-- Pixel flowers -->
+      <div style="position:absolute;bottom:72px;left:40px;color:#F472B6;font-size:8px;">✿</div>
+      <div style="position:absolute;bottom:72px;left:100px;color:#FBBF24;font-size:8px;">✿</div>
+      <div style="position:absolute;bottom:72px;left:200px;color:#F472B6;font-size:8px;">✿</div>
+      
+      <!-- Player (cute pixel character) -->
+      <div style="position:absolute;bottom:72px;left:60px;color:#4ECDC4;font-size:12px;font-weight:bold;">
+        ◻<br>◼<br>◊
+      </div>
+      
+      <!-- Obstacle (mushroom) -->
+      <div style="position:absolute;bottom:72px;left:280px;color:#E17055;font-size:10px;font-family:monospace;">
+        ████<br>&nbsp;██<br>&nbsp;▓▓
+      </div>
+      <!-- Upper obstacle -->
+      <div style="position:absolute;top:40px;left:278px;color:#8B4513;font-size:10px;">
+        ▓▓▓▓<br>&nbsp;▓▓
+      </div>
+      
+      <!-- Words in gap -->
+      <div style="position:absolute;top:145px;left:268px;color:#4ECDC4;font-size:13px;font-weight:bold;font-family:'Courier New',monospace;">hop</div>
+      <div style="position:absolute;top:195px;left:268px;color:#FBBF24;font-size:13px;font-weight:bold;font-family:'Courier New',monospace;">spring</div>
+      
+      <!-- HUD -->
+      <div style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.5);padding:6px 10px;border-radius:2px;color:#4ECDC4;font-size:11px;font-family:'Courier New',monospace;border:1px solid rgba(78,205,196,0.3);">
+        SCORE: 1,240<br><span style="color:#FBBF24;">SPEED: 1.3x</span>
+      </div>
+      
+      <!-- Timing line -->
+      <div style="position:absolute;top:35px;left:180px;width:2px;height:200px;background:repeating-linear-gradient(180deg,#4ECDC4 0px,#4ECDC4 4px,transparent 4px,transparent 8px);opacity:0.6;"></div>
+    </div>
+    <div class="card-body">
+      <h3>B: Pixel Nature Night</h3>
+      <p>Moonlit outdoor scene. Gradient sky, distant hills, green ground with pixel flowers. Soft glow from moon. Obstacles are colorful pixel plants. Warmer, more charming and game-like. Less harsh on eyes.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>More game-world atmosphere</li><li>Easier on eyes</li><li>Plants feel natural in setting</li><li>Moon provides subtle lighting logic</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>More background elements to render</li><li>Less "arcade machine" feel</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#000011; padding:24px; min-height:260px; position:relative; overflow:hidden; font-family:'Courier New',monospace;">
+      <!-- CRT scanlines -->
+      <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.1) 3px,rgba(0,0,0,0.1) 6px);pointer-events:none;z-index:10;"></div>
+      
+      <!-- Grid floor (Tron-like) -->
+      <div style="position:absolute;bottom:40px;left:0;right:0;height:32px;background:linear-gradient(180deg,#001122,#000A1A);border-top:2px solid #0088FF;box-shadow:0 -4px 20px rgba(0,136,255,0.3);"></div>
+      <!-- Grid lines on ground -->
+      <div style="position:absolute;bottom:40px;left:0;right:0;height:32px;background:repeating-linear-gradient(90deg,rgba(0,136,255,0.15) 0px,rgba(0,136,255,0.15) 1px,transparent 1px,transparent 40px);"></div>
+      
+      <!-- Horizon glow -->
+      <div style="position:absolute;bottom:70px;left:0;right:0;height:20px;background:linear-gradient(180deg,transparent,rgba(0,136,255,0.08));"></div>
+      
+      <!-- Player (geometric) -->
+      <div style="position:absolute;bottom:74px;left:64px;width:16px;height:24px;border:2px solid #00FF88;background:rgba(0,255,136,0.15);box-shadow:0 0 12px #00FF88;"></div>
+      
+      <!-- Obstacle (digital wall) -->
+      <div style="position:absolute;bottom:72px;left:276px;width:28px;height:60px;background:rgba(0,136,255,0.2);border:1px solid #0088FF;box-shadow:0 0 8px rgba(0,136,255,0.4);"></div>
+      <div style="position:absolute;top:35px;left:276px;width:28px;height:80px;background:rgba(0,136,255,0.2);border:1px solid #0088FF;box-shadow:0 0 8px rgba(0,136,255,0.4);"></div>
+      
+      <!-- Gap marker -->
+      <div style="position:absolute;top:115px;left:278px;width:24px;height:2px;background:#0088FF;opacity:0.3;"></div>
+      <div style="position:absolute;top:132px;left:278px;width:24px;height:2px;background:#0088FF;opacity:0.3;"></div>
+      
+      <!-- Words -->
+      <div style="position:absolute;top:118px;left:260px;color:#00FFCC;font-size:13px;font-weight:bold;text-shadow:0 0 8px #00FFCC;font-family:'Courier New',monospace;">dash</div>
+      <div style="position:absolute;top:172px;left:260px;color:#FF00FF;font-size:13px;font-weight:bold;text-shadow:0 0 8px #FF00FF;font-family:'Courier New',monospace;">sprint</div>
+      
+      <!-- HUD -->
+      <div style="position:absolute;top:12px;right:12px;color:#00FF88;font-size:11px;font-family:'Courier New',monospace;text-shadow:0 0 4px #00FF88;border:1px solid rgba(0,255,136,0.3);padding:6px 10px;background:rgba(0,0,17,0.8);">
+        ▸ SCORE: 1,240<br><span style="color:#FF00FF;">▸ SPEED: 1.3x</span>
+      </div>
+      
+      <!-- Timing line -->
+      <div style="position:absolute;top:35px;left:180px;width:2px;height:200px;background:linear-gradient(180deg,rgba(0,255,204,0.6),rgba(0,255,204,0.1));border-left:1px dashed rgba(0,255,204,0.3);"></div>
+      <div style="position:absolute;top:30px;left:175px;color:#00FFCC;font-size:8px;">▼</div>
+    </div>
+    <div class="card-body">
+      <h3>C: Tron Terminal</h3>
+      <p>Digital grid world. Neon blue grid floor, glowing wireframe obstacles. Cyan/magenta word colors. Feels like you're inside a computer program. Tron meets typing tutor. Very clean geometry.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Most unique identity</li><li>Obstacles = digital walls (easy to draw)</li><li>Typing = entering commands (thematic fit)</li><li>Grid floor is easy to render</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Cold/emotional</li><li>Less "game" more "tool"</li><li>Blue-heavy can feel same-y</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>

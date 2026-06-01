@@ -4,7 +4,9 @@ export const PLAYER_X = 80;
 export const PLAYER_HEIGHT = 32;
 export const PLAYER_WIDTH = 24;
 export const PLAYER_COLLISION_SHRINK = 0.6;
-export const GROUND_Y = CANVAS_HEIGHT - 35;
+export const PIXEL_SIZE = 2;
+export const GROUND_HEIGHT = 35;
+export const GROUND_Y = CANVAS_HEIGHT - GROUND_HEIGHT;
 
 export const INITIAL_SCROLL_SPEED = 200;
 export const MAX_SPEED_MULTIPLIER = 2.5;
