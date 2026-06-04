@@ -4,6 +4,8 @@ export const PLAYER_X = 80;
 export const PLAYER_HEIGHT = 56;
 export const PLAYER_WIDTH = 44;
 export const PLAYER_COLLISION_SHRINK = 0.6;
+export const OBSTACLE_BODY_WIDTH = 30;
+export const OBSTACLE_VISUAL_WIDTH = 40;
 export const GROUND_HEIGHT = 35;
 export const GROUND_Y = CANVAS_HEIGHT - GROUND_HEIGHT;
 
@@ -12,7 +14,7 @@ export const MAX_SPEED_MULTIPLIER = 2.5;
 
 export const GRAVITY = 1200;
 
-export const GAP_MIN = 1.2 * PLAYER_HEIGHT;
+export const GAP_MIN = 2.0 * PLAYER_HEIGHT;
 export const GAP_MAX = 2.5 * PLAYER_HEIGHT;
 
 export const SINGLE_OBSTACLE_CHANCE = 0.15;
@@ -25,8 +27,6 @@ export const SPEED_INCREMENT = 0.01;
 
 export const BASE_SCORE_PER_TICK = 1;
 export const WORD_BONUS_MULTIPLIER = 10;
-
-export const WRONG_LETTER_FLASH_MS = 200;
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
 

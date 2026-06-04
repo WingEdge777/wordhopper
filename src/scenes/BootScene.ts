@@ -252,55 +252,64 @@ export class BootScene extends Phaser.Scene {
     const TW = 56, TH = 100;
 
     g.clear();
-    g.fillStyle(darker(COLORS.OBS_MUSHROOM_STEM, 0.3), 0.12);
-    g.fillRoundedRect(TW / 2 - 9 + 2, 35 + 2, 18, TH - 35, 6);
-    g.fillStyle(darker(COLORS.OBS_MUSHROOM_STEM, 0.15), 0.1);
-    g.fillRoundedRect(TW / 2 - 9 + 1, 35 + 1, 18, TH - 35, 6);
-    g.fillStyle(COLORS.OBS_MUSHROOM_STEM, 1);
-    g.fillRoundedRect(TW / 2 - 9, 35, 18, TH - 35, 6);
-
-    clayEllipse(g, TW / 2, 28, 50, 28, COLORS.OBS_MUSHROOM_CAP);
+    clayEllipse(g, TW / 2, 14, 50, 28, COLORS.OBS_MUSHROOM_CAP);
     g.fillStyle(COLORS.OBS_MUSHROOM_SPOT, 0.7);
-    g.fillEllipse(TW / 2 - 14, 22, 10, 6);
-    g.fillEllipse(TW / 2 + 10, 32, 8, 5);
-    g.fillEllipse(TW / 2 - 4, 34, 6, 4);
+    g.fillEllipse(TW / 2 - 14, 8, 10, 6);
+    g.fillEllipse(TW / 2 + 10, 18, 8, 5);
+    g.fillEllipse(TW / 2 - 4, 20, 6, 4);
+    g.fillStyle(darker(COLORS.OBS_MUSHROOM_STEM, 0.3), 0.12);
+    g.fillRoundedRect(TW / 2 - 9 + 2, 28 + 2, 18, TH - 28, 6);
+    g.fillStyle(darker(COLORS.OBS_MUSHROOM_STEM, 0.15), 0.1);
+    g.fillRoundedRect(TW / 2 - 9 + 1, 28 + 1, 18, TH - 28, 6);
+    g.fillStyle(COLORS.OBS_MUSHROOM_STEM, 1);
+    g.fillRoundedRect(TW / 2 - 9, 28, 18, TH - 28, 6);
 
     g.generateTexture(SPRITE_KEYS.OBSTACLE_MUSHROOM, TW, TH);
 
     g.clear();
-    clayRect(g, TW / 2 - 18, 28, 36, TH - 28, 8, COLORS.OBS_STUMP);
-    clayEllipse(g, TW / 2, 28, 44, 14, COLORS.OBS_STUMP);
+    clayEllipse(g, TW / 2, 7, 44, 14, COLORS.OBS_STUMP);
     g.fillStyle(darker(COLORS.OBS_STUMP, 0.2), 0.4);
-    g.fillEllipse(TW / 2, 28, 30, 9);
+    g.fillEllipse(TW / 2, 7, 30, 9);
     g.fillStyle(darker(COLORS.OBS_STUMP, 0.3), 0.3);
-    g.fillEllipse(TW / 2, 28, 18, 5);
+    g.fillEllipse(TW / 2, 7, 18, 5);
     g.fillStyle(darker(COLORS.OBS_STUMP, 0.4), 0.3);
-    g.fillEllipse(TW / 2, 28, 8, 2.5);
+    g.fillEllipse(TW / 2, 7, 8, 2.5);
+    clayRect(g, TW / 2 - 18, 7, 36, TH - 7, 8, COLORS.OBS_STUMP);
 
     g.generateTexture(SPRITE_KEYS.OBSTACLE_STUMP, TW, TH);
 
     g.clear();
-    clayEllipse(g, TW / 2, TH - 30, 54, 40, COLORS.OBS_BUSH);
-    clayCircle(g, TW / 2 - 16, TH - 48, 18, COLORS.OBS_BUSH);
-    clayCircle(g, TW / 2 + 14, TH - 50, 16, COLORS.OBS_BUSH);
-    clayCircle(g, TW / 2, TH - 56, 16, COLORS.OBS_BUSH);
+    g.fillStyle(darker(COLORS.OBS_BUSH, 0.2), 0.12);
+    g.fillRoundedRect(TW / 2 - 22 + 2, 12 + 2, 44, TH - 12, 10);
+    g.fillStyle(darker(COLORS.OBS_BUSH, 0.1), 0.08);
+    g.fillRoundedRect(TW / 2 - 22 + 1, 12 + 1, 44, TH - 12, 10);
+    g.fillStyle(COLORS.OBS_BUSH, 1);
+    g.fillRoundedRect(TW / 2 - 22, 12, 44, TH - 12, 10);
+    clayCircle(g, TW / 2, 16, 16, COLORS.OBS_BUSH);
+    clayCircle(g, TW / 2 - 16, 24, 18, COLORS.OBS_BUSH);
+    clayCircle(g, TW / 2 + 14, 22, 16, COLORS.OBS_BUSH);
     g.fillStyle(lighter(COLORS.OBS_BUSH, 0.2), 0.4);
-    g.fillCircle(TW / 2 - 14, TH - 52, 10);
-    g.fillCircle(TW / 2 + 12, TH - 54, 9);
+    g.fillCircle(TW / 2 - 14, 20, 10);
+    g.fillCircle(TW / 2 + 12, 18, 9);
+    g.fillStyle(lighter(COLORS.OBS_BUSH, 0.15), 0.3);
+    g.fillRoundedRect(TW / 2 - 18, 14, 36, TH * 0.3, 8);
 
     g.generateTexture(SPRITE_KEYS.OBSTACLE_BUSH, TW, TH);
 
     g.clear();
+    g.fillStyle(COLORS.GROUND_LIGHT, 0.5);
+    g.fillRoundedRect(TW / 2 - 8, 18, 16, TH - 18, 6);
     g.fillStyle(COLORS.GROUND_LIGHT, 0.3);
-    g.fillRoundedRect(TW / 2 - 20, TH - 8, 40, 10, 4);
+    g.fillRoundedRect(TW / 2 - 12, 40, 10, 16, 4);
+    g.fillRoundedRect(TW / 2 + 4, 60, 10, 14, 4);
     g.fillStyle(COLORS.OBS_FLOWERS, 1);
-    drawFlower(g, TW / 2, TH - 32, 10, COLORS.OBS_FLOWERS_CENTER);
-    drawFlower(g, TW / 2 - 18, TH - 18, 8, COLORS.OBS_FLOWERS_CENTER);
-    drawFlower(g, TW / 2 + 16, TH - 22, 8, COLORS.OBS_FLOWERS_CENTER);
-    g.lineStyle(2, COLORS.GROUND_LIGHT, 0.7);
-    g.lineBetween(TW / 2 - 18, TH - 18 + 8, TW / 2 - 18, TH - 6);
-    g.lineBetween(TW / 2 + 16, TH - 22 + 8, TW / 2 + 16, TH - 6);
-    g.lineBetween(TW / 2, TH - 32 + 10, TW / 2, TH - 6);
+    drawFlower(g, TW / 2, 10, 10, COLORS.OBS_FLOWERS_CENTER);
+    drawFlower(g, TW / 2 - 18, 24, 8, COLORS.OBS_FLOWERS_CENTER);
+    drawFlower(g, TW / 2 + 16, 20, 8, COLORS.OBS_FLOWERS_CENTER);
+    g.lineStyle(3, COLORS.GROUND_LIGHT, 0.8);
+    g.lineBetween(TW / 2 - 18, 24 + 8, TW / 2 - 18, TH);
+    g.lineBetween(TW / 2 + 16, 20 + 8, TW / 2 + 16, TH);
+    g.lineBetween(TW / 2, 10 + 10, TW / 2, TH);
 
     g.generateTexture(SPRITE_KEYS.OBSTACLE_FLOWERS, TW, TH);
   }

@@ -9,14 +9,18 @@ import { ScoreSystem } from '../systems/ScoreSystem';
 import { SpeedManager } from '../systems/SpeedManager';
 import { ObstacleSpawner } from '../systems/ObstacleSpawner';
 
-function hex(c: number): string {
-  return '#' + c.toString(16).padStart(6, '0');
+const DEBUG_HITBOXES = false;
+
+function darker(c: number, a: number): number {
+  const r = Math.floor(((c >> 16) & 0xFF) * (1 - a));
+  const g = Math.floor(((c >> 8) & 0xFF) * (1 - a));
+  const b = Math.floor((c & 0xFF) * (1 - a));
+  return (r << 16) | (g << 8) | b;
 }
 
 export class GameScene extends Phaser.Scene {
   private player!: Player;
   private obstacles: Obstacle[] = [];
-  private obstacleGroup!: Phaser.Physics.Arcade.Group;
   private typingSystem = new TypingSystem();
   private wordSpawner = new WordSpawner();
   private scoreSystem = new ScoreSystem();
@@ -31,6 +35,10 @@ export class GameScene extends Phaser.Scene {
   private speedText!: Phaser.GameObjects.Text;
   private typingText!: Phaser.GameObjects.Text;
   private timingLine!: Phaser.GameObjects.Graphics;
+  private flashGfx!: Phaser.GameObjects.Graphics;
+  private flashAlpha = 0;
+  private flashX = 0;
+  private debugGfx!: Phaser.GameObjects.Graphics;
   private groundTiles: Phaser.GameObjects.TileSprite[] = [];
   private distance = 0;
   private alive = true;
@@ -73,28 +81,25 @@ export class GameScene extends Phaser.Scene {
     }
     cloudGfx.setDepth(1);
 
-    const groundY = GROUND_Y;
     this.groundTiles = [];
     for (let x = -100; x < CANVAS_WIDTH + 200; x += CANVAS_WIDTH) {
-      const tile = this.add.tileSprite(x, groundY, CANVAS_WIDTH, GROUND_HEIGHT, SPRITE_KEYS.BG_GROUND)
+      const tile = this.add.tileSprite(x, GROUND_Y, CANVAS_WIDTH, GROUND_HEIGHT, SPRITE_KEYS.BG_GROUND)
         .setOrigin(0, 0).setDepth(3);
       this.groundTiles.push(tile);
     }
 
     this.player = new Player(this);
 
-    this.obstacleGroup = this.physics.add.group({ immovable: true, allowGravity: false });
-
-    this.physics.add.overlap(
-      this.player.getSprite(),
-      this.obstacleGroup,
-      () => this.die(),
-      undefined,
-      this
-    );
-
     this.timingLine = this.add.graphics();
     this.timingLine.setDepth(5);
+
+    this.flashGfx = this.add.graphics();
+    this.flashGfx.setDepth(6);
+
+    if (DEBUG_HITBOXES) {
+      this.debugGfx = this.add.graphics();
+      this.debugGfx.setDepth(25);
+    }
 
     const hudGfx = this.add.graphics();
     hudGfx.fillStyle(COLORS.PRIMARY, 0.85);
@@ -180,11 +185,61 @@ export class GameScene extends Phaser.Scene {
     }
 
     for (const obstacle of this.obstacles) obstacle.update(dt);
+    this.checkCollisions();
     this.updateTimingLine(speed);
     this.cleanupObstacles();
     if (this.typingSystem.hasWords() && !this.getNearestObstacle()) this.typingSystem.clear();
     this.checkSpawn();
     this.updateHUD();
+    if (DEBUG_HITBOXES) this.drawDebug();
+    this.updateFlash(dt);
+  }
+
+  private checkCollisions(): void {
+    const pr = this.player.getHitbox();
+    for (const obs of this.obstacles) {
+      for (const rect of obs.getRects()) {
+        if (Phaser.Geom.Intersects.RectangleToRectangle(pr, rect)) {
+          this.die();
+          return;
+        }
+      }
+    }
+  }
+
+  private drawDebug(): void {
+    this.debugGfx.clear();
+
+    const pr = this.player.getHitbox();
+    this.debugGfx.lineStyle(2, 0x00ff00, 0.9);
+    this.debugGfx.strokeRect(pr.x, pr.y, pr.width, pr.height);
+
+    for (const obs of this.obstacles) {
+      for (const rect of obs.getRects()) {
+        this.debugGfx.lineStyle(2, 0xff0000, 0.8);
+        this.debugGfx.strokeRect(rect.x, rect.y, rect.width, rect.height);
+      }
+    }
+  }
+
+  private updateFlash(dt: number): void {
+    if (this.flashAlpha <= 0) return;
+    this.flashAlpha = Math.max(0, this.flashAlpha - dt * 2);
+    this.flashGfx.clear();
+    if (this.flashAlpha <= 0) return;
+
+    const halfW = 20;
+    this.flashGfx.fillStyle(COLORS.PRIMARY_LIGHT, this.flashAlpha);
+    this.flashGfx.fillRect(this.flashX - halfW, 0, halfW * 2, GROUND_Y);
+    this.flashGfx.fillStyle(COLORS.PRIMARY_LIGHT, this.flashAlpha * 0.3);
+    this.flashGfx.fillRect(this.flashX - halfW * 2, 0, halfW * 4, GROUND_Y);
+  }
+
+  private triggerFlash(idealX: number, distance: number, windowHalf: number): void {
+    const maxDist = windowHalf;
+    const normalized = Math.max(0, 1 - distance / maxDist);
+    this.flashAlpha = 0.15 + normalized * 0.75;
+    this.flashX = idealX;
   }
 
   private handleTyping(key: string): void {
@@ -225,6 +280,17 @@ export class GameScene extends Phaser.Scene {
     const config = nearest.getConfig();
     const wordIdx = config.word1 === progress.selectedWord ? 1 : 2;
     const targetY = wordIdx === 1 ? config.word1Y : config.word2Y;
+
+    const jumpHeight = GROUND_Y - targetY;
+    if (jumpHeight > 0) {
+      const speed = this.speedManager.getSpeed();
+      const apexTime = Math.sqrt(2 * jumpHeight / GRAVITY);
+      const idealX = nearest.getX() - speed * apexTime;
+      const windowHalf = Math.max(30, speed * 0.18);
+      const dist = Math.abs(PLAYER_X - idealX);
+      this.triggerFlash(idealX, dist, windowHalf);
+    }
+
     this.player.jumpToWord(targetY);
     this.scoreSystem.addWordBonus(progress.selectedWord, this.speedManager.getSpeedMultiplier());
     this.speedManager.onObstacleCleared();
@@ -252,10 +318,6 @@ export class GameScene extends Phaser.Scene {
     const config = this.obstacleSpawner.generate(speed);
     const obstacle = new Obstacle(this, config, speed);
     this.obstacles.push(obstacle);
-
-    for (const spr of obstacle.getSprites()) {
-      this.obstacleGroup.add(spr);
-    }
 
     if (config.word2) {
       this.typingSystem.setWords(config.word1, config.word2);
@@ -317,30 +379,27 @@ export class GameScene extends Phaser.Scene {
     if (jumpHeight <= 0) return;
 
     const apexTime = Math.sqrt(2 * jumpHeight / GRAVITY);
-    const distToTravel = nearest.getX() - PLAYER_X;
-    const timeToArrive = distToTravel / speed;
-    const timingX = PLAYER_X + speed * (timeToArrive - apexTime);
-    if (timingX < PLAYER_X - 20 || timingX > CANVAS_WIDTH + 50) return;
+    const idealX = nearest.getX() - speed * apexTime;
+    if (idealX < PLAYER_X - 20 || idealX > CANVAS_WIDTH + 50) return;
 
-    const proximity = Math.abs(nearest.getX() - PLAYER_X);
-    const alpha = proximity < 200 ? 0.5 : 0.2;
+    const windowHalf = Math.max(30, speed * 0.18);
+    const left = Math.max(PLAYER_X, idealX - windowHalf);
+    const right = Math.min(CANVAS_WIDTH, idealX + windowHalf);
 
-    const dashLen = 3;
-    const gapLen = 3;
-    for (let y = 30; y < GROUND_Y; y += dashLen + gapLen) {
-      const endY = Math.min(y + dashLen, GROUND_Y);
-      this.timingLine.fillStyle(COLORS.ACCENT, alpha);
-      this.timingLine.fillRect(timingX, y, 2, endY - y);
+    const green = COLORS.PRIMARY_LIGHT;
+
+    this.timingLine.lineStyle(1, green, 0.3);
+    const dashLen = 6;
+    const gapLen = 4;
+    for (let y = 0; y < GROUND_Y; y += dashLen + gapLen) {
+      this.timingLine.lineBetween(left, y, left, Math.min(y + dashLen, GROUND_Y));
+      this.timingLine.lineBetween(right, y, right, Math.min(y + dashLen, GROUND_Y));
     }
-    this.timingLine.fillStyle(COLORS.ACCENT, alpha);
-    this.timingLine.fillRect(timingX - 3, 28, 8, 2);
-    this.timingLine.fillRect(timingX - 1, 26, 4, 2);
-  }
-}
 
-function darker(c: number, a: number): number {
-  const r = Math.floor(((c >> 16) & 0xFF) * (1 - a));
-  const g = Math.floor(((c >> 8) & 0xFF) * (1 - a));
-  const b = Math.floor((c & 0xFF) * (1 - a));
-  return (r << 16) | (g << 8) | b;
+    this.timingLine.lineStyle(3, green, 0.8);
+    this.timingLine.lineBetween(idealX, 0, idealX, GROUND_Y);
+
+    this.timingLine.fillStyle(green, 0.04);
+    this.timingLine.fillRect(left, 0, right - left, GROUND_Y);
+  }
 }

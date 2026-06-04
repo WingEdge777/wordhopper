@@ -1,5 +1,16 @@
 import Phaser from 'phaser';
-import { PLAYER_X, PLAYER_HEIGHT, PLAYER_WIDTH, GROUND_Y, GRAVITY, SPRITE_KEYS } from '../config/constants';
+import {
+  PLAYER_X,
+  PLAYER_HEIGHT,
+  PLAYER_WIDTH,
+  PLAYER_COLLISION_SHRINK,
+  GROUND_Y,
+  GRAVITY,
+  SPRITE_KEYS,
+} from '../config/constants';
+
+const BW = Math.round(PLAYER_WIDTH * PLAYER_COLLISION_SHRINK);
+const BH = Math.round(PLAYER_HEIGHT * PLAYER_COLLISION_SHRINK);
 
 export class Player {
   private sprite: Phaser.Physics.Arcade.Sprite;
@@ -10,8 +21,6 @@ export class Player {
     this.sprite.setOrigin(0.5, 1);
     this.sprite.setDisplaySize(PLAYER_WIDTH, PLAYER_HEIGHT);
     this.sprite.setDepth(10);
-    this.sprite.body!.setSize(PLAYER_WIDTH * 0.6, PLAYER_HEIGHT * 0.6);
-    this.sprite.body!.setOffset(PLAYER_WIDTH * 0.2, PLAYER_HEIGHT * 0.2);
     this.sprite.setGravityY(GRAVITY);
     this.sprite.setCollideWorldBounds(true);
     this.sprite.setBounce(0);
@@ -21,6 +30,15 @@ export class Player {
     if (this.sprite.body!.blocked.down && !this.dead) {
       this.sprite.setTexture(SPRITE_KEYS.PLAYER_IDLE);
     }
+  }
+
+  getHitbox(): Phaser.Geom.Rectangle {
+    return new Phaser.Geom.Rectangle(
+      this.sprite.x - BW / 2,
+      this.sprite.y - BH,
+      BW,
+      BH
+    );
   }
 
   jumpTo(targetY: number): void {
@@ -33,10 +51,6 @@ export class Player {
 
   jumpToWord(wordY: number): void {
     this.jumpTo(wordY);
-  }
-
-  getSprite(): Phaser.Physics.Arcade.Sprite {
-    return this.sprite;
   }
 
   die(): void {

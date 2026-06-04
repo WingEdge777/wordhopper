@@ -1,10 +1,11 @@
 import Phaser from 'phaser';
 import {
-  CANVAS_HEIGHT,
   GROUND_Y,
   ObstacleType,
   ObstacleLayout,
   OBSTACLE_SPRITES,
+  OBSTACLE_BODY_WIDTH,
+  OBSTACLE_VISUAL_WIDTH,
 } from '../config/constants';
 import { COLORS, FONT_WORD } from '../config/colors';
 
@@ -21,8 +22,10 @@ export interface ObstacleConfig {
 }
 
 export class Obstacle {
-  private upperSp: Phaser.Physics.Arcade.Sprite | null = null;
-  private lowerSp: Phaser.Physics.Arcade.Sprite | null = null;
+  private upperSp: Phaser.GameObjects.Sprite | null = null;
+  private lowerSp: Phaser.GameObjects.Sprite | null = null;
+  private upperRect: Phaser.Geom.Rectangle | null = null;
+  private lowerRect: Phaser.Geom.Rectangle | null = null;
   private word1Text: Phaser.GameObjects.Text;
   private word2Text: Phaser.GameObjects.Text | null = null;
   private config: ObstacleConfig;
@@ -36,19 +39,36 @@ export class Obstacle {
 
     if (config.layout !== ObstacleLayout.LowerOnly) {
       const upperHeight = config.gapY - config.gapHeight / 2;
-      this.upperSp = scene.physics.add.sprite(config.x, 0, textureKey);
+
+      this.upperSp = scene.add.sprite(config.x, 0, textureKey);
       this.upperSp.setOrigin(0.5, 0);
-      this.upperSp.setDisplaySize(40, upperHeight);
+      this.upperSp.setDisplaySize(OBSTACLE_VISUAL_WIDTH, upperHeight);
       this.upperSp.setFlipY(true);
-      this.upperSp.body!.immovable = true;
+      this.upperSp.setDepth(3);
+
+      this.upperRect = new Phaser.Geom.Rectangle(
+        config.x - OBSTACLE_BODY_WIDTH / 2,
+        0,
+        OBSTACLE_BODY_WIDTH,
+        upperHeight
+      );
     }
 
     if (config.layout !== ObstacleLayout.UpperOnly) {
       const lowerTop = config.gapY + config.gapHeight / 2;
-      this.lowerSp = scene.physics.add.sprite(config.x, lowerTop, textureKey);
+      const lowerHeight = GROUND_Y - lowerTop;
+
+      this.lowerSp = scene.add.sprite(config.x, lowerTop, textureKey);
       this.lowerSp.setOrigin(0.5, 0);
-      this.lowerSp.setDisplaySize(40, GROUND_Y - lowerTop);
-      this.lowerSp.body!.immovable = true;
+      this.lowerSp.setDisplaySize(OBSTACLE_VISUAL_WIDTH, lowerHeight);
+      this.lowerSp.setDepth(3);
+
+      this.lowerRect = new Phaser.Geom.Rectangle(
+        config.x - OBSTACLE_BODY_WIDTH / 2,
+        lowerTop,
+        OBSTACLE_BODY_WIDTH,
+        lowerHeight
+      );
     }
 
     const primaryColor = `#${COLORS.TEXT_ON_LIGHT.toString(16).padStart(6, '0')}`;
@@ -85,6 +105,8 @@ export class Obstacle {
 
     if (this.upperSp) this.upperSp.x -= dx;
     if (this.lowerSp) this.lowerSp.x -= dx;
+    if (this.upperRect) this.upperRect.x -= dx;
+    if (this.lowerRect) this.lowerRect.x -= dx;
     if (this.word1Text && this.word1Text.active) this.word1Text.x -= dx;
     if (this.word2Text && this.word2Text.active) this.word2Text.x -= dx;
 
@@ -105,11 +127,11 @@ export class Obstacle {
     return this.config;
   }
 
-  getSprites(): Phaser.Physics.Arcade.Sprite[] {
-    const sprites: Phaser.Physics.Arcade.Sprite[] = [];
-    if (this.upperSp) sprites.push(this.upperSp);
-    if (this.lowerSp) sprites.push(this.lowerSp);
-    return sprites;
+  getRects(): Phaser.Geom.Rectangle[] {
+    const list: Phaser.Geom.Rectangle[] = [];
+    if (this.upperRect) list.push(this.upperRect);
+    if (this.lowerRect) list.push(this.lowerRect);
+    return list;
   }
 
   highlightWord(_wordIndex: 1 | 2, charIndex: number): void {

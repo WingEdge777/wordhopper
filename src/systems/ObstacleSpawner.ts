@@ -1,11 +1,8 @@
 import {
   CANVAS_WIDTH,
-  CANVAS_HEIGHT,
   GROUND_Y,
-  PLAYER_X,
   GAP_MIN,
   GAP_MAX,
-  PLAYER_HEIGHT,
   SINGLE_OBSTACLE_CHANCE,
   TYPING_WINDOW_PER_CHAR,
   DECISION_BUFFER,
@@ -24,7 +21,6 @@ const OBSTACLE_TYPES = Object.values(ObstacleType);
 export class ObstacleSpawner {
   private wordSpawner: WordSpawner;
   private speedManager: SpeedManager;
-  private lastObstacleX = CANVAS_WIDTH;
   private difficulty: Difficulty = 'easy';
 
   constructor(wordSpawner: WordSpawner, speedManager: SpeedManager) {
@@ -37,7 +33,7 @@ export class ObstacleSpawner {
   }
 
   canSpawn(currentRightEdge: number): boolean {
-    return currentRightEdge <= this.lastObstacleX - this.getMinSpacing();
+    return currentRightEdge <= CANVAS_WIDTH - this.getMinSpacing();
   }
 
   generate(currentSpeed: number): ObstacleConfig {
@@ -55,10 +51,12 @@ export class ObstacleSpawner {
 
     if (layout === ObstacleLayout.UpperLower) {
       const pair = this.wordSpawner.generatePair();
-      word1 = pair.word1;
-      word2 = pair.word2;
-      word1Y = gapY - gapHeight / 4;
-      word2Y = gapY + gapHeight / 4;
+      const topWord = pair.word1.length >= pair.word2.length ? pair.word1 : pair.word2;
+      const bottomWord = pair.word1.length >= pair.word2.length ? pair.word2 : pair.word1;
+      word1 = topWord;
+      word2 = bottomWord;
+      word1Y = gapY - gapHeight / 6;
+      word2Y = gapY + gapHeight / 6;
     } else {
       word1 = this.wordSpawner.generateSingle();
       if (layout === ObstacleLayout.UpperOnly) {
@@ -67,8 +65,6 @@ export class ObstacleSpawner {
         word1Y = gapY - gapHeight / 3;
       }
     }
-
-    this.lastObstacleX = x;
 
     return {
       layout,
@@ -81,10 +77,6 @@ export class ObstacleSpawner {
       word2,
       word2Y,
     };
-  }
-
-  onObstaclePassed(x: number): void {
-    this.lastObstacleX = x;
   }
 
   private getMinSpacing(): number {
@@ -105,7 +97,7 @@ export class ObstacleSpawner {
 
   private computeGapY(layout: ObstacleLayout, gapHeight: number): number {
     const minY = gapHeight / 2 + 20;
-    const maxY = CANVAS_HEIGHT - 35 - gapHeight / 2 - 10;
+    const maxY = GROUND_Y - gapHeight / 2 - 10;
 
     if (layout === ObstacleLayout.UpperOnly) {
       return this.randomRange(minY, minY + (maxY - minY) * 0.4);
@@ -118,9 +110,5 @@ export class ObstacleSpawner {
 
   private randomRange(min: number, max: number): number {
     return min + Math.random() * (max - min);
-  }
-
-  reset(): void {
-    this.lastObstacleX = CANVAS_WIDTH;
   }
 }
