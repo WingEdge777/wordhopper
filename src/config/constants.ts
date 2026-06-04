@@ -32,8 +32,8 @@ export type Difficulty = 'easy' | 'medium' | 'hard';
 
 export const DIFFICULTY_CONFIG: Record<Difficulty, { minLen: number; maxLen: number; wordFile: string }> = {
   easy: { minLen: 3, maxLen: 5, wordFile: 'words-easy.json' },
-  medium: { minLen: 6, maxLen: 10, wordFile: 'words-medium.json' },
-  hard: { minLen: 11, maxLen: Infinity, wordFile: 'words-hard.json' },
+  medium: { minLen: 6, maxLen: 8, wordFile: 'words-medium.json' },
+  hard: { minLen: 8, maxLen: Infinity, wordFile: 'words-hard.json' },
 };
 
 export enum ObstacleType {

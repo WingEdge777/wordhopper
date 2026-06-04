@@ -245,9 +245,11 @@ export class GameScene extends Phaser.Scene {
       this.wordReady = false;
       const nearest = this.getNearestObstacle();
       if (nearest) {
-        const wordIdx = result.selectedWord
-          ? (nearest.getConfig().word1 === result.selectedWord ? 1 : 2) : 1;
-        nearest.flashWrong(wordIdx);
+        nearest.flashWrong(result.selectedWord
+          ? (nearest.getConfig().word1 === result.selectedWord ? 1 : 2) : 1);
+        this.time.delayedCall(50, () => {
+          if (!this.typingSystem.getProgress().selectedWord) nearest.resetWordDisplay();
+        });
       }
       this.updateTypingIndicator();
       return;

@@ -72,8 +72,8 @@ export class MenuScene extends Phaser.Scene {
 
     const difficulties: { key: Difficulty; label: string; desc: string }[] = [
       { key: 'easy', label: 'EASY', desc: '3–5 chars' },
-      { key: 'medium', label: 'MEDIUM', desc: '6–10 chars' },
-      { key: 'hard', label: 'HARD', desc: '10+ chars' },
+      { key: 'medium', label: 'MEDIUM', desc: '6–8 chars' },
+      { key: 'hard', label: 'HARD', desc: '8+ chars' },
     ];
 
     const btnStartY = liuY + 76;
@@ -122,7 +122,7 @@ export class MenuScene extends Phaser.Scene {
     promptBg.fillRoundedRect(width / 2 - 110, promptBgY, 220, promptBgH, 12);
     promptBg.setDepth(4);
 
-    const startPrompt = this.add.text(width / 2, promptBgY + promptBgH / 2, '> PRESS SPACE TO START <', {
+    const startPrompt = this.add.text(width / 2, promptBgY + promptBgH / 2, '> TYPE + SPACE TO PLAY <', {
       fontSize: '14px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.ACCENT),

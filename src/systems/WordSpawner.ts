@@ -10,8 +10,8 @@ export interface WordPair {
 
 const WORD_CACHE: Record<Difficulty, string[]> = {
   easy: (easyWords as string[]).filter((w) => w.length >= 3 && w.length <= 5),
-  medium: (mediumWords as string[]).filter((w) => w.length >= 6 && w.length <= 10),
-  hard: (hardWords as string[]).filter((w) => w.length >= 11),
+  medium: (mediumWords as string[]).filter((w) => w.length >= 6 && w.length <= 8),
+  hard: (hardWords as string[]).filter((w) => w.length >= 8),
 };
 
 export class WordSpawner {

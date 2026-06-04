@@ -167,6 +167,16 @@ export class Obstacle {
     untyped.x = this.config.x - fullWidth / 2 + typed.width + untyped.width / 2;
   }
 
+  resetWordDisplay(): void {
+    const primaryColor = hex(COLORS.TEXT_ON_LIGHT);
+    const secondaryColor = hex(COLORS.TEXT_MUTED);
+
+    this.word1Untyped?.setText(this.config.word1).setColor(primaryColor).setAlpha(1).setX(this.config.x);
+    this.word1Typed?.setText('').setColor('#4ade80').setAlpha(1);
+    this.word2Untyped?.setText(this.config.word2).setColor(secondaryColor).setAlpha(1).setX(this.config.x);
+    this.word2Typed?.setText('').setColor('#4ade80').setAlpha(1);
+  }
+
   flashWrong(_wordIndex: 1 | 2): void {
     const untyped = _wordIndex === 1 ? this.word1Untyped : this.word2Untyped;
     const typed = _wordIndex === 1 ? this.word1Typed : this.word2Typed;
