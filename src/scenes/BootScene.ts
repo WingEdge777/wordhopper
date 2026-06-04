@@ -1,24 +1,7 @@
 import Phaser from 'phaser';
 import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, ObstacleType, SPRITE_KEYS } from '../config/constants';
-
-function hex(c: number): string {
-  return '#' + c.toString(16).padStart(6, '0');
-}
-
-function darker(c: number, a: number): number {
-  const r = Math.floor(((c >> 16) & 0xFF) * (1 - a));
-  const g = Math.floor(((c >> 8) & 0xFF) * (1 - a));
-  const b = Math.floor((c & 0xFF) * (1 - a));
-  return (r << 16) | (g << 8) | b;
-}
-
-function lighter(c: number, a: number): number {
-  const r = Math.min(255, Math.floor(((c >> 16) & 0xFF) + (255 - ((c >> 16) & 0xFF)) * a));
-  const g = Math.min(255, Math.floor(((c >> 8) & 0xFF) + (255 - ((c >> 8) & 0xFF)) * a));
-  const b = Math.min(255, Math.floor((c & 0xFF) + (255 - (c & 0xFF)) * a));
-  return (r << 16) | (g << 8) | b;
-}
+import { hex, darker, lighter } from '../config/utils';
 
 function clayRect(g: Phaser.GameObjects.Graphics, x: number, y: number, w: number, h: number, r: number, color: number): void {
   g.fillStyle(darker(color, 0.4), 0.12);

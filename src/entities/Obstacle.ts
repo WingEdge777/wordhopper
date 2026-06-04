@@ -8,6 +8,7 @@ import {
   OBSTACLE_VISUAL_WIDTH,
 } from '../config/constants';
 import { COLORS, FONT_WORD } from '../config/colors';
+import { hex } from '../config/utils';
 
 export interface ObstacleConfig {
   layout: ObstacleLayout;
@@ -26,15 +27,15 @@ export class Obstacle {
   private lowerSp: Phaser.GameObjects.Sprite | null = null;
   private upperRect: Phaser.Geom.Rectangle | null = null;
   private lowerRect: Phaser.Geom.Rectangle | null = null;
-  private word1Text: Phaser.GameObjects.Text;
-  private word2Text: Phaser.GameObjects.Text | null = null;
+  private word1Typed: Phaser.GameObjects.Text | null = null;
+  private word1Untyped: Phaser.GameObjects.Text | null = null;
+  private word2Typed: Phaser.GameObjects.Text | null = null;
+  private word2Untyped: Phaser.GameObjects.Text | null = null;
   private config: ObstacleConfig;
-  private scrollSpeed: number;
   private active = true;
 
-  constructor(scene: Phaser.Scene, config: ObstacleConfig, scrollSpeed: number) {
+  constructor(scene: Phaser.Scene, config: ObstacleConfig, _scrollSpeed: number) {
     this.config = config;
-    this.scrollSpeed = scrollSpeed;
     const textureKey = OBSTACLE_SPRITES[config.obstacleType];
 
     if (config.layout !== ObstacleLayout.LowerOnly) {
@@ -71,44 +72,61 @@ export class Obstacle {
       );
     }
 
-    const primaryColor = `#${COLORS.TEXT_ON_LIGHT.toString(16).padStart(6, '0')}`;
-    const secondaryColor = `#${COLORS.TEXT_MUTED.toString(16).padStart(6, '0')}`;
+    const primaryColor = hex(COLORS.TEXT_ON_LIGHT);
+    const secondaryColor = hex(COLORS.TEXT_MUTED);
 
-    this.word1Text = scene.add.text(config.x, config.word1Y, config.word1, {
+    const wordStyle: Phaser.Types.GameObjects.Text.TextStyle = {
       fontSize: '20px',
-      color: primaryColor,
       fontFamily: FONT_WORD,
       fontStyle: 'bold',
       stroke: '#FFFDF5',
       strokeThickness: 3,
+    };
+
+    const word1Full = config.word1;
+    this.word1Untyped = scene.add.text(config.x, config.word1Y, word1Full, {
+      ...wordStyle,
+      color: primaryColor,
     });
-    this.word1Text.setOrigin(0.5);
-    this.word1Text.setDepth(15);
+    this.word1Untyped.setOrigin(0.5);
+    this.word1Untyped.setDepth(15);
+
+    this.word1Typed = scene.add.text(config.x, config.word1Y, '', {
+      ...wordStyle,
+      color: '#4ade80',
+    });
+    this.word1Typed.setOrigin(0.5);
+    this.word1Typed.setDepth(15);
 
     if (config.word2) {
-      this.word2Text = scene.add.text(config.x, config.word2Y, config.word2, {
-        fontSize: '20px',
+      this.word2Untyped = scene.add.text(config.x, config.word2Y, config.word2, {
+        ...wordStyle,
         color: secondaryColor,
-        fontFamily: FONT_WORD,
-        fontStyle: 'bold',
-        stroke: '#FFFDF5',
-        strokeThickness: 3,
       });
-      this.word2Text.setOrigin(0.5);
-      this.word2Text.setDepth(15);
+      this.word2Untyped.setOrigin(0.5);
+      this.word2Untyped.setDepth(15);
+
+      this.word2Typed = scene.add.text(config.x, config.word2Y, '', {
+        ...wordStyle,
+        color: '#4ade80',
+      });
+      this.word2Typed.setOrigin(0.5);
+      this.word2Typed.setDepth(15);
     }
   }
 
-  update(dt: number): void {
-    const dx = this.scrollSpeed * dt;
+  update(dt: number, currentSpeed: number): void {
+    const dx = currentSpeed * dt;
     this.config.x -= dx;
 
     if (this.upperSp) this.upperSp.x -= dx;
     if (this.lowerSp) this.lowerSp.x -= dx;
     if (this.upperRect) this.upperRect.x -= dx;
     if (this.lowerRect) this.lowerRect.x -= dx;
-    if (this.word1Text && this.word1Text.active) this.word1Text.x -= dx;
-    if (this.word2Text && this.word2Text.active) this.word2Text.x -= dx;
+    if (this.word1Untyped?.active) this.word1Untyped.x -= dx;
+    if (this.word1Typed?.active) this.word1Typed.x -= dx;
+    if (this.word2Untyped?.active) this.word2Untyped.x -= dx;
+    if (this.word2Typed?.active) this.word2Typed.x -= dx;
 
     if (this.config.x < -80) {
       this.active = false;
@@ -136,36 +154,46 @@ export class Obstacle {
 
   highlightWord(_wordIndex: 1 | 2, charIndex: number): void {
     const word = _wordIndex === 1 ? this.config.word1 : this.config.word2;
-    const text = _wordIndex === 1 ? this.word1Text : this.word2Text;
-    if (!text || !word) return;
+    const untyped = _wordIndex === 1 ? this.word1Untyped : this.word2Untyped;
+    const typed = _wordIndex === 1 ? this.word1Typed : this.word2Typed;
+    if (!untyped || !typed || !word) return;
 
     const green = word.slice(0, charIndex);
     const rest = word.slice(charIndex);
-    text.setText(`${green}|${rest}`);
-    const greenColor = '#4ade80';
-    text.setColor(greenColor);
+    typed.setText(green);
+    untyped.setText(rest);
+    const fullWidth = typed.width + untyped.width;
+    typed.x = this.config.x - fullWidth / 2 + typed.width / 2;
+    untyped.x = this.config.x - fullWidth / 2 + typed.width + untyped.width / 2;
   }
 
   flashWrong(_wordIndex: 1 | 2): void {
-    const text = _wordIndex === 1 ? this.word1Text : this.word2Text;
-    if (!text) return;
-    text.setColor('#ef4444');
+    const untyped = _wordIndex === 1 ? this.word1Untyped : this.word2Untyped;
+    const typed = _wordIndex === 1 ? this.word1Typed : this.word2Typed;
+    if (untyped) untyped.setColor('#ef4444');
+    if (typed) typed.setColor('#ef4444');
   }
 
   fadeUnselected(keepWordIndex: 1 | 2): void {
-    const fadeText = keepWordIndex === 1 ? this.word2Text : this.word1Text;
-    if (fadeText) fadeText.setAlpha(0.2);
+    const fadeUntyped = keepWordIndex === 1 ? this.word2Untyped : this.word1Untyped;
+    const fadeTyped = keepWordIndex === 1 ? this.word2Typed : this.word1Typed;
+    if (fadeUntyped) fadeUntyped.setAlpha(0.2);
+    if (fadeTyped) fadeTyped.setAlpha(0.2);
   }
 
   clearWords(): void {
-    if (this.word1Text && this.word1Text.active) this.word1Text.destroy();
-    if (this.word2Text && this.word2Text.active) this.word2Text.destroy();
+    if (this.word1Untyped?.active) this.word1Untyped.destroy();
+    if (this.word1Typed?.active) this.word1Typed.destroy();
+    if (this.word2Untyped?.active) this.word2Untyped.destroy();
+    if (this.word2Typed?.active) this.word2Typed.destroy();
   }
 
   destroy(): void {
     if (this.upperSp) this.upperSp.destroy();
     if (this.lowerSp) this.lowerSp.destroy();
-    if (this.word1Text && this.word1Text.active) this.word1Text.destroy();
-    if (this.word2Text && this.word2Text.active) this.word2Text.destroy();
+    if (this.word1Untyped?.active) this.word1Untyped.destroy();
+    if (this.word1Typed?.active) this.word1Typed.destroy();
+    if (this.word2Untyped?.active) this.word2Untyped.destroy();
+    if (this.word2Typed?.active) this.word2Typed.destroy();
   }
 }

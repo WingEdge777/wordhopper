@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { Difficulty, PLAYER_X, GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT, GRAVITY, GROUND_HEIGHT, SPRITE_KEYS } from '../config/constants';
 import { COLORS, FONT_BODY, FONT_WORD } from '../config/colors';
+import { darker } from '../config/utils';
 import { Player } from '../entities/Player';
 import { Obstacle } from '../entities/Obstacle';
 import { TypingSystem } from '../systems/TypingSystem';
@@ -10,13 +11,6 @@ import { SpeedManager } from '../systems/SpeedManager';
 import { ObstacleSpawner } from '../systems/ObstacleSpawner';
 
 const DEBUG_HITBOXES = false;
-
-function darker(c: number, a: number): number {
-  const r = Math.floor(((c >> 16) & 0xFF) * (1 - a));
-  const g = Math.floor(((c >> 8) & 0xFF) * (1 - a));
-  const b = Math.floor((c & 0xFF) * (1 - a));
-  return (r << 16) | (g << 8) | b;
-}
 
 export class GameScene extends Phaser.Scene {
   private player!: Player;
@@ -41,6 +35,7 @@ export class GameScene extends Phaser.Scene {
   private debugGfx!: Phaser.GameObjects.Graphics;
   private groundTiles: Phaser.GameObjects.TileSprite[] = [];
   private distance = 0;
+  private elapsedTime = 0;
   private alive = true;
   private tickAccumulator = 0;
 
@@ -56,6 +51,7 @@ export class GameScene extends Phaser.Scene {
   create(): void {
     this.alive = true;
     this.distance = 0;
+    this.elapsedTime = 0;
     this.obstacles = [];
     this.wordReady = false;
     this.scoreSystem.reset();
@@ -172,6 +168,7 @@ export class GameScene extends Phaser.Scene {
     const speed = this.speedManager.getSpeed();
 
     this.distance += speed * dt;
+    this.elapsedTime += dt;
     for (const tile of this.groundTiles) {
       tile.tilePositionX += speed * dt;
     }
@@ -184,7 +181,7 @@ export class GameScene extends Phaser.Scene {
       this.tickAccumulator -= 0.1;
     }
 
-    for (const obstacle of this.obstacles) obstacle.update(dt);
+    for (const obstacle of this.obstacles) obstacle.update(dt, speed);
     this.checkCollisions();
     this.updateTimingLine(speed);
     this.cleanupObstacles();
@@ -245,6 +242,7 @@ export class GameScene extends Phaser.Scene {
   private handleTyping(key: string): void {
     const result = this.typingSystem.onKeyPress(key);
     if (result.wrong) {
+      this.wordReady = false;
       const nearest = this.getNearestObstacle();
       if (nearest) {
         const wordIdx = result.selectedWord
@@ -336,11 +334,12 @@ export class GameScene extends Phaser.Scene {
   private die(): void {
     this.alive = false;
     this.player.die();
+    this.cleanupDOMListeners();
     this.time.delayedCall(500, () => {
       this.scene.start('DeathScene', {
         score: this.scoreSystem.getScore(),
         wordsTyped: this.scoreSystem.getWordsTyped(),
-        wpm: this.scoreSystem.getWPM(this.distance / this.speedManager.getSpeed()),
+        wpm: this.scoreSystem.getWPM(this.elapsedTime),
         bestWord: this.scoreSystem.getBestWord(),
         difficulty: this.difficulty,
       });
@@ -401,5 +400,19 @@ export class GameScene extends Phaser.Scene {
 
     this.timingLine.fillStyle(green, 0.04);
     this.timingLine.fillRect(left, 0, right - left, GROUND_Y);
+  }
+
+  private cleanupDOMListeners(): void {
+    const gameInput = document.getElementById('game-input') as HTMLInputElement;
+    if (gameInput) {
+      if (this.gameInputHandler) {
+        gameInput.removeEventListener('keydown', this.gameInputHandler);
+        this.gameInputHandler = null;
+      }
+      if (this.inputBlurHandler) {
+        gameInput.removeEventListener('blur', this.inputBlurHandler);
+        this.inputBlurHandler = null;
+      }
+    }
   }
 }

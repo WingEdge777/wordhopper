@@ -1,10 +1,7 @@
 import Phaser from 'phaser';
 import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
 import { Difficulty, CANVAS_WIDTH, CANVAS_HEIGHT, SPRITE_KEYS } from '../config/constants';
-
-function hex(c: number): string {
-  return '#' + c.toString(16).padStart(6, '0');
-}
+import { hex, darker } from '../config/utils';
 
 function getBestScore(difficulty: Difficulty): number {
   return parseInt(localStorage.getItem(`word-hopper-best-${difficulty}`) || '0', 10);
@@ -267,11 +264,4 @@ export class DeathScene extends Phaser.Scene {
       this.gameInputHandler = null;
     }
   }
-}
-
-function darker(c: number, a: number): number {
-  const r = Math.floor(((c >> 16) & 0xFF) * (1 - a));
-  const g = Math.floor(((c >> 8) & 0xFF) * (1 - a));
-  const b = Math.floor((c & 0xFF) * (1 - a));
-  return (r << 16) | (g << 8) | b;
 }

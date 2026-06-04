@@ -1,17 +1,7 @@
 import Phaser from 'phaser';
 import { Difficulty, SPRITE_KEYS } from '../config/constants';
 import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
-
-
-function hex(c: number): string {
-  return '#' + c.toString(16).padStart(6, '0');
-}
-function darker(c: number, a: number): number {
-  const r = Math.floor(((c >> 16) & 0xFF) * (1 - a));
-  const g = Math.floor(((c >> 8) & 0xFF) * (1 - a));
-  const b = Math.floor((c & 0xFF) * (1 - a));
-  return (r << 16) | (g << 8) | b;
-}
+import { hex, darker } from '../config/utils';
 
 export class MenuScene extends Phaser.Scene {
   private selectedDifficulty: Difficulty = 'easy';
