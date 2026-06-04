@@ -1,0 +1,201 @@
+import Phaser from 'phaser';
+import { Difficulty, SPRITE_KEYS } from '../config/constants';
+import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
+
+
+function hex(c: number): string {
+  return '#' + c.toString(16).padStart(6, '0');
+}
+function darker(c: number, a: number): number {
+  const r = Math.floor(((c >> 16) & 0xFF) * (1 - a));
+  const g = Math.floor(((c >> 8) & 0xFF) * (1 - a));
+  const b = Math.floor((c & 0xFF) * (1 - a));
+  return (r << 16) | (g << 8) | b;
+}
+
+export class MenuScene extends Phaser.Scene {
+  private selectedDifficulty: Difficulty = 'easy';
+  private difficultyBtns: Record<Difficulty, Phaser.GameObjects.Container> = {} as any;
+  private gameInputHandler: ((e: KeyboardEvent) => void) | null = null;
+
+  constructor() {
+    super({ key: 'MenuScene' });
+  }
+
+  create(): void {
+    this.selectedDifficulty = 'easy';
+    this.difficultyBtns = {} as any;
+    const { width, height } = this.cameras.main;
+
+    this.add.image(width / 2, height / 2, SPRITE_KEYS.BG_SKY)
+      .setDisplaySize(width, height).setDepth(0);
+
+    const titleBgY = 14;
+    const titleBgH = 48;
+    const titleBg = this.add.graphics();
+    titleBg.fillStyle(COLORS.PRIMARY, 1);
+    titleBg.fillRoundedRect(width / 2 - 130, titleBgY, 260, titleBgH, 14);
+    titleBg.fillStyle(darker(COLORS.PRIMARY, 0.15), 1);
+    titleBg.fillRoundedRect(width / 2 - 128, titleBgY + titleBgH / 2, 256, titleBgH / 2, 12);
+    titleBg.setDepth(4);
+
+    this.add.text(width / 2, titleBgY + titleBgH / 2, 'Word Hopper', {
+      fontSize: '36px',
+      fontFamily: FONT_DISPLAY,
+      color: '#FFFFFF',
+      fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(5);
+
+    const subtitleBgY = titleBgY + titleBgH + 6;
+    const subtitleBgH = 24;
+    const subtitleGfx = this.add.graphics();
+    subtitleGfx.fillStyle(COLORS.MUTED_DARK, 0.7);
+    subtitleGfx.fillRoundedRect(width / 2 - 120, subtitleBgY, 240, subtitleBgH, 12);
+    subtitleGfx.setDepth(3);
+
+    this.add.text(width / 2, subtitleBgY + subtitleBgH / 2, 'Type to survive. Jump to thrive.', {
+      fontSize: '15px',
+      fontFamily: FONT_BODY,
+      color: hex(COLORS.TEXT_ON_LIGHT),
+      fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(5);
+
+    const liuY = subtitleBgY + subtitleBgH + 42;
+    const mound = this.add.graphics();
+    mound.fillStyle(COLORS.SECONDARY, 0.15);
+    mound.fillEllipse(width / 2, liuY + 24, 200, 50);
+    mound.fillStyle(COLORS.SECONDARY, 0.08);
+    mound.fillEllipse(width / 2 + 20, liuY + 20, 160, 35);
+
+    const liu = this.add.sprite(width / 2, liuY, SPRITE_KEYS.PLAYER_IDLE);
+    liu.setDisplaySize(64, 74);
+    liu.setDepth(5);
+
+    this.tweens.add({
+      targets: liu,
+      y: liu.y - 5,
+      duration: 800,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
+
+    const difficulties: { key: Difficulty; label: string; desc: string }[] = [
+      { key: 'easy', label: 'EASY', desc: '3–5 chars' },
+      { key: 'medium', label: 'MEDIUM', desc: '6–10 chars' },
+      { key: 'hard', label: 'HARD', desc: '10+ chars' },
+    ];
+
+    const btnStartY = liuY + 76;
+    const btnStepY = 44;
+
+    difficulties.forEach(({ key, label, desc }, i) => {
+      const yPos = btnStartY + i * btnStepY;
+      const container = this.add.container(width / 2, yPos);
+      container.setDepth(5);
+
+      const bg = this.add.graphics();
+      bg.fillStyle(COLORS.MUTED_DARK, 0.7);
+      bg.fillRoundedRect(-110, -16, 220, 32, 12);
+      container.add(bg);
+
+      const labelText = this.add.text(-85, 0, label, {
+        fontSize: '15px',
+        fontFamily: FONT_BODY,
+        color: hex(COLORS.TEXT_ON_LIGHT),
+        fontStyle: 'bold',
+      }).setOrigin(0, 0.5);
+      container.add(labelText);
+
+      const descText = this.add.text(85, 0, desc, {
+        fontSize: '13px',
+        fontFamily: FONT_BODY,
+        color: hex(COLORS.TEXT_MUTED),
+        fontStyle: 'bold',
+      }).setOrigin(1, 0.5);
+      container.add(descText);
+
+      container.setSize(220, 32);
+      container.setInteractive({ useHandCursor: true });
+      container.on('pointerdown', () => {
+        this.selectedDifficulty = key;
+        this.updateHighlight();
+      });
+
+      this.difficultyBtns[key] = container;
+    });
+
+    const promptBgH = 24;
+    const promptBgY = btnStartY + 3 * btnStepY + 24;
+    const promptBg = this.add.graphics();
+    promptBg.fillStyle(COLORS.ACCENT, 0.12);
+    promptBg.fillRoundedRect(width / 2 - 110, promptBgY, 220, promptBgH, 12);
+    promptBg.setDepth(4);
+
+    const startPrompt = this.add.text(width / 2, promptBgY + promptBgH / 2, '> PRESS SPACE TO START <', {
+      fontSize: '14px',
+      fontFamily: FONT_BODY,
+      color: hex(COLORS.ACCENT),
+      fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(5);
+
+    this.tweens.add({
+      targets: startPrompt,
+      alpha: 0.3,
+      duration: 800,
+      yoyo: true,
+      repeat: -1,
+    });
+
+    this.input.keyboard?.on('keydown', (event: KeyboardEvent) => {
+      if (event.key === ' ') this.startGame();
+    });
+
+    const gameInput = document.getElementById('game-input') as HTMLInputElement;
+    if (gameInput) {
+      gameInput.value = '';
+      gameInput.focus();
+      this.gameInputHandler = (e: KeyboardEvent) => {
+        if (e.key === ' ') {
+          e.preventDefault();
+          e.stopPropagation();
+          this.startGame();
+        }
+      };
+      gameInput.addEventListener('keydown', this.gameInputHandler);
+    }
+
+    this.updateHighlight();
+  }
+
+  private updateHighlight(): void {
+    (Object.keys(this.difficultyBtns) as Difficulty[]).forEach((key) => {
+      const container = this.difficultyBtns[key];
+      const bg = container.getAt(0) as Phaser.GameObjects.Graphics;
+      const labelText = container.getAt(1) as Phaser.GameObjects.Text;
+      bg.clear();
+      if (key === this.selectedDifficulty) {
+        bg.fillStyle(COLORS.PRIMARY, 0.15);
+        bg.fillRoundedRect(-110, -16, 220, 32, 12);
+        bg.lineStyle(2.5, COLORS.PRIMARY, 0.8);
+        bg.strokeRoundedRect(-110, -16, 220, 32, 12);
+        labelText.setText('> ' + key.toUpperCase());
+        labelText.setColor(hex(COLORS.PRIMARY));
+      } else {
+        bg.fillStyle(COLORS.MUTED_DARK, 0.7);
+        bg.fillRoundedRect(-110, -16, 220, 32, 12);
+        labelText.setText('  ' + key.toUpperCase());
+        labelText.setColor(hex(COLORS.TEXT_ON_LIGHT));
+      }
+    });
+  }
+
+  private startGame(): void {
+    if (this.gameInputHandler) {
+      const gameInput = document.getElementById('game-input') as HTMLInputElement;
+      if (gameInput) gameInput.removeEventListener('keydown', this.gameInputHandler);
+    }
+    this.input.keyboard?.off('keydown');
+    this.scene.start('GameScene', { difficulty: this.selectedDifficulty });
+  }
+}

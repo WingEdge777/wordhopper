@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word Hopper</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=JetBrains+Mono:wght@400;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #F0F7F3; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+    canvas { outline: none; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 8px 48px rgba(0,0,0,0.06); width: 70vw; height: auto; }
+    #game-input { position: fixed; top: -100px; left: -100px; width: 1px; height: 1px; opacity: 0; }
+  </style>
+</head>
+<body tabindex="0">
+  <input id="game-input" type="text" autocomplete="off" autofocus>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
