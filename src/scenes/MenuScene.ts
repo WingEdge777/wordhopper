@@ -78,8 +78,8 @@ export class MenuScene extends Phaser.Scene {
       { key: 'hard', label: 'HARD', desc: '8+ chars' },
     ];
 
-    const btnStartY = liuY + 56;
-    const btnStepY = 34;
+    const btnStartY = liuY + 68;
+    const btnStepY = 38;
 
     difficulties.forEach(({ key, label, desc }, i) => {
       const yPos = btnStartY + i * btnStepY;
@@ -117,8 +117,8 @@ export class MenuScene extends Phaser.Scene {
       this.difficultyBtns[key] = container;
     });
 
-    const promptBgH = 24;
-    const promptBgY = btnStartY + 3 * btnStepY + 24;
+    const promptBgH = 30;
+    const promptBgY = btnStartY + 4 * btnStepY + 2;
     const promptBg = this.add.graphics();
     promptBg.fillStyle(COLORS.ACCENT, 0.12);
     promptBg.fillRoundedRect(width / 2 - 110, promptBgY, 220, promptBgH, 12);

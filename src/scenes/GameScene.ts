@@ -307,7 +307,7 @@ export class GameScene extends Phaser.Scene {
     const typed = progress.selectedWord.substring(0, progress.correctChars);
     const remaining = progress.selectedWord.substring(progress.correctChars);
     if (this.wordReady) {
-      this.typingText.setText(`${typed} > SPACE`);
+      this.typingText.setText(`${typed} → SPACE at green line`);
       this.typingText.setColor('#FDE68A');
     } else {
       this.typingText.setText(`${typed}|${remaining}`);
@@ -390,6 +390,10 @@ export class GameScene extends Phaser.Scene {
     const right = Math.min(CANVAS_WIDTH, idealX + windowHalf);
 
     const green = COLORS.PRIMARY_LIGHT;
+    const breath = this.wordReady
+      ? 0.4 + 0.6 * (0.5 + 0.5 * Math.sin((this.time.now / 800) * Math.PI))
+      : 0.8;
+    const lineWidth = this.wordReady ? 5 : 3;
 
     this.timingLine.lineStyle(1, green, 0.3);
     const dashLen = 6;
@@ -399,7 +403,7 @@ export class GameScene extends Phaser.Scene {
       this.timingLine.lineBetween(right, y, right, Math.min(y + dashLen, GROUND_Y));
     }
 
-    this.timingLine.lineStyle(3, green, 0.8);
+    this.timingLine.lineStyle(lineWidth, green, breath);
     this.timingLine.lineBetween(idealX, 0, idealX, GROUND_Y);
 
     this.timingLine.fillStyle(green, 0.04);

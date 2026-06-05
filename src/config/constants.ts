@@ -14,9 +14,6 @@ export const MAX_SPEED_MULTIPLIER = 2.5;
 
 export const GRAVITY = 1200;
 
-export const GAP_MIN = 2.0 * PLAYER_HEIGHT;
-export const GAP_MAX = 2.5 * PLAYER_HEIGHT;
-
 export const SINGLE_OBSTACLE_CHANCE = 0.15;
 
 export const TYPING_WINDOW_PER_CHAR = 0.25;
@@ -30,11 +27,11 @@ export const WORD_BONUS_MULTIPLIER = 10;
 
 export type Difficulty = 'chill' | 'easy' | 'medium' | 'hard';
 
-export const DIFFICULTY_CONFIG: Record<Difficulty, { minLen: number; maxLen: number; wordFile: string; speedMultiplier: number }> = {
-  chill: { minLen: 3, maxLen: 5, wordFile: 'words-easy.json', speedMultiplier: 0.5 },
-  easy: { minLen: 3, maxLen: 5, wordFile: 'words-easy.json', speedMultiplier: 1.0 },
-  medium: { minLen: 6, maxLen: 8, wordFile: 'words-medium.json', speedMultiplier: 1.0 },
-  hard: { minLen: 8, maxLen: Infinity, wordFile: 'words-hard.json', speedMultiplier: 1.0 },
+export const DIFFICULTY_CONFIG: Record<Difficulty, { minLen: number; maxLen: number; wordFile: string; speedMultiplier: number; gapMin: number; gapMax: number }> = {
+  chill: { minLen: 3, maxLen: 5, wordFile: 'words-easy.json', speedMultiplier: 0.5, gapMin: 2.5, gapMax: 3.5 },
+  easy: { minLen: 3, maxLen: 5, wordFile: 'words-easy.json', speedMultiplier: 1.0, gapMin: 2.0, gapMax: 3.0 },
+  medium: { minLen: 6, maxLen: 8, wordFile: 'words-medium.json', speedMultiplier: 1.0, gapMin: 2.0, gapMax: 3.0 },
+  hard: { minLen: 8, maxLen: Infinity, wordFile: 'words-hard.json', speedMultiplier: 1.0, gapMin: 2.0, gapMax: 3.0 },
 };
 
 export enum ObstacleType {

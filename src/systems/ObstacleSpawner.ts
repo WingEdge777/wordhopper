@@ -1,8 +1,7 @@
 import {
   CANVAS_WIDTH,
   GROUND_Y,
-  GAP_MIN,
-  GAP_MAX,
+  PLAYER_HEIGHT,
   SINGLE_OBSTACLE_CHANCE,
   TYPING_WINDOW_PER_CHAR,
   DECISION_BUFFER,
@@ -38,7 +37,9 @@ export class ObstacleSpawner {
 
   generate(currentSpeed: number): ObstacleConfig {
     const layout = this.pickLayout();
-    const gapHeight = this.randomRange(GAP_MIN, GAP_MAX);
+    const gapMin = DIFFICULTY_CONFIG[this.difficulty].gapMin * PLAYER_HEIGHT;
+    const gapMax = DIFFICULTY_CONFIG[this.difficulty].gapMax * PLAYER_HEIGHT;
+    const gapHeight = this.randomRange(gapMin, gapMax);
     const gapY = this.computeGapY(layout, gapHeight);
     const obstacleType = OBSTACLE_TYPES[Math.floor(Math.random() * OBSTACLE_TYPES.length)];
 
