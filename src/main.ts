@@ -22,4 +22,10 @@ const config: Phaser.Types.Core.GameConfig = {
   scene: [BootScene, MenuScene, GameScene, DeathScene, ShareCardScene],
 };
 
-new Phaser.Game(config);
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+
+if (isMobile) {
+  document.getElementById('mobile-blocker')!.style.display = 'flex';
+} else {
+  new Phaser.Game(config);
+}
