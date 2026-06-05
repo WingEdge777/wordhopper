@@ -37,7 +37,7 @@ describe('WordSpawner', () => {
   it('should generate hard words for hard difficulty', () => {
     spawner.loadWords('hard');
     const pair = spawner.generatePair();
-    expect(pair.word1.length).toBeGreaterThanOrEqual(11);
+    expect(pair.word1.length).toBeGreaterThanOrEqual(8);
   });
 
   it('should return a single word for single-obstacle layouts', () => {

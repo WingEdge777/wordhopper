@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
 import { Difficulty, CANVAS_WIDTH, CANVAS_HEIGHT, SPRITE_KEYS } from '../config/constants';
 import { hex, darker } from '../config/utils';
+import { buildShareURL, ShareCardData } from './ShareCardScene';
 
 function getBestScore(difficulty: Difficulty): number {
   return parseInt(localStorage.getItem(`word-hopper-best-${difficulty}`) || '0', 10);
@@ -22,6 +23,9 @@ export interface DeathData {
 export class DeathScene extends Phaser.Scene {
   private gameInputHandler: ((e: KeyboardEvent) => void) | null = null;
   private difficulty: Difficulty = 'easy';
+  private deathData: DeathData | null = null;
+  private shareURL = '';
+  private toastText: Phaser.GameObjects.Text | null = null;
 
   constructor() {
     super({ key: 'DeathScene' });
@@ -29,6 +33,13 @@ export class DeathScene extends Phaser.Scene {
 
   create(data: DeathData): void {
     this.difficulty = data.difficulty;
+    this.deathData = data;
+    this.shareURL = buildShareURL({
+      score: data.score,
+      wpm: data.wpm,
+      bestWord: data.bestWord,
+      difficulty: data.difficulty,
+    });
     const w = CANVAS_WIDTH;
     const h = CANVAS_HEIGHT;
 
@@ -42,6 +53,38 @@ export class DeathScene extends Phaser.Scene {
     panelGfx.fillRoundedRect(w / 2 - 180, 8, 360, h - 16, 24);
     panelGfx.setDepth(6);
 
+    const siX = w / 2 + 142;
+    const siY = 16;
+
+    const shareBg = this.add.graphics();
+    shareBg.fillStyle(darker(COLORS.PRIMARY, 0.15), 0.15);
+    shareBg.fillRoundedRect(siX + 2, siY + 2, 32, 22, 8);
+    shareBg.fillStyle(COLORS.SURFACE, 0.9);
+    shareBg.fillRoundedRect(siX, siY, 32, 22, 8);
+    shareBg.lineStyle(1.5, COLORS.PRIMARY, 0.3);
+    shareBg.strokeRoundedRect(siX, siY, 32, 22, 8);
+    shareBg.setDepth(7);
+
+    this.add.text(siX + 16, siY + 11, 'share', {
+      fontSize: '9px',
+      fontFamily: FONT_BODY,
+      color: hex(COLORS.PRIMARY),
+      fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(10);
+
+    const shareHitArea = this.add.graphics();
+    shareHitArea.setInteractive(new Phaser.Geom.Rectangle(siX, siY, 32, 22), Phaser.Geom.Rectangle.Contains);
+    shareHitArea.on('pointerover', () => { this.input.setDefaultCursor('pointer'); shareBg.clear(); shareBg.fillStyle(COLORS.PRIMARY, 0.08); shareBg.fillRoundedRect(siX, siY, 32, 22, 8); shareBg.lineStyle(1.5, COLORS.PRIMARY, 0.5); shareBg.strokeRoundedRect(siX, siY, 32, 22, 8); shareBg.setDepth(7); });
+    shareHitArea.on('pointerout', () => { this.input.setDefaultCursor('default'); shareBg.clear(); shareBg.fillStyle(COLORS.SURFACE, 0.9); shareBg.fillRoundedRect(siX, siY, 32, 22, 8); shareBg.lineStyle(1.5, COLORS.PRIMARY, 0.3); shareBg.strokeRoundedRect(siX, siY, 32, 22, 8); shareBg.setDepth(7); });
+    shareHitArea.on('pointerdown', () => this.share());
+
+    this.toastText = this.add.text(w / 2 + 148, 52, 'Link copied!', {
+      fontSize: '9px',
+      fontFamily: FONT_BODY,
+      color: hex(COLORS.ACCENT),
+      fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(10).setAlpha(0);
+
     const liu = this.add.sprite(w / 2, 64, SPRITE_KEYS.PLAYER_DEAD);
     liu.setDisplaySize(52, 60);
     liu.setDepth(10);
@@ -51,6 +94,7 @@ export class DeathScene extends Phaser.Scene {
       fontFamily: FONT_DISPLAY,
       color: hex(COLORS.PRIMARY),
       fontStyle: 'bold',
+      padding: { right: 8, left: 2, top: 2, bottom: 2 },
     }).setOrigin(0.5).setDepth(10);
 
     const best = getBestScore(data.difficulty);
@@ -249,6 +293,27 @@ export class DeathScene extends Phaser.Scene {
   private retry(): void {
     this.cleanup();
     this.scene.start('GameScene', { difficulty: this.difficulty });
+  }
+
+  private share(): void {
+    navigator.clipboard.writeText(this.shareURL).then(() => {
+      this.showToast();
+    }).catch(() => {
+      if (navigator.share) {
+        navigator.share({ title: 'Word Hopper', url: this.shareURL });
+      }
+    });
+  }
+
+  private showToast(): void {
+    if (!this.toastText) return;
+    this.toastText.setAlpha(1);
+    this.tweens.add({
+      targets: this.toastText,
+      alpha: 0,
+      duration: 1500,
+      delay: 800,
+    });
   }
 
   private goToMenu(): void {

@@ -97,21 +97,22 @@ export class GameScene extends Phaser.Scene {
       this.debugGfx.setDepth(25);
     }
 
+    const hudX = CANVAS_WIDTH - 154;
     const hudGfx = this.add.graphics();
     hudGfx.fillStyle(COLORS.PRIMARY, 0.85);
-    hudGfx.fillRoundedRect(6, 6, 148, 42, 16);
+    hudGfx.fillRoundedRect(hudX, 6, 148, 42, 16);
     hudGfx.fillStyle(darker(COLORS.PRIMARY, 0.2), 0.3);
-    hudGfx.fillRoundedRect(6, 26, 148, 20, 10);
+    hudGfx.fillRoundedRect(hudX, 26, 148, 20, 10);
     hudGfx.setDepth(20);
 
-    this.scoreText = this.add.text(14, 12, 'SCORE 0', {
+    this.scoreText = this.add.text(hudX + 8, 12, 'SCORE 0', {
       fontSize: '13px',
       color: '#FFFFFF',
       fontFamily: FONT_BODY,
       fontStyle: 'bold',
     }).setDepth(20);
 
-    this.speedText = this.add.text(14, 30, 'SPEED 1.0x', {
+    this.speedText = this.add.text(hudX + 8, 30, 'SPEED 1.0x', {
       fontSize: '12px',
       color: '#D1FAE5',
       fontFamily: FONT_BODY,

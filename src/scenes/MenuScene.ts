@@ -34,6 +34,7 @@ export class MenuScene extends Phaser.Scene {
       fontFamily: FONT_DISPLAY,
       color: '#FFFFFF',
       fontStyle: 'bold',
+      padding: { right: 8, left: 2, top: 2, bottom: 2 },
     }).setOrigin(0.5).setDepth(5);
 
     const subtitleBgY = titleBgY + titleBgH + 6;

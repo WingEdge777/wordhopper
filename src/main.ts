@@ -3,6 +3,7 @@ import { BootScene } from './scenes/BootScene';
 import { MenuScene } from './scenes/MenuScene';
 import { GameScene } from './scenes/GameScene';
 import { DeathScene } from './scenes/DeathScene';
+import { ShareCardScene } from './scenes/ShareCardScene';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from './config/constants';
 
 const config: Phaser.Types.Core.GameConfig = {
@@ -18,7 +19,7 @@ const config: Phaser.Types.Core.GameConfig = {
       gravity: { x: 0, y: 0 },
     },
   },
-  scene: [BootScene, MenuScene, GameScene, DeathScene],
+  scene: [BootScene, MenuScene, GameScene, DeathScene, ShareCardScene],
 };
 
 new Phaser.Game(config);

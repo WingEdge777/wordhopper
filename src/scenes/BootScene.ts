@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, ObstacleType, SPRITE_KEYS } from '../config/constants';
 import { hex, darker, lighter } from '../config/utils';
+import { parseShareParams } from './ShareCardScene';
 
 function clayRect(g: Phaser.GameObjects.Graphics, x: number, y: number, w: number, h: number, r: number, color: number): void {
   g.fillStyle(darker(color, 0.4), 0.12);
@@ -59,6 +60,7 @@ export class BootScene extends Phaser.Scene {
       fontFamily: FONT_DISPLAY,
       color: hex(COLORS.PRIMARY),
       fontStyle: 'bold',
+      padding: { right: 8, left: 2, top: 2, bottom: 2 },
     }).setOrigin(0.5);
 
     const barWidth = width * 0.5;
@@ -98,7 +100,12 @@ export class BootScene extends Phaser.Scene {
 
   create(): void {
     this.generateTextures();
-    this.scene.start('MenuScene');
+    const shareData = parseShareParams();
+    if (shareData) {
+      this.scene.start('ShareCardScene', shareData);
+    } else {
+      this.scene.start('MenuScene');
+    }
   }
 
   private generateTextures(): void {
