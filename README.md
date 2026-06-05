@@ -1,5 +1,7 @@
 # Word Hopper
 
+[中文版](./README_CN.md)
+
 A hopping game for word typing practice.
 
 ## How to Play
