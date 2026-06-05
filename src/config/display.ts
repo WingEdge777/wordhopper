@@ -32,9 +32,11 @@ export function applyRenderZoom(scene: Phaser.Scene): number {
   const renderWidth = scene.scale.width;
   const renderHeight = scene.scale.height;
   const zoom = renderWidth / CANVAS_WIDTH;
+  const camera = scene.cameras.main;
 
-  scene.cameras.main.setViewport(0, 0, renderWidth, renderHeight);
-  scene.cameras.main.setZoom(zoom);
+  camera.setViewport(0, 0, renderWidth, renderHeight);
+  camera.setZoom(zoom);
+  camera.centerOn(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
 
   return zoom;
 }
