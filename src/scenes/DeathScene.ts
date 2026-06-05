@@ -20,7 +20,7 @@ export interface DeathData {
   difficulty: Difficulty;
 }
 
-export async function shareResult(data: ShareCardData & { title: string; url: string }): Promise<boolean> {
+export async function shareResult(data: { title: string; url: string }): Promise<boolean> {
   try {
     if (navigator.clipboard?.writeText) {
       await navigator.clipboard.writeText(data.url);
@@ -320,7 +320,6 @@ export class DeathScene extends Phaser.Scene {
 
   private async share(): Promise<void> {
     const copied = await shareResult({
-      ...this.deathData!,
       title: 'Word Hopper',
       url: this.shareURL,
     });
