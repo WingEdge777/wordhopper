@@ -20,6 +20,27 @@ export interface DeathData {
   difficulty: Difficulty;
 }
 
+export async function shareResult(data: ShareCardData & { title: string; url: string }): Promise<boolean> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(data.url);
+      return true;
+    }
+  } catch {
+    // Fall through to the Web Share API when clipboard access fails.
+  }
+
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: data.title, url: data.url });
+    } catch {
+      return false;
+    }
+  }
+
+  return false;
+}
+
 export class DeathScene extends Phaser.Scene {
   private gameInputHandler: ((e: KeyboardEvent) => void) | null = null;
   private keyboardHandler: ((event: KeyboardEvent) => void) | null = null;
@@ -297,14 +318,15 @@ export class DeathScene extends Phaser.Scene {
     this.scene.start('GameScene', { difficulty: this.difficulty });
   }
 
-  private share(): void {
-    navigator.clipboard.writeText(this.shareURL).then(() => {
-      this.showToast();
-    }).catch(() => {
-      if (navigator.share) {
-        navigator.share({ title: 'Word Hopper', url: this.shareURL });
-      }
+  private async share(): Promise<void> {
+    const copied = await shareResult({
+      ...this.deathData!,
+      title: 'Word Hopper',
+      url: this.shareURL,
     });
+    if (copied) {
+      this.showToast();
+    }
   }
 
   private showToast(): void {
