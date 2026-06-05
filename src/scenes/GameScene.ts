@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { applyRenderZoom } from '../config/display';
 import { Difficulty, DIFFICULTY_CONFIG, PLAYER_X, GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT, GRAVITY, GROUND_HEIGHT, SPRITE_KEYS } from '../config/constants';
 import { COLORS, FONT_BODY, FONT_WORD } from '../config/colors';
 import { darker } from '../config/utils';
@@ -49,6 +50,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   create(): void {
+    applyRenderZoom(this);
     this.alive = true;
     this.distance = 0;
     this.elapsedTime = 0;

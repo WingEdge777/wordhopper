@@ -22,6 +22,7 @@ function mockBrowserEnvironment(devicePixelRatio: number): void {
     value: {
       innerWidth: 1440,
       devicePixelRatio,
+      addEventListener: vi.fn(),
     },
   });
 
@@ -69,35 +70,40 @@ describe('main game config', () => {
     mockBrowserEnvironment(3);
 
     const mainModule = await import('../src/main') as Record<string, unknown>;
+    const getDisplaySize = mainModule.getDisplaySize as ((viewportWidth?: number) => { width: number; height: number }) | undefined;
     const getRenderResolution = mainModule.getRenderResolution as ((dpr?: number) => number) | undefined;
+    const getRenderSize = mainModule.getRenderSize as ((displayWidth?: number, dpr?: number) => { width: number; height: number }) | undefined;
 
+    expect(typeof getDisplaySize).toBe('function');
     expect(typeof getRenderResolution).toBe('function');
+    expect(typeof getRenderSize).toBe('function');
+    expect(getDisplaySize?.(1440)).toEqual({ width: 1008, height: 567 });
     expect(getRenderResolution?.(3)).toBe(2);
     expect(getRenderResolution?.(1.5)).toBe(1.5);
+    expect(getRenderSize?.(1008, 3)).toEqual({ width: 2016, height: 1134 });
   });
 
   it('builds a fixed-size game config mounted into the game shell', async () => {
     mockBrowserEnvironment(2);
 
     const mainModule = await import('../src/main') as Record<string, unknown>;
-    const createGameConfig = mainModule.createGameConfig as ((parent: HTMLElement, devicePixelRatio?: number) => Record<string, unknown>) | undefined;
+    const createGameConfig = mainModule.createGameConfig as ((parent: HTMLElement, viewportWidth?: number, devicePixelRatio?: number) => Record<string, unknown>) | undefined;
     const gameShell = document.getElementById('game-shell') as HTMLElement;
 
     expect(typeof createGameConfig).toBe('function');
 
-    const config = createGameConfig?.(gameShell, 2);
+    const config = createGameConfig?.(gameShell, 1440, 2);
 
     expect(config).toMatchObject({
-      width: 800,
-      height: 450,
+      width: 2016,
+      height: 1134,
       parent: gameShell,
-      resolution: 2,
       autoRound: false,
       scale: {
         mode: 'FIT',
         autoCenter: 'CENTER_BOTH',
-        width: 800,
-        height: 450,
+        width: 2016,
+        height: 1134,
       },
     });
   });

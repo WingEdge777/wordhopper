@@ -18,7 +18,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #F0F7F3; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
-    #game-shell { width: min(70vw, calc((100vh - 24px) * 16 / 9)); max-width: 100%; }
+    #game-shell { width: 70vw; aspect-ratio: 16 / 9; }
     #game-shell canvas { display: block; width: 100% !important; height: auto !important; outline: none; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 8px 48px rgba(0,0,0,0.06); }
     #game-input { position: fixed; top: -100px; left: -100px; width: 1px; height: 1px; opacity: 0; }
     #mobile-blocker { display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-family: Quicksand, sans-serif; color: #15803D; padding: 32px; }

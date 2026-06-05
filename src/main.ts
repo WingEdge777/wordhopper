@@ -4,32 +4,31 @@ import { MenuScene } from './scenes/MenuScene';
 import { GameScene } from './scenes/GameScene';
 import { DeathScene } from './scenes/DeathScene';
 import { ShareCardScene } from './scenes/ShareCardScene';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from './config/constants';
+import { applyRenderZoom, getDisplaySize, getRenderSize } from './config/display';
 
-const MAX_RENDER_RESOLUTION = 2;
-
-export function getRenderResolution(devicePixelRatio = window.devicePixelRatio || 1): number {
-  return Math.min(Math.max(devicePixelRatio, 1), MAX_RENDER_RESOLUTION);
-}
+export { getDisplaySize, getRenderResolution, getRenderSize } from './config/display';
 
 export function createGameConfig(
   parent: HTMLElement,
+  viewportWidth = window.innerWidth,
   devicePixelRatio = window.devicePixelRatio || 1
 ): Phaser.Types.Core.GameConfig {
+  const displaySize = getDisplaySize(viewportWidth);
+  const renderSize = getRenderSize(displaySize.width, devicePixelRatio);
+
   return {
     type: Phaser.AUTO,
-    width: CANVAS_WIDTH,
-    height: CANVAS_HEIGHT,
+    width: renderSize.width,
+    height: renderSize.height,
     parent,
     backgroundColor: '#ECFDF5',
     roundPixels: true,
     autoRound: false,
-    resolution: getRenderResolution(devicePixelRatio),
     scale: {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
-      width: CANVAS_WIDTH,
-      height: CANVAS_HEIGHT,
+      width: renderSize.width,
+      height: renderSize.height,
     },
     physics: {
       default: 'arcade',
@@ -48,11 +47,25 @@ export function createGameConfig(
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
 const gameShell = document.getElementById('game-shell');
 
+function resizeGame(game: Phaser.Game): void {
+  const renderSize = getRenderSize(getDisplaySize().width);
+
+  game.scale.resize(renderSize.width, renderSize.height);
+
+  for (const scene of game.scene.getScenes(true)) {
+    applyRenderZoom(scene);
+  }
+}
+
 if (isMobile) {
   document.getElementById('mobile-blocker')!.style.display = 'flex';
 } else if (gameShell) {
   document.fonts.ready.then(() => {
-    new Phaser.Game(createGameConfig(gameShell));
+    const game = new Phaser.Game(createGameConfig(gameShell));
+
+    window.addEventListener('resize', () => {
+      resizeGame(game);
+    });
   });
 } else {
   throw new Error('Missing #game-shell container for Phaser game');

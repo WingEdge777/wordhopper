@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { applyRenderZoom } from '../config/display';
 import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, ObstacleType, SPRITE_KEYS } from '../config/constants';
 import { hex, darker, lighter } from '../config/utils';
@@ -43,7 +44,10 @@ export class BootScene extends Phaser.Scene {
   }
 
   preload(): void {
-    const { width, height } = this.cameras.main;
+    applyRenderZoom(this);
+
+    const width = CANVAS_WIDTH;
+    const height = CANVAS_HEIGHT;
 
     const bg = this.add.graphics();
     for (let y = 0; y < height; y++) {

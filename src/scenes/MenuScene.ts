@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { Difficulty, SPRITE_KEYS } from '../config/constants';
+import { applyRenderZoom } from '../config/display';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, Difficulty, SPRITE_KEYS } from '../config/constants';
 import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
 import { hex, darker } from '../config/utils';
 
@@ -14,9 +15,11 @@ export class MenuScene extends Phaser.Scene {
   }
 
   create(): void {
+    applyRenderZoom(this);
     this.selectedDifficulty = 'easy';
     this.difficultyBtns = {} as any;
-    const { width, height } = this.cameras.main;
+    const width = CANVAS_WIDTH;
+    const height = CANVAS_HEIGHT;
 
     this.add.image(width / 2, height / 2, SPRITE_KEYS.BG_SKY)
       .setDisplaySize(width, height).setDepth(0);

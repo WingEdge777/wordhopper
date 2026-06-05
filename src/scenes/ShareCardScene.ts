@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { applyRenderZoom } from '../config/display';
 import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
 import { Difficulty, CANVAS_WIDTH, CANVAS_HEIGHT, SPRITE_KEYS } from '../config/constants';
 import { hex, darker } from '../config/utils';
@@ -46,6 +47,7 @@ export class ShareCardScene extends Phaser.Scene {
   }
 
   create(data: ShareCardData): void {
+    applyRenderZoom(this);
     const w = CANVAS_WIDTH;
     const h = CANVAS_HEIGHT;
 

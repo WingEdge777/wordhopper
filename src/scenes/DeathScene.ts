@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { applyRenderZoom } from '../config/display';
 import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
 import { Difficulty, CANVAS_WIDTH, CANVAS_HEIGHT, SPRITE_KEYS } from '../config/constants';
 import { hex, darker } from '../config/utils';
@@ -33,6 +34,7 @@ export class DeathScene extends Phaser.Scene {
   }
 
   create(data: DeathData): void {
+    applyRenderZoom(this);
     this.difficulty = data.difficulty;
     this.deathData = data;
     this.shareURL = buildShareURL({
