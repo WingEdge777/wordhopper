@@ -23,11 +23,12 @@ export function buildShareURL(data: ShareCardData): string {
 
 export function parseShareParams(): ShareCardData | null {
   const params = new URLSearchParams(window.location.search);
-  const score = parseInt(params.get('s') || '', 10);
+  const rawScore = params.get('s');
+  const score = rawScore === null ? NaN : parseInt(rawScore, 10);
   const wpm = parseInt(params.get('w') || '', 10);
   const bestWord = params.get('bw') || '';
   const difficulty = (params.get('d') || '') as Difficulty;
-  if (!score || !['chill', 'easy', 'medium', 'hard'].includes(difficulty)) return null;
+  if (Number.isNaN(score) || !['chill', 'easy', 'medium', 'hard'].includes(difficulty)) return null;
   return { score, wpm: wpm || 0, bestWord, difficulty };
 }
 
