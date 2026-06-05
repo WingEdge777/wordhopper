@@ -410,6 +410,10 @@ export class GameScene extends Phaser.Scene {
     this.timingLine.fillRect(left, 0, right - left, GROUND_Y);
   }
 
+  shutdown(): void {
+    this.cleanupDOMListeners();
+  }
+
   private cleanupDOMListeners(): void {
     const gameInput = document.getElementById('game-input') as HTMLInputElement;
     if (gameInput) {

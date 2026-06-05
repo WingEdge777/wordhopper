@@ -14,8 +14,11 @@ Obstacles scroll toward you from the right, each displaying one or two words.
 
 Type the wrong letter and you'll have to start over. Collide with an obstacle and it's game over.
 
-The game speeds up as you clear obstacles. Three difficulty levels control word length:
+After completing a word, a **green timing line** appears on screen — it marks the ideal moment to press SPACE. Jump closer to the line for a more precise landing; the flash glows brighter the nearer you are.
 
+The game speeds up as you clear obstacles. Four difficulty levels control word length and speed:
+
+- **Chill** — 3–5 characters, half speed
 - **Easy** — 3–5 characters
 - **Medium** — 6–8 characters
 - **Hard** — 8+ characters

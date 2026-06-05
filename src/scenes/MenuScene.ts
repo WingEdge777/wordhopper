@@ -7,6 +7,7 @@ export class MenuScene extends Phaser.Scene {
   private selectedDifficulty: Difficulty = 'easy';
   private difficultyBtns: Record<Difficulty, Phaser.GameObjects.Container> = {} as any;
   private gameInputHandler: ((e: KeyboardEvent) => void) | null = null;
+  private keyboardHandler: ((event: KeyboardEvent) => void) | null = null;
 
   constructor() {
     super({ key: 'MenuScene' });
@@ -139,9 +140,10 @@ export class MenuScene extends Phaser.Scene {
       repeat: -1,
     });
 
-    this.input.keyboard?.on('keydown', (event: KeyboardEvent) => {
+    this.keyboardHandler = (event: KeyboardEvent) => {
       if (event.key === ' ') this.startGame();
-    });
+    };
+    this.input.keyboard?.on('keydown', this.keyboardHandler);
 
     const gameInput = document.getElementById('game-input') as HTMLInputElement;
     if (gameInput) {
@@ -182,12 +184,24 @@ export class MenuScene extends Phaser.Scene {
     });
   }
 
+  shutdown(): void {
+    this.cleanup();
+  }
+
   private startGame(): void {
+    this.cleanup();
+    this.scene.start('GameScene', { difficulty: this.selectedDifficulty });
+  }
+
+  private cleanup(): void {
+    if (this.keyboardHandler) {
+      this.input.keyboard?.off('keydown', this.keyboardHandler);
+      this.keyboardHandler = null;
+    }
     if (this.gameInputHandler) {
       const gameInput = document.getElementById('game-input') as HTMLInputElement;
       if (gameInput) gameInput.removeEventListener('keydown', this.gameInputHandler);
+      this.gameInputHandler = null;
     }
-    this.input.keyboard?.off('keydown');
-    this.scene.start('GameScene', { difficulty: this.selectedDifficulty });
   }
 }

@@ -22,6 +22,7 @@ export interface DeathData {
 
 export class DeathScene extends Phaser.Scene {
   private gameInputHandler: ((e: KeyboardEvent) => void) | null = null;
+  private keyboardHandler: ((event: KeyboardEvent) => void) | null = null;
   private difficulty: Difficulty = 'easy';
   private deathData: DeathData | null = null;
   private shareURL = '';
@@ -274,10 +275,11 @@ export class DeathScene extends Phaser.Scene {
       fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(10);
 
-    this.input.keyboard!.on('keydown', (event: KeyboardEvent) => {
+    this.keyboardHandler = (event: KeyboardEvent) => {
       if (event.key === ' ') this.retry();
       else if (event.key === 'Escape') this.goToMenu();
-    });
+    };
+    this.input.keyboard!.on('keydown', this.keyboardHandler);
 
     const gameInput = document.getElementById('game-input') as HTMLInputElement;
     if (gameInput) {
@@ -321,8 +323,15 @@ export class DeathScene extends Phaser.Scene {
     this.scene.start('MenuScene');
   }
 
+  shutdown(): void {
+    this.cleanup();
+  }
+
   private cleanup(): void {
-    this.input.keyboard?.off('keydown');
+    if (this.keyboardHandler) {
+      this.input.keyboard?.off('keydown', this.keyboardHandler);
+      this.keyboardHandler = null;
+    }
     if (this.gameInputHandler) {
       const gameInput = document.getElementById('game-input') as HTMLInputElement;
       if (gameInput) gameInput.removeEventListener('keydown', this.gameInputHandler);
