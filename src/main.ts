@@ -19,6 +19,10 @@ const config: Phaser.Types.Core.GameConfig = {
       gravity: { x: 0, y: 0 },
     },
   },
+  render: {
+    antialias: true,
+    antialiasGL: true
+  },
   scene: [BootScene, MenuScene, GameScene, DeathScene, ShareCardScene],
 };
 
