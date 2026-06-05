@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { applyRenderZoom } from '../config/display';
 import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
 import { Difficulty, CANVAS_WIDTH, CANVAS_HEIGHT, SPRITE_KEYS } from '../config/constants';
+import { addCrispText } from '../config/text';
 import { hex, darker } from '../config/utils';
 
 export interface ShareCardData {
@@ -72,7 +73,7 @@ export class ShareCardScene extends Phaser.Scene {
       ease: 'Sine.easeInOut',
     });
 
-    this.add.text(w / 2, 88, 'Friend\'s Score', {
+    addCrispText(this, w / 2, 88, 'Friend\'s Score', {
       fontSize: '24px',
       fontFamily: FONT_DISPLAY,
       color: hex(COLORS.PRIMARY),
@@ -81,14 +82,14 @@ export class ShareCardScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(10);
 
     const scoreY = 128;
-    this.add.text(w / 2, scoreY, data.score.toLocaleString(), {
+    addCrispText(this, w / 2, scoreY, data.score.toLocaleString(), {
       fontSize: '40px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.PRIMARY),
       fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(10);
 
-    this.add.text(w / 2, scoreY + 28, '> SCORE <', {
+    addCrispText(this, w / 2, scoreY + 28, '> SCORE <', {
       fontSize: '10px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.TEXT_MUTED),
@@ -115,14 +116,14 @@ export class ShareCardScene extends Phaser.Scene {
       cg.fillRoundedRect(cx, cardsY, cardW, cardH, 10);
       cg.setDepth(7);
 
-      this.add.text(cx + cardW / 2, cardsY + 13, card.value, {
+      addCrispText(this, cx + cardW / 2, cardsY + 13, card.value, {
         fontSize: '13px',
         fontFamily: FONT_BODY,
         color: hex(COLORS.TEXT_ON_LIGHT),
         fontStyle: 'bold',
       }).setOrigin(0.5).setDepth(10);
 
-      this.add.text(cx + cardW / 2, cardsY + 29, card.label, {
+      addCrispText(this, cx + cardW / 2, cardsY + 29, card.label, {
         fontSize: '9px',
         fontFamily: FONT_BODY,
         color: hex(COLORS.TEXT_MUTED),
@@ -136,7 +137,7 @@ export class ShareCardScene extends Phaser.Scene {
     promptBg.fillRoundedRect(w / 2 - 110, promptY, 220, 24, 12);
     promptBg.setDepth(7);
 
-    const playPrompt = this.add.text(w / 2, promptY + 12, '> CAN YOU BEAT IT? <', {
+    const playPrompt = addCrispText(this, w / 2, promptY + 12, '> CAN YOU BEAT IT? <', {
       fontSize: '13px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.ACCENT),
@@ -164,14 +165,14 @@ export class ShareCardScene extends Phaser.Scene {
     playGfx.on('pointerout', () => { this.input.setDefaultCursor('default'); });
     playGfx.on('pointerdown', () => this.play());
 
-    this.add.text(w / 2, btnY + 18, 'PLAY', {
+    addCrispText(this, w / 2, btnY + 18, 'PLAY', {
       fontSize: '16px',
       fontFamily: FONT_BODY,
       color: '#FFFFFF',
       fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(10);
 
-    this.add.text(w / 2, btnY + 48, 'or press SPACE', {
+    addCrispText(this, w / 2, btnY + 48, 'or press SPACE', {
       fontSize: '11px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.TEXT_MUTED),

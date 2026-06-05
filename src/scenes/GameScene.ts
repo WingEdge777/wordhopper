@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { applyRenderZoom } from '../config/display';
 import { Difficulty, DIFFICULTY_CONFIG, PLAYER_X, GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT, GRAVITY, GROUND_HEIGHT, SPRITE_KEYS } from '../config/constants';
 import { COLORS, FONT_BODY, FONT_WORD } from '../config/colors';
+import { addCrispText } from '../config/text';
 import { darker } from '../config/utils';
 import { Player } from '../entities/Player';
 import { Obstacle } from '../entities/Obstacle';
@@ -108,14 +109,14 @@ export class GameScene extends Phaser.Scene {
     hudGfx.fillRoundedRect(hudX, 26, 148, 20, 10);
     hudGfx.setDepth(20);
 
-    this.scoreText = this.add.text(hudX + 8, 12, 'SCORE 0', {
+    this.scoreText = addCrispText(this, hudX + 8, 12, 'SCORE 0', {
       fontSize: '13px',
       color: '#FFFFFF',
       fontFamily: FONT_BODY,
       fontStyle: 'bold',
     }).setDepth(20);
 
-    this.speedText = this.add.text(hudX + 8, 30, 'SPEED 1.0x', {
+    this.speedText = addCrispText(this, hudX + 8, 30, 'SPEED 1.0x', {
       fontSize: '12px',
       color: '#D1FAE5',
       fontFamily: FONT_BODY,
@@ -127,7 +128,7 @@ export class GameScene extends Phaser.Scene {
     typingGfx.fillRoundedRect(CANVAS_WIDTH / 2 - 80, CANVAS_HEIGHT - 22, 160, 28, 14);
     typingGfx.setDepth(20);
 
-    this.typingText = this.add.text(CANVAS_WIDTH / 2, CANVAS_HEIGHT - 14, '', {
+    this.typingText = addCrispText(this, CANVAS_WIDTH / 2, CANVAS_HEIGHT - 14, '', {
       fontSize: '18px',
       color: '#FFFFFF',
       fontFamily: FONT_WORD,

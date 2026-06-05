@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { applyRenderZoom } from '../config/display';
 import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, ObstacleType, SPRITE_KEYS } from '../config/constants';
+import { addCrispText } from '../config/text';
 import { hex, darker, lighter } from '../config/utils';
 import { parseShareParams } from './ShareCardScene';
 
@@ -59,7 +60,7 @@ export class BootScene extends Phaser.Scene {
       bg.fillRect(0, y, width, 1);
     }
 
-    this.add.text(width / 2, height * 0.32, 'Word Hopper', {
+    addCrispText(this, width / 2, height * 0.32, 'Word Hopper', {
       fontSize: '40px',
       fontFamily: FONT_DISPLAY,
       color: hex(COLORS.PRIMARY),
@@ -72,7 +73,7 @@ export class BootScene extends Phaser.Scene {
     const barX = (width - barWidth) / 2;
     const barY = height * 0.52;
 
-    this.add.text(width / 2, barY - 22, 'Loading...', {
+    addCrispText(this, width / 2, barY - 22, 'Loading...', {
       fontSize: '16px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.TEXT_MUTED),

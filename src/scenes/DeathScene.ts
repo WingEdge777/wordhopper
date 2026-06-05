@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { applyRenderZoom } from '../config/display';
 import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
 import { Difficulty, CANVAS_WIDTH, CANVAS_HEIGHT, SPRITE_KEYS } from '../config/constants';
+import { addCrispText } from '../config/text';
 import { hex, darker } from '../config/utils';
 import { buildShareURL, ShareCardData } from './ShareCardScene';
 
@@ -68,7 +69,7 @@ export class DeathScene extends Phaser.Scene {
     shareBg.strokeRoundedRect(siX, siY, 32, 22, 8);
     shareBg.setDepth(7);
 
-    this.add.text(siX + 16, siY + 11, 'share', {
+    addCrispText(this, siX + 16, siY + 11, 'share', {
       fontSize: '9px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.PRIMARY),
@@ -81,7 +82,7 @@ export class DeathScene extends Phaser.Scene {
     shareHitArea.on('pointerout', () => { this.input.setDefaultCursor('default'); shareBg.clear(); shareBg.fillStyle(COLORS.SURFACE, 0.9); shareBg.fillRoundedRect(siX, siY, 32, 22, 8); shareBg.lineStyle(1.5, COLORS.PRIMARY, 0.3); shareBg.strokeRoundedRect(siX, siY, 32, 22, 8); shareBg.setDepth(7); });
     shareHitArea.on('pointerdown', () => this.share());
 
-    this.toastText = this.add.text(w / 2 + 148, 52, 'Link copied!', {
+    this.toastText = addCrispText(this, w / 2 + 148, 52, 'Link copied!', {
       fontSize: '9px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.ACCENT),
@@ -92,7 +93,7 @@ export class DeathScene extends Phaser.Scene {
     liu.setDisplaySize(52, 60);
     liu.setDepth(10);
 
-    this.add.text(w / 2, 98, 'GAME OVER', {
+    addCrispText(this, w / 2, 98, 'GAME OVER', {
       fontSize: '28px',
       fontFamily: FONT_DISPLAY,
       color: hex(COLORS.PRIMARY),
@@ -114,14 +115,14 @@ export class DeathScene extends Phaser.Scene {
     scoreCard1.fillRoundedRect(scoreCenterX - 120, scoreY - 16, 110, 52, 12);
     scoreCard1.setDepth(7);
 
-    this.add.text(scoreCenterX - 65, scoreY - 2, data.score.toLocaleString(), {
+    addCrispText(this, scoreCenterX - 65, scoreY - 2, data.score.toLocaleString(), {
       fontSize: '26px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.PRIMARY),
       fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(10);
 
-    this.add.text(scoreCenterX - 65, scoreY + 20, 'THIS RUN', {
+    addCrispText(this, scoreCenterX - 65, scoreY + 20, 'THIS RUN', {
       fontSize: '10px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.PRIMARY),
@@ -133,14 +134,14 @@ export class DeathScene extends Phaser.Scene {
     scoreCard2.fillRoundedRect(scoreCenterX + 10, scoreY - 16, 110, 52, 12);
     scoreCard2.setDepth(7);
 
-    this.add.text(scoreCenterX + 65, scoreY - 2, displayBest.toLocaleString(), {
+    addCrispText(this, scoreCenterX + 65, scoreY - 2, displayBest.toLocaleString(), {
       fontSize: '26px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.ACCENT),
       fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(10);
 
-    this.add.text(scoreCenterX + 65, scoreY + 20, 'BEST', {
+    addCrispText(this, scoreCenterX + 65, scoreY + 20, 'BEST', {
       fontSize: '10px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.ACCENT),
@@ -152,7 +153,7 @@ export class DeathScene extends Phaser.Scene {
       nbGfx.fillStyle(COLORS.ACCENT, 0.15);
       nbGfx.fillRoundedRect(w / 2 - 60, scoreY + 44, 120, 22, 11);
       nbGfx.setDepth(7);
-      this.add.text(w / 2, scoreY + 56, '* NEW BEST *', {
+      addCrispText(this, w / 2, scoreY + 56, '* NEW BEST *', {
         fontSize: '12px',
         fontFamily: FONT_BODY,
         color: hex(COLORS.ACCENT),
@@ -185,7 +186,7 @@ export class DeathScene extends Phaser.Scene {
       },
     });
 
-    this.add.text(w / 2, barY + barHeight + 10, `${Math.round(pct * 100)}% of best`, {
+    addCrispText(this, w / 2, barY + barHeight + 10, `${Math.round(pct * 100)}% of best`, {
       fontSize: '10px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.TEXT_ON_LIGHT),
@@ -212,14 +213,14 @@ export class DeathScene extends Phaser.Scene {
       cardGfx.fillRoundedRect(cx, cardsY, cardW, cardH, 10);
       cardGfx.setDepth(7);
 
-      this.add.text(cx + cardW / 2, cardsY + 12, card.value, {
+      addCrispText(this, cx + cardW / 2, cardsY + 12, card.value, {
         fontSize: card.fontSize,
         fontFamily: FONT_BODY,
         color: hex(COLORS.TEXT_ON_LIGHT),
         fontStyle: 'bold',
       }).setOrigin(0.5).setDepth(10);
 
-      this.add.text(cx + cardW / 2, cardsY + 26, card.label, {
+      addCrispText(this, cx + cardW / 2, cardsY + 26, card.label, {
         fontSize: '10px',
         fontFamily: FONT_BODY,
         color: hex(COLORS.TEXT_ON_LIGHT),
@@ -227,7 +228,7 @@ export class DeathScene extends Phaser.Scene {
       }).setOrigin(0.5).setDepth(10);
     });
 
-    this.add.text(w / 2, cardsY + cardH + 12, `> ${data.difficulty.toUpperCase()} <`, {
+    addCrispText(this, w / 2, cardsY + cardH + 12, `> ${data.difficulty.toUpperCase()} <`, {
       fontSize: '10px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.TEXT_ON_LIGHT),
@@ -247,7 +248,7 @@ export class DeathScene extends Phaser.Scene {
     retryGfx.on('pointerout', () => { this.input.setDefaultCursor('default'); });
     retryGfx.on('pointerdown', () => this.retry());
 
-    this.add.text(w / 2 - 51, btnY + 17, 'RETRY', {
+    addCrispText(this, w / 2 - 51, btnY + 17, 'RETRY', {
       fontSize: '14px',
       fontFamily: FONT_BODY,
       color: '#FFFFFF',
@@ -263,14 +264,14 @@ export class DeathScene extends Phaser.Scene {
     menuGfx.on('pointerout', () => { this.input.setDefaultCursor('default'); });
     menuGfx.on('pointerdown', () => this.goToMenu());
 
-    this.add.text(w / 2 + 51, btnY + 17, 'MENU', {
+    addCrispText(this, w / 2 + 51, btnY + 17, 'MENU', {
       fontSize: '14px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.TEXT_ON_LIGHT),
       fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(10);
 
-    this.add.text(w / 2, btnY + 42, 'or press SPACE', {
+    addCrispText(this, w / 2, btnY + 42, 'or press SPACE', {
       fontSize: '11px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.TEXT_ON_LIGHT),
