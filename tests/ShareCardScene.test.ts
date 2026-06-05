@@ -120,4 +120,40 @@ describe('shareResult', () => {
       url: 'https://example.com/game?s=5',
     });
   });
+
+  it('returns false without throwing when neither share API is available', async () => {
+    setNavigator({} as Navigator);
+
+    const deathModule = await import('../src/scenes/DeathScene');
+
+    await expect(
+      deathModule.shareResult({
+        title: 'Word Hopper',
+        url: 'https://example.com/game?s=1',
+      })
+    ).resolves.toBe(false);
+  });
+
+  it('returns false without throwing when both clipboard and share fail', async () => {
+    const writeText = vi.fn().mockRejectedValue(new Error('denied'));
+    const share = vi.fn().mockRejectedValue(new Error('cancelled'));
+    setNavigator({
+      clipboard: { writeText },
+      share,
+    } as unknown as Navigator);
+
+    const deathModule = await import('../src/scenes/DeathScene');
+
+    await expect(
+      deathModule.shareResult({
+        title: 'Word Hopper',
+        url: 'https://example.com/game?s=2',
+      })
+    ).resolves.toBe(false);
+    expect(writeText).toHaveBeenCalledWith('https://example.com/game?s=2');
+    expect(share).toHaveBeenCalledWith({
+      title: 'Word Hopper',
+      url: 'https://example.com/game?s=2',
+    });
+  });
 });
