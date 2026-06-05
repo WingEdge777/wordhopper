@@ -31,5 +31,7 @@ const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/
 if (isMobile) {
   document.getElementById('mobile-blocker')!.style.display = 'flex';
 } else {
-  new Phaser.Game(config);
+  document.fonts.ready.then(() => {
+    new Phaser.Game(config);
+  });
 }
