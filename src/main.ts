@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { FONT_BODY, FONT_DISPLAY, FONT_WORD } from './config/colors';
 import { BootScene } from './scenes/BootScene';
 import { MenuScene } from './scenes/MenuScene';
 import { GameScene } from './scenes/GameScene';
@@ -47,6 +48,21 @@ export function createGameConfig(
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
 const gameShell = document.getElementById('game-shell');
 
+async function waitForGameFonts(): Promise<void> {
+  if (!('fonts' in document) || typeof document.fonts.load !== 'function') {
+    return;
+  }
+
+  await document.fonts.ready;
+
+  await Promise.allSettled([
+    document.fonts.load(`700 40px ${FONT_DISPLAY}`),
+    document.fonts.load(`700 18px ${FONT_BODY}`),
+    document.fonts.load(`400 18px ${FONT_BODY}`),
+    document.fonts.load(`700 20px ${FONT_WORD}`),
+  ]);
+}
+
 function resizeGame(game: Phaser.Game): void {
   const renderSize = getRenderSize(getDisplaySize().width);
 
@@ -60,7 +76,7 @@ function resizeGame(game: Phaser.Game): void {
 if (isMobile) {
   document.getElementById('mobile-blocker')!.style.display = 'flex';
 } else if (gameShell) {
-  document.fonts.ready.then(() => {
+  waitForGameFonts().then(() => {
     const game = new Phaser.Game(createGameConfig(gameShell));
 
     window.addEventListener('resize', () => {
