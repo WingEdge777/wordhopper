@@ -18,7 +18,8 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #F0F7F3; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
-    canvas { outline: none; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 8px 48px rgba(0,0,0,0.06); width: 70vw; height: auto; }
+    #game-shell { width: 70vw; aspect-ratio: 16 / 9; }
+    #game-shell canvas { display: block; width: 100% !important; height: auto !important; outline: none; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 8px 48px rgba(0,0,0,0.06); }
     #game-input { position: fixed; top: -100px; left: -100px; width: 1px; height: 1px; opacity: 0; }
     #mobile-blocker { display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-family: Quicksand, sans-serif; color: #15803D; padding: 32px; }
     #mobile-blocker h2 { font-size: 24px; font-weight: 700; margin-bottom: 12px; }
@@ -35,6 +36,7 @@
     <h2>Desktop Only</h2>
     <p>This typing game requires a physical keyboard. Please visit on your desktop.</p>
   </div>
+  <div id="game-shell" aria-label="Word Hopper game"></div>
   <input id="game-input" type="text" autocomplete="off" autofocus>
   <script type="module" src="/src/main.ts"></script>
 </body>

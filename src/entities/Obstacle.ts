@@ -8,6 +8,7 @@ import {
   OBSTACLE_VISUAL_WIDTH,
 } from '../config/constants';
 import { COLORS, FONT_WORD } from '../config/colors';
+import { addCrispText, snapPixel } from '../config/text';
 import { hex } from '../config/utils';
 
 export interface ObstacleConfig {
@@ -84,14 +85,14 @@ export class Obstacle {
     };
 
     const word1Full = config.word1;
-    this.word1Untyped = scene.add.text(config.x, config.word1Y, word1Full, {
+    this.word1Untyped = addCrispText(scene, config.x, config.word1Y, word1Full, {
       ...wordStyle,
       color: primaryColor,
     });
     this.word1Untyped.setOrigin(0.5);
     this.word1Untyped.setDepth(15);
 
-    this.word1Typed = scene.add.text(config.x, config.word1Y, '', {
+    this.word1Typed = addCrispText(scene, config.x, config.word1Y, '', {
       ...wordStyle,
       color: '#4ade80',
     });
@@ -99,14 +100,14 @@ export class Obstacle {
     this.word1Typed.setDepth(15);
 
     if (config.word2) {
-      this.word2Untyped = scene.add.text(config.x, config.word2Y, config.word2, {
+      this.word2Untyped = addCrispText(scene, config.x, config.word2Y, config.word2, {
         ...wordStyle,
         color: secondaryColor,
       });
       this.word2Untyped.setOrigin(0.5);
       this.word2Untyped.setDepth(15);
 
-      this.word2Typed = scene.add.text(config.x, config.word2Y, '', {
+      this.word2Typed = addCrispText(scene, config.x, config.word2Y, '', {
         ...wordStyle,
         color: '#4ade80',
       });
@@ -119,14 +120,13 @@ export class Obstacle {
     const dx = currentSpeed * dt;
     this.config.x -= dx;
 
-    if (this.upperSp) this.upperSp.x -= dx;
-    if (this.lowerSp) this.lowerSp.x -= dx;
-    if (this.upperRect) this.upperRect.x -= dx;
-    if (this.lowerRect) this.lowerRect.x -= dx;
-    if (this.word1Untyped?.active) this.word1Untyped.x -= dx;
-    if (this.word1Typed?.active) this.word1Typed.x -= dx;
-    if (this.word2Untyped?.active) this.word2Untyped.x -= dx;
-    if (this.word2Typed?.active) this.word2Typed.x -= dx;
+    if (this.upperSp) this.upperSp.x = snapPixel(this.config.x);
+    if (this.lowerSp) this.lowerSp.x = snapPixel(this.config.x);
+    if (this.upperRect) this.upperRect.x = this.config.x - OBSTACLE_BODY_WIDTH / 2;
+    if (this.lowerRect) this.lowerRect.x = this.config.x - OBSTACLE_BODY_WIDTH / 2;
+
+    this.layoutWord(this.word1Typed, this.word1Untyped);
+    this.layoutWord(this.word2Typed, this.word2Untyped);
 
     if (this.config.x < -80) {
       this.active = false;
@@ -162,19 +162,19 @@ export class Obstacle {
     const rest = word.slice(charIndex);
     typed.setText(green);
     untyped.setText(rest);
-    const fullWidth = typed.width + untyped.width;
-    typed.x = this.config.x - fullWidth / 2 + typed.width / 2;
-    untyped.x = this.config.x - fullWidth / 2 + typed.width + untyped.width / 2;
+    this.layoutWord(typed, untyped);
   }
 
   resetWordDisplay(): void {
     const primaryColor = hex(COLORS.TEXT_ON_LIGHT);
     const secondaryColor = hex(COLORS.TEXT_MUTED);
 
-    this.word1Untyped?.setText(this.config.word1).setColor(primaryColor).setAlpha(1).setX(this.config.x);
+    this.word1Untyped?.setText(this.config.word1).setColor(primaryColor).setAlpha(1).setX(snapPixel(this.config.x));
     this.word1Typed?.setText('').setColor('#4ade80').setAlpha(1);
-    this.word2Untyped?.setText(this.config.word2).setColor(secondaryColor).setAlpha(1).setX(this.config.x);
+    this.word2Untyped?.setText(this.config.word2).setColor(secondaryColor).setAlpha(1).setX(snapPixel(this.config.x));
     this.word2Typed?.setText('').setColor('#4ade80').setAlpha(1);
+    this.layoutWord(this.word1Typed, this.word1Untyped);
+    this.layoutWord(this.word2Typed, this.word2Untyped);
   }
 
   flashWrong(_wordIndex: 1 | 2): void {
@@ -205,5 +205,24 @@ export class Obstacle {
     if (this.word1Typed?.active) this.word1Typed.destroy();
     if (this.word2Untyped?.active) this.word2Untyped.destroy();
     if (this.word2Typed?.active) this.word2Typed.destroy();
+  }
+
+  private layoutWord(
+    typed: Phaser.GameObjects.Text | null,
+    untyped: Phaser.GameObjects.Text | null
+  ): void {
+    if (!typed || !untyped || !typed.active || !untyped.active) {
+      return;
+    }
+
+    if (typed.text.length === 0) {
+      typed.x = snapPixel(this.config.x);
+      untyped.x = snapPixel(this.config.x);
+      return;
+    }
+
+    const fullWidth = typed.width + untyped.width;
+    typed.x = snapPixel(this.config.x - fullWidth / 2 + typed.width / 2);
+    untyped.x = snapPixel(this.config.x - fullWidth / 2 + typed.width + untyped.width / 2);
   }
 }

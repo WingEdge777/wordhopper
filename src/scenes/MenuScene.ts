@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
-import { Difficulty, SPRITE_KEYS } from '../config/constants';
+import { applyRenderZoom } from '../config/display';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, Difficulty, SPRITE_KEYS } from '../config/constants';
 import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
+import { addCrispText } from '../config/text';
 import { hex, darker } from '../config/utils';
 
 export class MenuScene extends Phaser.Scene {
@@ -14,9 +16,11 @@ export class MenuScene extends Phaser.Scene {
   }
 
   create(): void {
+    applyRenderZoom(this);
     this.selectedDifficulty = 'easy';
     this.difficultyBtns = {} as any;
-    const { width, height } = this.cameras.main;
+    const width = CANVAS_WIDTH;
+    const height = CANVAS_HEIGHT;
 
     this.add.image(width / 2, height / 2, SPRITE_KEYS.BG_SKY)
       .setDisplaySize(width, height).setDepth(0);
@@ -30,7 +34,7 @@ export class MenuScene extends Phaser.Scene {
     titleBg.fillRoundedRect(width / 2 - 128, titleBgY + titleBgH / 2, 256, titleBgH / 2, 12);
     titleBg.setDepth(4);
 
-    this.add.text(width / 2, titleBgY + titleBgH / 2, 'Word Hopper', {
+    addCrispText(this, width / 2, titleBgY + titleBgH / 2, 'Word Hopper', {
       fontSize: '36px',
       fontFamily: FONT_DISPLAY,
       color: '#FFFFFF',
@@ -45,7 +49,7 @@ export class MenuScene extends Phaser.Scene {
     subtitleGfx.fillRoundedRect(width / 2 - 120, subtitleBgY, 240, subtitleBgH, 12);
     subtitleGfx.setDepth(3);
 
-    this.add.text(width / 2, subtitleBgY + subtitleBgH / 2, 'Type to survive. Jump to thrive.', {
+    addCrispText(this, width / 2, subtitleBgY + subtitleBgH / 2, 'Type to survive. Jump to thrive.', {
       fontSize: '15px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.TEXT_ON_LIGHT),
@@ -92,7 +96,7 @@ export class MenuScene extends Phaser.Scene {
       bg.fillRoundedRect(-110, -16, 220, 32, 12);
       container.add(bg);
 
-      const labelText = this.add.text(-85, 0, label, {
+      const labelText = addCrispText(this, -85, 0, label, {
         fontSize: '15px',
         fontFamily: FONT_BODY,
         color: hex(COLORS.TEXT_ON_LIGHT),
@@ -100,7 +104,7 @@ export class MenuScene extends Phaser.Scene {
       }).setOrigin(0, 0.5);
       container.add(labelText);
 
-      const descText = this.add.text(85, 0, desc, {
+      const descText = addCrispText(this, 85, 0, desc, {
         fontSize: '13px',
         fontFamily: FONT_BODY,
         color: hex(COLORS.TEXT_MUTED),
@@ -125,7 +129,7 @@ export class MenuScene extends Phaser.Scene {
     promptBg.fillRoundedRect(width / 2 - 110, promptBgY, 220, promptBgH, 12);
     promptBg.setDepth(4);
 
-    const startPrompt = this.add.text(width / 2, promptBgY + promptBgH / 2, '> TYPE + SPACE TO PLAY <', {
+    const startPrompt = addCrispText(this, width / 2, promptBgY + promptBgH / 2, '> TYPE + SPACE TO PLAY <', {
       fontSize: '14px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.ACCENT),
