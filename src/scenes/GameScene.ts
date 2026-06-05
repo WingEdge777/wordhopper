@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { Difficulty, PLAYER_X, GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT, GRAVITY, GROUND_HEIGHT, SPRITE_KEYS } from '../config/constants';
+import { Difficulty, DIFFICULTY_CONFIG, PLAYER_X, GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT, GRAVITY, GROUND_HEIGHT, SPRITE_KEYS } from '../config/constants';
 import { COLORS, FONT_BODY, FONT_WORD } from '../config/colors';
 import { darker } from '../config/utils';
 import { Player } from '../entities/Player';
@@ -56,6 +56,7 @@ export class GameScene extends Phaser.Scene {
     this.wordReady = false;
     this.scoreSystem.reset();
     this.speedManager.reset();
+    this.speedManager.setBaseMultiplier(DIFFICULTY_CONFIG[this.difficulty].speedMultiplier);
     this.typingSystem = new TypingSystem();
     this.obstacleSpawner = new ObstacleSpawner(this.wordSpawner, this.speedManager);
     this.obstacleSpawner.setDifficulty(this.difficulty);

@@ -8,8 +8,11 @@ export interface WordPair {
   word2: string;
 }
 
+const easyList = (easyWords as string[]).filter((w) => w.length >= 3 && w.length <= 5);
+
 const WORD_CACHE: Record<Difficulty, string[]> = {
-  easy: (easyWords as string[]).filter((w) => w.length >= 3 && w.length <= 5),
+  chill: easyList,
+  easy: easyList,
   medium: (mediumWords as string[]).filter((w) => w.length >= 6 && w.length <= 8),
   hard: (hardWords as string[]).filter((w) => w.length >= 8),
 };

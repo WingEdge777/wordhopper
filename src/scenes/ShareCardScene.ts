@@ -27,7 +27,7 @@ export function parseShareParams(): ShareCardData | null {
   const wpm = parseInt(params.get('w') || '', 10);
   const bestWord = params.get('bw') || '';
   const difficulty = (params.get('d') || '') as Difficulty;
-  if (!score || !['easy', 'medium', 'hard'].includes(difficulty)) return null;
+  if (!score || !['chill', 'easy', 'medium', 'hard'].includes(difficulty)) return null;
   return { score, wpm: wpm || 0, bestWord, difficulty };
 }
 

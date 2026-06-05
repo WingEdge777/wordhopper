@@ -20,7 +20,7 @@ export class MenuScene extends Phaser.Scene {
     this.add.image(width / 2, height / 2, SPRITE_KEYS.BG_SKY)
       .setDisplaySize(width, height).setDepth(0);
 
-    const titleBgY = 14;
+    const titleBgY = 36;
     const titleBgH = 48;
     const titleBg = this.add.graphics();
     titleBg.fillStyle(COLORS.PRIMARY, 1);
@@ -37,7 +37,7 @@ export class MenuScene extends Phaser.Scene {
       padding: { right: 8, left: 2, top: 2, bottom: 2 },
     }).setOrigin(0.5).setDepth(5);
 
-    const subtitleBgY = titleBgY + titleBgH + 6;
+    const subtitleBgY = titleBgY + titleBgH + 14;
     const subtitleBgH = 24;
     const subtitleGfx = this.add.graphics();
     subtitleGfx.fillStyle(COLORS.MUTED_DARK, 0.7);
@@ -51,7 +51,7 @@ export class MenuScene extends Phaser.Scene {
       fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(5);
 
-    const liuY = subtitleBgY + subtitleBgH + 42;
+    const liuY = subtitleBgY + subtitleBgH + 36;
     const mound = this.add.graphics();
     mound.fillStyle(COLORS.SECONDARY, 0.15);
     mound.fillEllipse(width / 2, liuY + 24, 200, 50);
@@ -72,13 +72,14 @@ export class MenuScene extends Phaser.Scene {
     });
 
     const difficulties: { key: Difficulty; label: string; desc: string }[] = [
+      { key: 'chill', label: 'CHILL', desc: '3–5 chars, slow' },
       { key: 'easy', label: 'EASY', desc: '3–5 chars' },
       { key: 'medium', label: 'MEDIUM', desc: '6–8 chars' },
       { key: 'hard', label: 'HARD', desc: '8+ chars' },
     ];
 
-    const btnStartY = liuY + 76;
-    const btnStepY = 44;
+    const btnStartY = liuY + 56;
+    const btnStepY = 34;
 
     difficulties.forEach(({ key, label, desc }, i) => {
       const yPos = btnStartY + i * btnStepY;

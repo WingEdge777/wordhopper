@@ -5,14 +5,19 @@ import {
 } from '../config/constants';
 
 export class SpeedManager {
+  private baseMultiplier = 1.0;
   private multiplier = 1.0;
 
+  setBaseMultiplier(m: number): void {
+    this.baseMultiplier = m;
+  }
+
   getSpeed(): number {
-    return INITIAL_SCROLL_SPEED * this.multiplier;
+    return INITIAL_SCROLL_SPEED * this.baseMultiplier * this.multiplier;
   }
 
   getSpeedMultiplier(): number {
-    return this.multiplier;
+    return this.baseMultiplier * this.multiplier;
   }
 
   getCompressionFactor(): number {

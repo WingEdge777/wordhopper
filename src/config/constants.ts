@@ -28,12 +28,13 @@ export const SPEED_INCREMENT = 0.01;
 export const BASE_SCORE_PER_TICK = 1;
 export const WORD_BONUS_MULTIPLIER = 10;
 
-export type Difficulty = 'easy' | 'medium' | 'hard';
+export type Difficulty = 'chill' | 'easy' | 'medium' | 'hard';
 
-export const DIFFICULTY_CONFIG: Record<Difficulty, { minLen: number; maxLen: number; wordFile: string }> = {
-  easy: { minLen: 3, maxLen: 5, wordFile: 'words-easy.json' },
-  medium: { minLen: 6, maxLen: 8, wordFile: 'words-medium.json' },
-  hard: { minLen: 8, maxLen: Infinity, wordFile: 'words-hard.json' },
+export const DIFFICULTY_CONFIG: Record<Difficulty, { minLen: number; maxLen: number; wordFile: string; speedMultiplier: number }> = {
+  chill: { minLen: 3, maxLen: 5, wordFile: 'words-easy.json', speedMultiplier: 0.5 },
+  easy: { minLen: 3, maxLen: 5, wordFile: 'words-easy.json', speedMultiplier: 1.0 },
+  medium: { minLen: 6, maxLen: 8, wordFile: 'words-medium.json', speedMultiplier: 1.0 },
+  hard: { minLen: 8, maxLen: Infinity, wordFile: 'words-hard.json', speedMultiplier: 1.0 },
 };
 
 export enum ObstacleType {
