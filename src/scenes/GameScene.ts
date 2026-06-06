@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import { applyRenderZoom } from '../config/display';
 import { Difficulty, DIFFICULTY_CONFIG, PLAYER_X, GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT, GRAVITY, GROUND_HEIGHT, SPRITE_KEYS } from '../config/constants';
-import { COLORS, FONT_BODY, FONT_WORD } from '../config/colors';
+import { COLORS, FONT_BODY, FONT_TYPING } from '../config/colors';
+import { getTranslation } from '../data/translations';
 import { addCrispText } from '../config/text';
 import { darker } from '../config/utils';
 import { Player } from '../entities/Player';
@@ -125,13 +126,13 @@ export class GameScene extends Phaser.Scene {
 
     const typingGfx = this.add.graphics();
     typingGfx.fillStyle(COLORS.PRIMARY, 0.85);
-    typingGfx.fillRoundedRect(CANVAS_WIDTH / 2 - 80, CANVAS_HEIGHT - 22, 160, 28, 14);
+    typingGfx.fillRoundedRect(CANVAS_WIDTH / 2 - 120, CANVAS_HEIGHT - 22, 240, 28, 14);
     typingGfx.setDepth(20);
 
     this.typingText = addCrispText(this, CANVAS_WIDTH / 2, CANVAS_HEIGHT - 14, '', {
-      fontSize: '18px',
+      fontSize: '16px',
       color: '#FFFFFF',
-      fontFamily: FONT_WORD,
+      fontFamily: FONT_TYPING,
       fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(20);
 
@@ -309,11 +310,13 @@ export class GameScene extends Phaser.Scene {
     if (!progress.selectedWord) { this.typingText.setText(''); return; }
     const typed = progress.selectedWord.substring(0, progress.correctChars);
     const remaining = progress.selectedWord.substring(progress.correctChars);
+    const zh = getTranslation(progress.selectedWord);
+    const typedWithZh = zh ? `${typed} ${zh}` : typed;
     if (this.wordReady) {
-      this.typingText.setText(`${typed} → SPACE at green line`);
+      this.typingText.setText(`${typedWithZh} → SPACE at green line`);
       this.typingText.setColor('#FDE68A');
     } else {
-      this.typingText.setText(`${typed}|${remaining}`);
+      this.typingText.setText(`${typedWithZh}|${remaining}`);
       this.typingText.setColor('#FFFFFF');
     }
   }

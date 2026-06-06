@@ -48,14 +48,25 @@ describe('WordSpawner', () => {
     expect(word.length).toBeLessThanOrEqual(5);
   });
 
-  it('should not repeat the same word consecutively', () => {
+  it('should not repeat words until the deck is exhausted', () => {
     spawner.loadWords('easy');
-    const results = new Set<string>();
-    for (let i = 0; i < 20; i++) {
-      const pair = spawner.generatePair();
-      results.add(pair.word1);
-      results.add(pair.word2);
+    const seen = new Set<string>();
+    for (let i = 0; i < 200; i++) {
+      const word = spawner.generateSingle();
+      expect(seen.has(word)).toBe(false);
+      seen.add(word);
     }
-    expect(results.size).toBeGreaterThan(5);
+  });
+
+  it('should not repeat words within a shuffled pair batch', () => {
+    spawner.loadWords('easy');
+    const seen = new Set<string>();
+    for (let i = 0; i < 100; i++) {
+      const pair = spawner.generatePair();
+      expect(seen.has(pair.word1)).toBe(false);
+      expect(seen.has(pair.word2)).toBe(false);
+      seen.add(pair.word1);
+      seen.add(pair.word2);
+    }
   });
 });

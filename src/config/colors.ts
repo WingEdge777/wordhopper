@@ -44,3 +44,4 @@ export const COLORS = {
 export const FONT_DISPLAY = 'Caveat';
 export const FONT_BODY = 'Quicksand';
 export const FONT_WORD = '"JetBrains Mono"';
+export const FONT_TYPING = '"JetBrains Mono", "Noto Sans SC", sans-serif';

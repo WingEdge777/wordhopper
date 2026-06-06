@@ -19,42 +19,64 @@ const WORD_CACHE: Record<Difficulty, string[]> = {
 
 export class WordSpawner {
   private words: string[] = [];
-  private lastWord1 = '';
-  private lastWord2 = '';
+  private deck: string[] = [];
+  private lastPicked = '';
 
   loadWords(difficulty: Difficulty): void {
     this.words = WORD_CACHE[difficulty] || [];
+    this.lastPicked = '';
+    this.reshuffleDeck();
   }
 
   generatePair(): WordPair {
-    const word1 = this.pickRandom(this.lastWord1);
-    let word2 = this.pickRandom(this.lastWord2);
-
-    let attempts = 0;
-    while (word2[0] === word1[0] && attempts < 100) {
-      word2 = this.pickRandom(this.lastWord2);
-      attempts++;
-    }
-
-    this.lastWord1 = word1;
-    this.lastWord2 = word2;
+    const word1 = this.takeFromDeck();
+    const word2 = this.takeFromDeck({ firstLetterNot: word1[0], exclude: word1 });
     return { word1, word2 };
   }
 
   generateSingle(): string {
-    const word = this.pickRandom(this.lastWord1);
-    this.lastWord1 = word;
+    return this.takeFromDeck();
+  }
+
+  private takeFromDeck(options?: { exclude?: string; firstLetterNot?: string }): string {
+    const matches = (w: string) => {
+      if (options?.exclude && w === options.exclude) return false;
+      if (options?.firstLetterNot && w[0] === options.firstLetterNot) return false;
+      return true;
+    };
+
+    const pickFromDeck = (): string | null => {
+      const idx = this.deck.findIndex(matches);
+      if (idx < 0) return null;
+      return this.deck.splice(idx, 1)[0];
+    };
+
+    let word = pickFromDeck();
+    if (!word) {
+      this.reshuffleDeck();
+      word = pickFromDeck();
+    }
+    if (!word) {
+      const fallback = this.words.filter(matches);
+      word = fallback[Math.floor(Math.random() * fallback.length)] || this.words[0] || '';
+    }
+
+    this.lastPicked = word;
     return word;
   }
 
-  private pickRandom(exclude: string): string {
-    if (this.words.length <= 1) return this.words[0] || '';
-    let candidate: string;
-    let attempts = 0;
-    do {
-      candidate = this.words[Math.floor(Math.random() * this.words.length)];
-      attempts++;
-    } while (candidate === exclude && attempts < 50);
-    return candidate;
+  private reshuffleDeck(): void {
+    this.deck = this.shuffle([...this.words]);
+    if (this.lastPicked && this.deck.length > 1 && this.deck[0] === this.lastPicked) {
+      [this.deck[0], this.deck[1]] = [this.deck[1], this.deck[0]];
+    }
+  }
+
+  private shuffle<T>(items: T[]): T[] {
+    for (let i = items.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [items[i], items[j]] = [items[j], items[i]];
+    }
+    return items;
   }
 }
