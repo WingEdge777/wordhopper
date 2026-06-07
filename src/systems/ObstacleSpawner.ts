@@ -35,15 +35,16 @@ export class ObstacleSpawner {
     return currentRightEdge <= CANVAS_WIDTH - this.getMinSpacing();
   }
 
-  generate(currentSpeed: number): ObstacleConfig {
+  generate(currentSpeed: number, tutorial = false): ObstacleConfig {
     const layout = this.pickLayout();
-    const gapMin = DIFFICULTY_CONFIG[this.difficulty].gapMin * PLAYER_HEIGHT;
-    const gapMax = DIFFICULTY_CONFIG[this.difficulty].gapMax * PLAYER_HEIGHT;
+    const diffConfig = DIFFICULTY_CONFIG[this.difficulty];
+    const gapMin = tutorial ? diffConfig.gapMax * PLAYER_HEIGHT : diffConfig.gapMin * PLAYER_HEIGHT;
+    const gapMax = tutorial ? diffConfig.gapMax * 1.5 * PLAYER_HEIGHT : diffConfig.gapMax * PLAYER_HEIGHT;
     const gapHeight = this.randomRange(gapMin, gapMax);
     const gapY = this.computeGapY(layout, gapHeight);
     const obstacleType = OBSTACLE_TYPES[Math.floor(Math.random() * OBSTACLE_TYPES.length)];
 
-    const x = CANVAS_WIDTH + 50;
+    const x = tutorial ? CANVAS_WIDTH * 0.6 : CANVAS_WIDTH + 50;
 
     let word1: string;
     let word2 = '';

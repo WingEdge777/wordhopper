@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { applyRenderZoom, isMobile } from '../config/display';
 import { Difficulty, DIFFICULTY_CONFIG, PLAYER_X, GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT, GRAVITY, GROUND_HEIGHT, SPRITE_KEYS } from '../config/constants';
-import { COLORS, FONT_BODY, FONT_TYPING } from '../config/colors';
+import { COLORS, FONT_BODY, FONT_TYPING, FONT_DISPLAY } from '../config/colors';
 import { getTranslation } from '../data/translations';
 import { addCrispText } from '../config/text';
 import { darker } from '../config/utils';
@@ -14,6 +14,15 @@ import { SpeedManager } from '../systems/SpeedManager';
 import { ObstacleSpawner } from '../systems/ObstacleSpawner';
 
 const DEBUG_HITBOXES = false;
+const TUTORIAL_KEY = 'word-hopper-tutorial-done';
+
+function isTutorialNeeded(): boolean {
+  return !localStorage.getItem(TUTORIAL_KEY);
+}
+
+function markTutorialDone(): void {
+  localStorage.setItem(TUTORIAL_KEY, '1');
+}
 
 export class GameScene extends Phaser.Scene {
   private player!: Player;
@@ -29,8 +38,11 @@ export class GameScene extends Phaser.Scene {
   private inputBlurHandler: (() => void) | null = null;
   private typingLock = false;
   private wordReady = false;
+  private tutorial = false;
+  private tutorialStarted = false;
   private scoreText!: Phaser.GameObjects.Text;
   private speedText!: Phaser.GameObjects.Text;
+  private comboText!: Phaser.GameObjects.Text;
   private typingText!: Phaser.GameObjects.Text;
   private timingLine!: Phaser.GameObjects.Graphics;
   private flashGfx!: Phaser.GameObjects.Graphics;
@@ -59,6 +71,8 @@ export class GameScene extends Phaser.Scene {
     this.elapsedTime = 0;
     this.obstacles = [];
     this.wordReady = false;
+    this.tutorial = isTutorialNeeded();
+    this.tutorialStarted = false;
     this.scoreSystem.reset();
     this.speedManager.reset();
     this.speedManager.setBaseMultiplier(DIFFICULTY_CONFIG[this.difficulty].speedMultiplier);
@@ -124,6 +138,14 @@ export class GameScene extends Phaser.Scene {
       fontFamily: FONT_BODY,
       fontStyle: 'normal',
     }).setDepth(20);
+
+    this.comboText = addCrispText(this, CANVAS_WIDTH / 2, 28, '', {
+      fontSize: '28px',
+      color: '#FFFFFF',
+      fontFamily: FONT_DISPLAY,
+      fontStyle: 'bold',
+      padding: { right: 8, left: 2, top: 2, bottom: 2 },
+    }).setOrigin(0.5).setDepth(20);
 
     const typingGfx = this.add.graphics();
     typingGfx.fillStyle(COLORS.PRIMARY, 0.85);
@@ -203,10 +225,10 @@ export class GameScene extends Phaser.Scene {
   update(_time: number, delta: number): void {
     if (!this.alive) return;
     const dt = delta / 1000;
-    const speed = this.speedManager.getSpeed();
+    const speed = this.tutorialShouldPause() ? 0 : this.speedManager.getSpeed();
 
     this.distance += speed * dt;
-    this.elapsedTime += dt;
+    if (this.tutorialStarted) this.elapsedTime += dt;
     for (const tile of this.groundTiles) {
       tile.tilePositionX += speed * dt;
     }
@@ -214,14 +236,16 @@ export class GameScene extends Phaser.Scene {
     this.player.update(0);
 
     this.tickAccumulator += dt;
-    if (this.tickAccumulator >= 0.1) {
+    if (this.tickAccumulator >= 0.1 && this.tutorialStarted) {
       this.scoreSystem.addTick();
       this.tickAccumulator -= 0.1;
+    } else if (!this.tutorialStarted) {
+      this.tickAccumulator = 0;
     }
 
     for (const obstacle of this.obstacles) obstacle.update(dt, speed);
     this.checkCollisions();
-    this.updateTimingLine(speed);
+    this.updateTimingLine(this.speedManager.getSpeed());
     this.cleanupObstacles();
     if (this.typingSystem.hasWords() && !this.getNearestObstacle()) this.typingSystem.clear();
     this.checkSpawn();
@@ -293,6 +317,10 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    if (this.tutorial && !this.tutorialStarted) {
+      this.tutorialStarted = true;
+    }
+
     const nearest = this.getNearestObstacle();
     if (!nearest) return;
 
@@ -322,6 +350,7 @@ export class GameScene extends Phaser.Scene {
     const wordIdx = config.word1 === progress.selectedWord ? 1 : 2;
     const targetY = wordIdx === 1 ? config.word1Y : config.word2Y;
 
+    let perfect = false;
     const jumpHeight = GROUND_Y - targetY;
     if (jumpHeight > 0) {
       const speed = this.speedManager.getSpeed();
@@ -329,20 +358,52 @@ export class GameScene extends Phaser.Scene {
       const idealX = nearest.getX() - speed * apexTime;
       const windowHalf = Math.max(30, speed * 0.18);
       const dist = Math.abs(PLAYER_X - idealX);
+      perfect = dist < windowHalf * 0.3;
       this.triggerFlash(idealX, dist, windowHalf);
     }
 
     this.player.jumpToWord(targetY);
-    this.scoreSystem.addWordBonus(progress.selectedWord, this.speedManager.getSpeedMultiplier());
+    this.scoreSystem.addWordBonus(progress.selectedWord, this.speedManager.getSpeedMultiplier(), perfect);
     this.speedManager.onObstacleCleared();
     nearest.clearWords();
     this.typingText.setText('');
+    this.updateComboDisplay(perfect);
+    if (this.tutorial) {
+      this.tutorial = false;
+      markTutorialDone();
+    }
     this.spawnObstacle();
+  }
+
+  private tutorialShouldPause(): boolean {
+    if (!this.tutorial) return false;
+    if (!this.tutorialStarted) return true;
+    if (!this.wordReady) return false;
+    const nearest = this.getNearestObstacle();
+    if (!nearest) return true;
+    const config = nearest.getConfig();
+    const targetY = this.typingSystem.getProgress().selectedWord
+      ? (config.word1 === this.typingSystem.getProgress().selectedWord ? config.word1Y : config.word2Y)
+      : config.word1Y;
+    const jumpHeight = GROUND_Y - targetY;
+    if (jumpHeight <= 0) return false;
+    const speed = this.speedManager.getSpeed();
+    const apexTime = Math.sqrt(2 * jumpHeight / GRAVITY);
+    const idealX = nearest.getX() - speed * apexTime;
+    return Math.abs(idealX - PLAYER_X) < 3;
   }
 
   private updateTypingIndicator(): void {
     const progress = this.typingSystem.getProgress();
-    if (!progress.selectedWord) { this.typingText.setText(''); return; }
+    if (!progress.selectedWord) {
+      if (this.tutorial && !this.tutorialStarted) {
+        this.typingText.setText('Type a word on the obstacle');
+        this.typingText.setColor('#A7F3D0');
+        return;
+      }
+      this.typingText.setText('');
+      return;
+    }
     const typed = progress.selectedWord.substring(0, progress.correctChars);
     const remaining = progress.selectedWord.substring(progress.correctChars);
     const zh = getTranslation(progress.selectedWord);
@@ -358,7 +419,8 @@ export class GameScene extends Phaser.Scene {
 
   private spawnObstacle(): void {
     const speed = this.speedManager.getSpeed();
-    const config = this.obstacleSpawner.generate(speed);
+    const isFirstSpawn = this.tutorial && !this.tutorialStarted;
+    const config = this.obstacleSpawner.generate(speed, isFirstSpawn);
     const obstacle = new Obstacle(this, config, speed);
     this.obstacles.push(obstacle);
 
@@ -367,6 +429,8 @@ export class GameScene extends Phaser.Scene {
     } else {
       this.typingSystem.setSingleWord(config.word1);
     }
+
+    if (isFirstSpawn) this.updateTypingIndicator();
   }
 
   private getNearestObstacle(): Obstacle | null {
@@ -378,6 +442,8 @@ export class GameScene extends Phaser.Scene {
 
   private die(): void {
     this.alive = false;
+    this.scoreSystem.breakCombo();
+    this.comboText.setText('');
     this.player.die();
     this.cleanupDOMListeners();
     this.time.delayedCall(500, () => {
@@ -407,6 +473,33 @@ export class GameScene extends Phaser.Scene {
   private updateHUD(): void {
     this.scoreText.setText(`SCORE ${this.scoreSystem.getScore().toLocaleString()}`);
     this.speedText.setText(`SPEED ${this.speedManager.getSpeedMultiplier().toFixed(1)}x`);
+  }
+
+  private updateComboDisplay(perfect: boolean): void {
+    const combo = this.scoreSystem.getCombo();
+    if (combo < 1) {
+      this.comboText.setText('');
+      return;
+    }
+
+    const label = perfect ? `x${combo} PERFECT` : `x${combo} GOOD`;
+    this.comboText.setText(label);
+    this.comboText.setColor(perfect ? '#34D399' : '#A7F3D0');
+    this.comboText.setFontSize(perfect ? '32px' : '28px');
+
+    this.tweens.killTweensOf(this.comboText);
+    this.comboText.setScale(1.4);
+    this.tweens.add({
+      targets: this.comboText,
+      scaleX: 1,
+      scaleY: 1,
+      duration: 200,
+      ease: 'Back.easeOut',
+    });
+
+    if (combo >= 5) {
+      this.cameras.main.shake(80, 0.003);
+    }
   }
 
   private updateTimingLine(speed: number): void {

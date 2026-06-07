@@ -6,7 +6,7 @@ import { addCrispText } from '../config/text';
 import { hex, darker } from '../config/utils';
 
 export class MenuScene extends Phaser.Scene {
-  private selectedDifficulty: Difficulty = 'chill';
+  private selectedDifficulty: Difficulty = 'easy';
   private difficultyBtns: Record<Difficulty, Phaser.GameObjects.Container> = {} as any;
   private gameInputHandler: ((e: KeyboardEvent) => void) | null = null;
   private keyboardHandler: ((event: KeyboardEvent) => void) | null = null;
@@ -19,7 +19,7 @@ export class MenuScene extends Phaser.Scene {
 
   create(): void {
     applyRenderZoom(this);
-    this.selectedDifficulty = 'chill';
+    this.selectedDifficulty = 'easy';
     this.difficultyBtns = {} as any;
     const width = CANVAS_WIDTH;
     const height = CANVAS_HEIGHT;
