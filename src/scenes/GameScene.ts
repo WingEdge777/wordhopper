@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { applyRenderZoom } from '../config/display';
+import { applyRenderZoom, isMobile } from '../config/display';
 import { Difficulty, DIFFICULTY_CONFIG, PLAYER_X, GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT, GRAVITY, GROUND_HEIGHT, SPRITE_KEYS } from '../config/constants';
 import { COLORS, FONT_BODY, FONT_TYPING } from '../config/colors';
 import { getTranslation } from '../data/translations';
@@ -166,6 +166,16 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.spawnObstacle();
+
+    if (isMobile()) {
+      (window as any).__wordhopper_jump = () => {
+        if (!this.alive) return;
+        if (this.wordReady) { this.submitWord(); return; }
+        if (this.typingSystem.getProgress().selectedWord) {
+          this.handleTyping(' ');
+        }
+      };
+    }
   }
 
   update(_time: number, delta: number): void {
@@ -432,5 +442,6 @@ export class GameScene extends Phaser.Scene {
         this.inputBlurHandler = null;
       }
     }
+    delete (window as any).__wordhopper_jump;
   }
 }

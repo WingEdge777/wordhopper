@@ -5,9 +5,9 @@ import { MenuScene } from './scenes/MenuScene';
 import { GameScene } from './scenes/GameScene';
 import { DeathScene } from './scenes/DeathScene';
 import { ShareCardScene } from './scenes/ShareCardScene';
-import { applyRenderZoom, getDisplaySize, getRenderSize } from './config/display';
+import { applyRenderZoom, getDisplaySize, getRenderSize, isMobile } from './config/display';
 
-export { getDisplaySize, getRenderResolution, getRenderSize } from './config/display';
+export { getDisplaySize, getRenderResolution, getRenderSize, isMobile } from './config/display';
 
 export function createGameConfig(
   parent: HTMLElement,
@@ -45,7 +45,7 @@ export function createGameConfig(
   };
 }
 
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+const mobile = isMobile();
 const gameShell = document.getElementById('game-shell');
 
 async function waitForGameFonts(): Promise<void> {
@@ -73,11 +73,23 @@ function resizeGame(game: Phaser.Game): void {
   }
 }
 
-if (isMobile) {
-  document.getElementById('mobile-blocker')!.style.display = 'flex';
-} else if (gameShell) {
+if (gameShell) {
+  if (mobile) {
+    document.getElementById('mobile-blocker')!.style.display = 'none';
+  }
+
   waitForGameFonts().then(() => {
     const game = new Phaser.Game(createGameConfig(gameShell));
+
+    if (mobile) {
+      const jumpBtn = document.getElementById('jump-btn');
+      if (jumpBtn) {
+        jumpBtn.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          (window as any).__wordhopper_jump?.();
+        });
+      }
+    }
 
     window.addEventListener('resize', () => {
       resizeGame(game);

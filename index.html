@@ -26,6 +26,15 @@
     #mobile-blocker p { font-size: 15px; color: #6B7280; max-width: 300px; line-height: 1.6; }
     #github-link { position: fixed; top: 12px; right: 12px; z-index: 999; opacity: 0.4; transition: opacity 0.2s; }
     #github-link:hover { opacity: 0.8; }
+    #jump-btn { display: none; position: fixed; bottom: 24px; right: 24px; width: 72px; height: 72px; border-radius: 50%; background: rgba(22,163,74,0.85); color: #fff; font-family: Quicksand, sans-serif; font-size: 14px; font-weight: 700; border: none; z-index: 1000; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    #jump-btn:active { background: rgba(22,163,74,1); transform: scale(0.92); }
+    @media (max-width: 767px), (pointer: coarse) {
+      body { align-items: flex-start; }
+      #game-shell { width: 100vw; }
+      #game-shell canvas { border-radius: 0; box-shadow: none; }
+      #jump-btn { display: block; }
+      #github-link { display: none; }
+    }
   </style>
 </head>
 <body tabindex="0">
@@ -38,6 +47,7 @@
   </div>
   <div id="game-shell" aria-label="Word Hopper game"></div>
   <input id="game-input" type="text" autocomplete="off" autofocus>
+  <button id="jump-btn">JUMP</button>
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

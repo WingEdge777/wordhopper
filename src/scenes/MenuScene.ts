@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { applyRenderZoom } from '../config/display';
+import { applyRenderZoom, isMobile } from '../config/display';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, Difficulty, SPRITE_KEYS } from '../config/constants';
 import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
 import { addCrispText } from '../config/text';
@@ -78,12 +78,17 @@ export class MenuScene extends Phaser.Scene {
       ease: 'Sine.easeInOut',
     });
 
-    const difficulties: { key: Difficulty; label: string; desc: string }[] = [
-      { key: 'chill', label: 'CHILL', desc: '3–5 chars, slow' },
-      { key: 'easy', label: 'EASY', desc: '3–5 chars' },
-      { key: 'medium', label: 'MEDIUM', desc: '6–8 chars' },
-      { key: 'hard', label: 'HARD', desc: '8+ chars' },
-    ];
+    const difficulties: { key: Difficulty; label: string; desc: string }[] = isMobile()
+      ? [
+          { key: 'chill', label: 'CHILL', desc: '3–5 chars, slow' },
+          { key: 'easy', label: 'EASY', desc: '3–5 chars' },
+        ]
+      : [
+          { key: 'chill', label: 'CHILL', desc: '3–5 chars, slow' },
+          { key: 'easy', label: 'EASY', desc: '3–5 chars' },
+          { key: 'medium', label: 'MEDIUM', desc: '6–8 chars' },
+          { key: 'hard', label: 'HARD', desc: '8+ chars' },
+        ];
 
     const btnStartY = liuY + 68;
     const btnStepY = 38;
@@ -186,6 +191,10 @@ export class MenuScene extends Phaser.Scene {
     }
 
     this.updateHighlight();
+
+    if (isMobile()) {
+      (window as any).__wordhopper_jump = () => this.startGame();
+    }
   }
 
   private updateHighlight(): void {
@@ -229,5 +238,6 @@ export class MenuScene extends Phaser.Scene {
       if (gameInput) gameInput.removeEventListener('keydown', this.gameInputHandler);
       this.gameInputHandler = null;
     }
+    delete (window as any).__wordhopper_jump;
   }
 }

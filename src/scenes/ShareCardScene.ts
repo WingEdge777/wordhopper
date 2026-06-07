@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { applyRenderZoom } from '../config/display';
+import { applyRenderZoom, isMobile } from '../config/display';
 import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
 import { Difficulty, CANVAS_WIDTH, CANVAS_HEIGHT, SPRITE_KEYS } from '../config/constants';
 import { addCrispText } from '../config/text';
@@ -194,6 +194,10 @@ export class ShareCardScene extends Phaser.Scene {
       };
       gameInput.addEventListener('keydown', this.gameInputHandler);
     }
+
+    if (isMobile()) {
+      (window as any).__wordhopper_jump = () => this.play();
+    }
   }
 
   private play(): void {
@@ -216,5 +220,6 @@ export class ShareCardScene extends Phaser.Scene {
       if (gameInput) gameInput.removeEventListener('keydown', this.gameInputHandler);
       this.gameInputHandler = null;
     }
+    delete (window as any).__wordhopper_jump;
   }
 }
