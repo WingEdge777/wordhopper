@@ -18,7 +18,7 @@ const DEBUG_HITBOXES = false;
 export class GameScene extends Phaser.Scene {
   private player!: Player;
   private obstacles: Obstacle[] = [];
-  private typingSystem = new TypingSystem();
+  private typingSystem!: TypingSystem;
   private wordSpawner = new WordSpawner();
   private scoreSystem = new ScoreSystem();
   private speedManager = new SpeedManager();

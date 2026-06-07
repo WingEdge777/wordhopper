@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from './constants';
 
 const MAX_RENDER_RESOLUTION = 2;
+const MAX_RENDER_SCALE = 2;
 const DISPLAY_WIDTH_RATIO = 0.7;
 
 export function getRenderResolution(devicePixelRatio = window.devicePixelRatio || 1): number {
@@ -20,7 +21,7 @@ export function getRenderSize(
   devicePixelRatio = window.devicePixelRatio || 1
 ): { width: number; height: number } {
   const resolution = getRenderResolution(devicePixelRatio);
-  const renderScale = (displayWidth / CANVAS_WIDTH) * resolution;
+  const renderScale = Math.min((displayWidth / CANVAS_WIDTH) * resolution, MAX_RENDER_SCALE);
 
   return {
     width: Math.round(CANVAS_WIDTH * renderScale),

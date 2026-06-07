@@ -35,6 +35,7 @@ export class SpeedManager {
   }
 
   reset(): void {
+    this.baseMultiplier = 1.0;
     this.multiplier = 1.0;
   }
 }
