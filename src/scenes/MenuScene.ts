@@ -6,10 +6,12 @@ import { addCrispText } from '../config/text';
 import { hex, darker } from '../config/utils';
 
 export class MenuScene extends Phaser.Scene {
-  private selectedDifficulty: Difficulty = 'easy';
+  private selectedDifficulty: Difficulty = 'chill';
   private difficultyBtns: Record<Difficulty, Phaser.GameObjects.Container> = {} as any;
   private gameInputHandler: ((e: KeyboardEvent) => void) | null = null;
   private keyboardHandler: ((event: KeyboardEvent) => void) | null = null;
+
+  private static readonly DIFFICULTIES: Difficulty[] = ['chill', 'easy', 'medium', 'hard'];
 
   constructor() {
     super({ key: 'MenuScene' });
@@ -17,7 +19,7 @@ export class MenuScene extends Phaser.Scene {
 
   create(): void {
     applyRenderZoom(this);
-    this.selectedDifficulty = 'easy';
+    this.selectedDifficulty = 'chill';
     this.difficultyBtns = {} as any;
     const width = CANVAS_WIDTH;
     const height = CANVAS_HEIGHT;
@@ -115,8 +117,12 @@ export class MenuScene extends Phaser.Scene {
       container.setSize(220, 32);
       container.setInteractive({ useHandCursor: true });
       container.on('pointerdown', () => {
-        this.selectedDifficulty = key;
-        this.updateHighlight();
+        if (this.selectedDifficulty === key) {
+          this.startGame();
+        } else {
+          this.selectedDifficulty = key;
+          this.updateHighlight();
+        }
       });
 
       this.difficultyBtns[key] = container;
@@ -145,7 +151,15 @@ export class MenuScene extends Phaser.Scene {
     });
 
     this.keyboardHandler = (event: KeyboardEvent) => {
-      if (event.key === ' ') this.startGame();
+      if (event.key === 'ArrowUp') {
+        const idx = MenuScene.DIFFICULTIES.indexOf(this.selectedDifficulty);
+        if (idx > 0) { this.selectedDifficulty = MenuScene.DIFFICULTIES[idx - 1]; this.updateHighlight(); }
+      } else if (event.key === 'ArrowDown') {
+        const idx = MenuScene.DIFFICULTIES.indexOf(this.selectedDifficulty);
+        if (idx < MenuScene.DIFFICULTIES.length - 1) { this.selectedDifficulty = MenuScene.DIFFICULTIES[idx + 1]; this.updateHighlight(); }
+      } else if (event.key === ' ') {
+        this.startGame();
+      }
     };
     this.input.keyboard?.on('keydown', this.keyboardHandler);
 
@@ -154,7 +168,15 @@ export class MenuScene extends Phaser.Scene {
       gameInput.value = '';
       gameInput.focus();
       this.gameInputHandler = (e: KeyboardEvent) => {
-        if (e.key === ' ') {
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          const idx = MenuScene.DIFFICULTIES.indexOf(this.selectedDifficulty);
+          if (idx > 0) { this.selectedDifficulty = MenuScene.DIFFICULTIES[idx - 1]; this.updateHighlight(); }
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          const idx = MenuScene.DIFFICULTIES.indexOf(this.selectedDifficulty);
+          if (idx < MenuScene.DIFFICULTIES.length - 1) { this.selectedDifficulty = MenuScene.DIFFICULTIES[idx + 1]; this.updateHighlight(); }
+        } else if (e.key === ' ') {
           e.preventDefault();
           e.stopPropagation();
           this.startGame();
