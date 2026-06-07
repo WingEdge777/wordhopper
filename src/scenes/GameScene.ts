@@ -160,10 +160,12 @@ export class GameScene extends Phaser.Scene {
 
     this.comboText = addCrispText(this, CANVAS_WIDTH / 2, 28, '', {
       fontSize: '28px',
-      color: '#FFFFFF',
+      color: '#15803D',
       fontFamily: FONT_DISPLAY,
       fontStyle: 'bold',
       padding: { right: 8, left: 2, top: 2, bottom: 2 },
+      stroke: '#FFFFFF',
+      strokeThickness: 4,
     }).setOrigin(0.5).setDepth(20);
 
     this.hitLabel = addCrispText(this, PLAYER_X, 0, '', {
@@ -522,7 +524,8 @@ export class GameScene extends Phaser.Scene {
     const combo = this.scoreSystem.getCombo();
 
     this.comboText.setText(`x${combo} COMBO`);
-    this.comboText.setColor(combo >= 5 ? '#FCD34D' : '#FFFFFF');
+    this.comboText.setColor(combo >= 5 ? '#B45309' : '#15803D');
+    this.comboText.setStroke(combo >= 5 ? '#FEF3C7' : '#FFFFFF', 4);
     this.comboText.setFontSize(combo >= 5 ? '32px' : '28px');
 
     this.tweens.killTweensOf(this.comboText);
