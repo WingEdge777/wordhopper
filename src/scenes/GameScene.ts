@@ -40,7 +40,9 @@ export class GameScene extends Phaser.Scene {
   private wordReady = false;
   private tutorial = false;
   private tutorialStarted = false;
+  private scoreLabel!: Phaser.GameObjects.Text;
   private scoreText!: Phaser.GameObjects.Text;
+  private speedLabel!: Phaser.GameObjects.Text;
   private speedText!: Phaser.GameObjects.Text;
   private comboText!: Phaser.GameObjects.Text;
   private typingText!: Phaser.GameObjects.Text;
@@ -125,19 +127,33 @@ export class GameScene extends Phaser.Scene {
     hudGfx.fillRoundedRect(hudX, 26, 148, 20, 10);
     hudGfx.setDepth(20);
 
-    this.scoreText = addCrispText(this, hudX + 8, 12, 'SCORE 0', {
+    this.scoreLabel = addCrispText(this, hudX + 8, 12, 'SCORE', {
       fontSize: '13px',
       color: '#FFFFFF',
       fontFamily: FONT_BODY,
       fontStyle: 'bold',
     }).setDepth(20);
 
-    this.speedText = addCrispText(this, hudX + 8, 30, 'SPEED 1.0x', {
+    this.scoreText = addCrispText(this, hudX + 140, 12, '0', {
+      fontSize: '13px',
+      color: '#FFFFFF',
+      fontFamily: FONT_BODY,
+      fontStyle: 'bold',
+    }).setOrigin(1, 0).setDepth(20);
+
+    this.speedLabel = addCrispText(this, hudX + 8, 30, 'SPEED', {
       fontSize: '12px',
       color: '#D1FAE5',
       fontFamily: FONT_BODY,
       fontStyle: 'normal',
     }).setDepth(20);
+
+    this.speedText = addCrispText(this, hudX + 140, 30, '1.0x', {
+      fontSize: '12px',
+      color: '#D1FAE5',
+      fontFamily: FONT_BODY,
+      fontStyle: 'normal',
+    }).setOrigin(1, 0).setDepth(20);
 
     this.comboText = addCrispText(this, CANVAS_WIDTH / 2, 28, '', {
       fontSize: '28px',
@@ -236,11 +252,9 @@ export class GameScene extends Phaser.Scene {
     this.player.update(0);
 
     this.tickAccumulator += dt;
-    if (this.tickAccumulator >= 0.1 && this.tutorialStarted) {
-      this.scoreSystem.addTick();
+    if (this.tickAccumulator >= 0.1) {
+      if (speed > 0) this.scoreSystem.addTick();
       this.tickAccumulator -= 0.1;
-    } else if (!this.tutorialStarted) {
-      this.tickAccumulator = 0;
     }
 
     for (const obstacle of this.obstacles) obstacle.update(dt, speed);
@@ -471,8 +485,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   private updateHUD(): void {
-    this.scoreText.setText(`SCORE ${this.scoreSystem.getScore().toLocaleString()}`);
-    this.speedText.setText(`SPEED ${this.speedManager.getSpeedMultiplier().toFixed(1)}x`);
+    this.scoreText.setText(this.scoreSystem.getScore().toLocaleString());
+    this.speedText.setText(`${this.speedManager.getSpeedMultiplier().toFixed(1)}x`);
   }
 
   private updateComboDisplay(perfect: boolean): void {
