@@ -50,9 +50,10 @@ export enum ObstacleLayout {
 }
 
 export const SPRITE_KEYS = {
-  PLAYER_IDLE: 'liukanshan-idle',
-  PLAYER_JUMP: 'liukanshan-jump',
-  PLAYER_DEAD: 'liukanshan-dead',
+  PLAYER_RUN: 'hamster-run',
+  PLAYER_JUMP: 'hamster-jump',
+  PLAYER_DEAD: 'hamster-dead',
+  PLAYER_RUN_ANIM: 'hamster-run',
   OBSTACLE_MUSHROOM: 'obstacle-mushroom',
   OBSTACLE_STUMP: 'obstacle-stump',
   OBSTACLE_BUSH: 'obstacle-bush',

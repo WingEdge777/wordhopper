@@ -61,9 +61,10 @@ export class ShareCardScene extends Phaser.Scene {
     panelGfx.fillRoundedRect(w / 2 - 170, 12, 340, h - 24, 24);
     panelGfx.setDepth(6);
 
-    const liu = this.add.sprite(w / 2, 56, SPRITE_KEYS.PLAYER_IDLE);
+    const liu = this.add.sprite(w / 2, 56, SPRITE_KEYS.PLAYER_RUN);
     liu.setDisplaySize(44, 50);
     liu.setDepth(10);
+    liu.play(SPRITE_KEYS.PLAYER_RUN_ANIM);
 
     this.tweens.add({
       targets: liu,

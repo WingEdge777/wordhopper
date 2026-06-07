@@ -88,6 +88,10 @@ export class BootScene extends Phaser.Scene {
 
     const bar = this.add.graphics();
 
+    this.load.spritesheet(SPRITE_KEYS.PLAYER_RUN, 'assets/sprites/hamster-sheet.png', { frameWidth: 48, frameHeight: 48 });
+    this.load.image(SPRITE_KEYS.PLAYER_JUMP, 'assets/sprites/hamster-jump.png');
+    this.load.image(SPRITE_KEYS.PLAYER_DEAD, 'assets/sprites/hamster-dead.png');
+
     this.load.on('progress', (value: number) => {
       bar.clear();
       bar.fillStyle(COLORS.PRIMARY, 1);
@@ -118,12 +122,18 @@ export class BootScene extends Phaser.Scene {
 
     this.generateSky(g);
     this.generateGround(g);
-    this.generateLiukanshanIdle(g);
-    this.generateLiukanshanJump(g);
-    this.generateLiukanshanDead(g);
     this.generateObstacles(g);
 
     g.destroy();
+
+    if (!this.anims.exists(SPRITE_KEYS.PLAYER_RUN_ANIM)) {
+      this.anims.create({
+        key: SPRITE_KEYS.PLAYER_RUN_ANIM,
+        frames: this.anims.generateFrameNumbers(SPRITE_KEYS.PLAYER_RUN, { start: 0, end: 3 }),
+        frameRate: 10,
+        repeat: -1,
+      });
+    }
   }
 
   private generateSky(g: Phaser.GameObjects.Graphics): void {
@@ -149,98 +159,6 @@ export class BootScene extends Phaser.Scene {
     g.fillStyle(COLORS.GROUND_LIGHT, 0.5);
     g.fillRect(0, 0, CANVAS_WIDTH, 4);
     g.generateTexture(SPRITE_KEYS.BG_GROUND, CANVAS_WIDTH, h);
-  }
-
-  private generateLiukanshanIdle(g: Phaser.GameObjects.Graphics): void {
-    const W = 48, H = 56;
-    g.clear();
-
-    clayEllipse(g, W / 2, H - 22, 32, 40, COLORS.PLAYER_BODY);
-    clayCircle(g, W / 2, H - 38, 16, COLORS.PLAYER_BODY);
-
-    g.fillStyle(COLORS.PLAYER_EAR, 1);
-    g.fillEllipse(W / 2 - 12, H - 50, 8, 14);
-    g.fillEllipse(W / 2 + 12, H - 50, 8, 14);
-    g.fillStyle(lighter(COLORS.PLAYER_EAR, 0.4), 0.5);
-    g.fillEllipse(W / 2 - 13, H - 52, 4, 8);
-
-    g.fillStyle(COLORS.PLAYER_EYE, 1);
-    g.fillCircle(W / 2 - 6, H - 40, 2.5);
-    g.fillCircle(W / 2 + 6, H - 40, 2.5);
-
-    g.fillStyle(COLORS.PLAYER_NOSE, 1);
-    g.fillEllipse(W / 2, H - 34, 3, 2.2);
-
-    g.fillStyle(COLORS.PLAYER_BLUSH, 0.4);
-    g.fillEllipse(W / 2 - 13, H - 35, 6, 4);
-    g.fillEllipse(W / 2 + 13, H - 35, 6, 4);
-
-    g.fillStyle(COLORS.PLAYER_SCARF, 1);
-    g.fillRoundedRect(W / 2 - 14, H - 32, 28, 6, 3);
-    g.lineStyle(1.5, darker(COLORS.PLAYER_SCARF, 0.25), 1);
-    g.strokeRoundedRect(W / 2 - 14, H - 32, 28, 6, 3);
-
-    g.generateTexture(SPRITE_KEYS.PLAYER_IDLE, W, H);
-  }
-
-  private generateLiukanshanJump(g: Phaser.GameObjects.Graphics): void {
-    const W = 48, H = 56;
-    g.clear();
-
-    clayEllipse(g, W / 2 - 2, H - 24, 28, 36, COLORS.PLAYER_BODY);
-    clayCircle(g, W / 2 - 2, H - 38, 15, COLORS.PLAYER_BODY);
-
-    g.fillStyle(COLORS.PLAYER_EAR, 1);
-    g.fillEllipse(W / 2 - 14, H - 50, 8, 13);
-    g.fillEllipse(W / 2 + 10, H - 50, 8, 13);
-
-    g.fillStyle(COLORS.PLAYER_EYE, 1);
-    g.fillCircle(W / 2 - 7, H - 40, 2);
-    g.fillCircle(W / 2 + 5, H - 40, 2);
-
-    g.fillStyle(COLORS.PLAYER_NOSE, 1);
-    g.fillEllipse(W / 2 - 1, H - 35, 2.5, 1.8);
-
-    g.fillStyle(COLORS.PLAYER_BLUSH, 0.4);
-    g.fillEllipse(W / 2 - 14, H - 36, 5, 3.5);
-
-    g.fillStyle(COLORS.PLAYER_SCARF, 1);
-    g.fillRoundedRect(W / 2 - 14, H - 33, 28, 6, 3);
-
-    g.generateTexture(SPRITE_KEYS.PLAYER_JUMP, W, H);
-  }
-
-  private generateLiukanshanDead(g: Phaser.GameObjects.Graphics): void {
-    const W = 48, H = 56;
-    g.clear();
-
-    clayEllipse(g, W / 2, H - 30, 34, 30, darker(COLORS.PLAYER_BODY, 0.1));
-    clayCircle(g, W / 2, H - 40, 15, darker(COLORS.PLAYER_BODY, 0.08));
-
-    g.fillStyle(darker(COLORS.PLAYER_EAR, 0.1), 1);
-    g.fillEllipse(W / 2 - 12, H - 52, 7, 12);
-    g.fillEllipse(W / 2 + 12, H - 52, 7, 12);
-
-    g.lineStyle(2.5, COLORS.FOREGROUND, 1);
-    g.lineBetween(W / 2 - 9, H - 43, W / 2 - 3, H - 37);
-    g.lineBetween(W / 2 - 3, H - 43, W / 2 - 9, H - 37);
-    g.lineBetween(W / 2 + 3, H - 43, W / 2 + 9, H - 37);
-    g.lineBetween(W / 2 + 9, H - 43, W / 2 + 3, H - 37);
-
-    g.fillStyle(COLORS.PLAYER_NOSE, 1);
-    g.fillEllipse(W / 2, H - 35, 2.5, 2);
-
-    g.lineStyle(1, darker(COLORS.FOREGROUND, 0.5), 0.6);
-    g.lineBetween(W / 2 - 3, H - 31, W / 2 + 3, H - 31);
-
-    g.fillStyle(COLORS.PLAYER_BLUSH, 0.2);
-    g.fillEllipse(W / 2 - 13, H - 36, 5, 3.5);
-    g.fillEllipse(W / 2 + 13, H - 36, 5, 3.5);
-
-    g.fillStyle(COLORS.PLAYER_SCARF, 0.6);
-    g.fillRoundedRect(W / 2 - 12, H - 34, 24, 5, 3);
-
-    g.generateTexture(SPRITE_KEYS.PLAYER_DEAD, W, H);
   }
 
   private generateObstacles(g: Phaser.GameObjects.Graphics): void {

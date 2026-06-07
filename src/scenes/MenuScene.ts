@@ -65,9 +65,10 @@ export class MenuScene extends Phaser.Scene {
     mound.fillStyle(COLORS.SECONDARY, 0.08);
     mound.fillEllipse(width / 2 + 20, liuY + 20, 160, 35);
 
-    const liu = this.add.sprite(width / 2, liuY, SPRITE_KEYS.PLAYER_IDLE);
+    const liu = this.add.sprite(width / 2, liuY, SPRITE_KEYS.PLAYER_RUN);
     liu.setDisplaySize(64, 74);
     liu.setDepth(5);
+    liu.play(SPRITE_KEYS.PLAYER_RUN_ANIM);
 
     this.tweens.add({
       targets: liu,

@@ -110,7 +110,7 @@ export class DeathScene extends Phaser.Scene {
       fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(10).setAlpha(0);
 
-    const liu = this.add.sprite(w / 2, 64, SPRITE_KEYS.PLAYER_DEAD);
+    const liu = this.add.sprite(w / 2, 48, SPRITE_KEYS.PLAYER_DEAD);
     liu.setDisplaySize(52, 60);
     liu.setDepth(10);
 

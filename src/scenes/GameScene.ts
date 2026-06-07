@@ -57,6 +57,7 @@ export class GameScene extends Phaser.Scene {
   private elapsedTime = 0;
   private alive = true;
   private tickAccumulator = 0;
+  private pendingClear: { obstacle: Obstacle; targetY: number } | null = null;
 
   constructor() {
     super({ key: 'GameScene' });
@@ -272,6 +273,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     for (const obstacle of this.obstacles) obstacle.update(dt, speed);
+    this.checkPendingClear();
     this.checkCollisions();
     this.updateTimingLine(this.speedManager.getSpeed());
     this.cleanupObstacles();
@@ -397,7 +399,7 @@ export class GameScene extends Phaser.Scene {
     this.player.jumpToWord(targetY);
     this.scoreSystem.addWordBonus(progress.selectedWord, this.speedManager.getSpeedMultiplier(), perfect);
     this.speedManager.onObstacleCleared();
-    nearest.clearWords();
+    this.pendingClear = { obstacle: nearest, targetY };
     this.typingText.setText('');
     this.updateComboDisplay(perfect);
     if (this.tutorial) {
@@ -601,5 +603,15 @@ export class GameScene extends Phaser.Scene {
       }
     }
     delete (window as any).__wordhopper_jump;
+  }
+
+  private checkPendingClear(): void {
+    if (!this.pendingClear) return;
+    const { obstacle, targetY } = this.pendingClear;
+    const playerY = this.player.getHitbox().top;
+    if (playerY <= targetY) {
+      obstacle.clearWords();
+      this.pendingClear = null;
+    }
   }
 }
