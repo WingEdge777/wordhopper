@@ -169,7 +169,7 @@ export class GameScene extends Phaser.Scene {
         const ch = e.data;
         if (!ch || ch.length !== 1) return;
         if (ch === ' ') {
-          if (this.wordReady) { this.submitWord(); return; }
+          if (this.wordReady) { this.submitWord(); gameInput.value = ''; return; }
           if (this.typingSystem.getProgress().selectedWord) {
             this.handleTyping(' ');
           }
@@ -310,6 +310,9 @@ export class GameScene extends Phaser.Scene {
   private submitWord(): void {
     if (!this.wordReady) return;
     this.wordReady = false;
+
+    const gameInput = document.getElementById('game-input') as HTMLInputElement;
+    if (gameInput) gameInput.value = '';
 
     const progress = this.typingSystem.getProgress();
     const nearest = this.getNearestObstacle();
