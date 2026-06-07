@@ -25,6 +25,7 @@ export class GameScene extends Phaser.Scene {
   private obstacleSpawner!: ObstacleSpawner;
   private difficulty: Difficulty = 'easy';
   private gameInputHandler: ((e: KeyboardEvent) => void) | null = null;
+  private inputInputHandler: ((e: InputEvent) => void) | null = null;
   private inputBlurHandler: (() => void) | null = null;
   private typingLock = false;
   private wordReady = false;
@@ -161,6 +162,27 @@ export class GameScene extends Phaser.Scene {
         requestAnimationFrame(() => { this.typingLock = false; });
       };
       gameInput.addEventListener('keydown', this.gameInputHandler);
+
+      this.inputInputHandler = (e: InputEvent) => {
+        if (!this.alive) return;
+        if (this.typingLock) return;
+        const ch = e.data;
+        if (!ch || ch.length !== 1) return;
+        if (ch === ' ') {
+          if (this.wordReady) { this.submitWord(); return; }
+          if (this.typingSystem.getProgress().selectedWord) {
+            this.handleTyping(' ');
+          }
+          gameInput.value = '';
+          return;
+        }
+        this.typingLock = true;
+        this.handleTyping(ch);
+        gameInput.value = '';
+        requestAnimationFrame(() => { this.typingLock = false; });
+      };
+      gameInput.addEventListener('input', this.inputInputHandler as EventListener);
+
       this.inputBlurHandler = () => { if (this.alive) gameInput.focus(); };
       gameInput.addEventListener('blur', this.inputBlurHandler);
     }
@@ -436,6 +458,10 @@ export class GameScene extends Phaser.Scene {
       if (this.gameInputHandler) {
         gameInput.removeEventListener('keydown', this.gameInputHandler);
         this.gameInputHandler = null;
+      }
+      if (this.inputInputHandler) {
+        gameInput.removeEventListener('input', this.inputInputHandler as EventListener);
+        this.inputInputHandler = null;
       }
       if (this.inputBlurHandler) {
         gameInput.removeEventListener('blur', this.inputBlurHandler);
