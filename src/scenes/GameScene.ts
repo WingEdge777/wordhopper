@@ -17,11 +17,11 @@ const DEBUG_HITBOXES = false;
 const TUTORIAL_KEY = 'word-hopper-tutorial-done';
 
 function isTutorialNeeded(): boolean {
-  return !localStorage.getItem(TUTORIAL_KEY);
+  try { return !localStorage.getItem(TUTORIAL_KEY); } catch { return true; }
 }
 
 function markTutorialDone(): void {
-  localStorage.setItem(TUTORIAL_KEY, '1');
+  try { localStorage.setItem(TUTORIAL_KEY, '1'); } catch { /* noop */ }
 }
 
 export class GameScene extends Phaser.Scene {
@@ -50,6 +50,7 @@ export class GameScene extends Phaser.Scene {
   private flashGfx!: Phaser.GameObjects.Graphics;
   private flashAlpha = 0;
   private flashX = 0;
+  private visibilityHandler: (() => void) | null = null;
   private debugGfx!: Phaser.GameObjects.Graphics;
   private groundTiles: Phaser.GameObjects.TileSprite[] = [];
   private distance = 0;
@@ -227,6 +228,15 @@ export class GameScene extends Phaser.Scene {
 
     this.spawnObstacle();
 
+    this.visibilityHandler = () => {
+      if (document.hidden && this.alive) {
+        this.scene.pause();
+      } else if (!document.hidden) {
+        this.scene.resume();
+      }
+    };
+    document.addEventListener('visibilitychange', this.visibilityHandler);
+
     if (isMobile()) {
       (window as any).__wordhopper_jump = () => {
         if (!this.alive) return;
@@ -244,7 +254,7 @@ export class GameScene extends Phaser.Scene {
     const speed = this.tutorialShouldPause() ? 0 : this.speedManager.getSpeed();
 
     this.distance += speed * dt;
-    this.elapsedTime += dt;
+    if (speed > 0) this.elapsedTime += dt;
     for (const tile of this.groundTiles) {
       tile.tilePositionX += speed * dt;
     }
@@ -265,7 +275,10 @@ export class GameScene extends Phaser.Scene {
     this.checkCollisions();
     this.updateTimingLine(this.speedManager.getSpeed());
     this.cleanupObstacles();
-    if (this.typingSystem.hasWords() && !this.getNearestObstacle()) this.typingSystem.clear();
+    if (this.typingSystem.hasWords() && !this.getNearestObstacle()) {
+      this.typingSystem.clear();
+      this.wordReady = false;
+    }
     this.checkSpawn();
     this.updateHUD();
     if (DEBUG_HITBOXES) this.drawDebug();
@@ -565,6 +578,10 @@ export class GameScene extends Phaser.Scene {
 
   shutdown(): void {
     this.cleanupDOMListeners();
+    if (this.visibilityHandler) {
+      document.removeEventListener('visibilitychange', this.visibilityHandler);
+      this.visibilityHandler = null;
+    }
   }
 
   private cleanupDOMListeners(): void {

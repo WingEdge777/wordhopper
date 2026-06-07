@@ -7,11 +7,11 @@ import { hex, darker } from '../config/utils';
 import { buildShareURL, ShareCardData } from './ShareCardScene';
 
 function getBestScore(difficulty: Difficulty): number {
-  return parseInt(localStorage.getItem(`word-hopper-best-${difficulty}`) || '0', 10);
+  try { return parseInt(localStorage.getItem(`word-hopper-best-${difficulty}`) || '0', 10); } catch { return 0; }
 }
 
 function setBestScore(difficulty: Difficulty, score: number): void {
-  localStorage.setItem(`word-hopper-best-${difficulty}`, score.toString());
+  try { localStorage.setItem(`word-hopper-best-${difficulty}`, score.toString()); } catch { /* noop */ }
 }
 
 export interface DeathData {
