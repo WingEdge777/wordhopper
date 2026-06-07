@@ -1,4 +1,4 @@
-import { BASE_SCORE_PER_TICK, WORD_BONUS_MULTIPLIER } from '../config/constants';
+import { BASE_SCORE_PER_TICK, WORD_SCORE_PER_CHAR, COMBO_BONUS, PERFECT_MULTIPLIER } from '../config/constants';
 
 export class ScoreSystem {
   private score = 0;
@@ -13,9 +13,9 @@ export class ScoreSystem {
 
   addWordBonus(word: string, speedMultiplier: number, perfect: boolean): void {
     this.combo++;
-    const comboMultiplier = Math.min(this.combo, 10);
-    const perfectMultiplier = perfect ? 1.5 : 1.0;
-    const bonus = WORD_BONUS_MULTIPLIER * word.length * speedMultiplier * comboMultiplier * perfectMultiplier;
+    const base = WORD_SCORE_PER_CHAR * word.length * speedMultiplier;
+    const comboAdd = this.combo * COMBO_BONUS;
+    const bonus = (base + comboAdd) * (perfect ? PERFECT_MULTIPLIER : 1.0);
     this.score += Math.round(bonus);
     this.wordsTyped++;
     this.totalChars += word.length;

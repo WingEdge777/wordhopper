@@ -10,29 +10,34 @@ describe('ScoreSystem', () => {
     expect(score.getScore()).toBe(3);
   });
 
-  it('should add word bonus scaled by speed, word length and combo', () => {
+  it('should add word bonus with base + combo', () => {
     const score = new ScoreSystem();
     score.addWordBonus('leaf', 1.0, false);
-    expect(score.getScore()).toBe(40);
+    // base = 5*4*1.0 = 20, combo=1 → +3, total = 23
+    expect(score.getScore()).toBe(23);
   });
 
-  it('should scale word bonus by current speed', () => {
+  it('should scale word base by speed', () => {
     const score = new ScoreSystem();
     score.addWordBonus('adventure', 2.0, false);
-    expect(score.getScore()).toBe(10 * 9 * 2.0);
+    // base = 5*9*2.0 = 90, combo=1 → +3, total = 93
+    expect(score.getScore()).toBe(93);
   });
 
-  it('should apply combo multiplier', () => {
+  it('should apply combo as additive bonus', () => {
     const score = new ScoreSystem();
     score.addWordBonus('cat', 1.0, false);
+    // base = 5*3*1.0 = 15, combo=1 → +3, total = 18
     score.addWordBonus('cat', 1.0, false);
-    expect(score.getScore()).toBe(10 * 3 * 1 + 10 * 3 * 2);
+    // base = 15, combo=2 → +6, total = 18 + 21 = 39
+    expect(score.getScore()).toBe(39);
   });
 
-  it('should apply perfect 1.5x multiplier', () => {
+  it('should apply perfect 1.2x multiplier', () => {
     const score = new ScoreSystem();
     score.addWordBonus('cat', 1.0, true);
-    expect(score.getScore()).toBe(Math.round(10 * 3 * 1 * 1.5));
+    // (base=15 + combo=1*3) * 1.2 = 18 * 1.2 = 21.6 → 22
+    expect(score.getScore()).toBe(22);
   });
 
   it('should track words typed count', () => {

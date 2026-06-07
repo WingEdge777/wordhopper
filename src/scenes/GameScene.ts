@@ -244,17 +244,21 @@ export class GameScene extends Phaser.Scene {
     const speed = this.tutorialShouldPause() ? 0 : this.speedManager.getSpeed();
 
     this.distance += speed * dt;
-    if (this.tutorialStarted) this.elapsedTime += dt;
+    this.elapsedTime += dt;
     for (const tile of this.groundTiles) {
       tile.tilePositionX += speed * dt;
     }
 
     this.player.update(0);
 
-    this.tickAccumulator += dt;
-    if (this.tickAccumulator >= 0.1) {
-      if (speed > 0) this.scoreSystem.addTick();
-      this.tickAccumulator -= 0.1;
+    if (speed > 0) {
+      this.tickAccumulator += dt;
+      if (this.tickAccumulator >= 0.1) {
+        this.scoreSystem.addTick();
+        this.tickAccumulator -= 0.1;
+      }
+    } else {
+      this.tickAccumulator = 0;
     }
 
     for (const obstacle of this.obstacles) obstacle.update(dt, speed);
@@ -351,6 +355,7 @@ export class GameScene extends Phaser.Scene {
 
   private submitWord(): void {
     if (!this.wordReady) return;
+    if (this.tutorial && this.wordReady && !this.tutorialShouldPause()) return;
     this.wordReady = false;
 
     const gameInput = document.getElementById('game-input') as HTMLInputElement;
@@ -420,13 +425,13 @@ export class GameScene extends Phaser.Scene {
     }
     const typed = progress.selectedWord.substring(0, progress.correctChars);
     const remaining = progress.selectedWord.substring(progress.correctChars);
-    const zh = getTranslation(progress.selectedWord);
-    const typedWithZh = zh ? `${typed} ${zh}` : typed;
     if (this.wordReady) {
-      this.typingText.setText(`${typedWithZh} → SPACE at green line`);
+      const zh = getTranslation(progress.selectedWord);
+      const display = zh ? `${typed} ${zh}` : typed;
+      this.typingText.setText(`${display} → SPACE at green line`);
       this.typingText.setColor('#FDE68A');
     } else {
-      this.typingText.setText(`${typedWithZh}|${remaining}`);
+      this.typingText.setText(`${typed}|${remaining}`);
       this.typingText.setColor('#FFFFFF');
     }
   }

@@ -23,7 +23,9 @@ export const SPACING_SAFETY_FACTOR = 1.3;
 export const SPEED_INCREMENT = 0.01;
 
 export const BASE_SCORE_PER_TICK = 1;
-export const WORD_BONUS_MULTIPLIER = 10;
+export const WORD_SCORE_PER_CHAR = 5;
+export const COMBO_BONUS = 3;
+export const PERFECT_MULTIPLIER = 1.2;
 
 export type Difficulty = 'chill' | 'easy' | 'medium' | 'hard';
 
