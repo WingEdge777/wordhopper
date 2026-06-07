@@ -12,9 +12,13 @@ export function getRenderResolution(devicePixelRatio = window.devicePixelRatio |
   return Math.min(Math.max(devicePixelRatio, 1), MAX_RENDER_RESOLUTION);
 }
 
-export function getDisplaySize(viewportWidth = window.innerWidth): { width: number; height: number } {
-  const ratio = isMobile() ? 1.0 : 0.7;
-  const width = Math.round(viewportWidth * ratio);
+export function getDisplaySize(viewportWidth = window.innerWidth, viewportHeight = window.innerHeight): { width: number; height: number } {
+  if (isMobile()) {
+    const width = viewportWidth;
+    const height = Math.round(viewportHeight * 0.55);
+    return { width, height };
+  }
+  const width = Math.round(viewportWidth * 0.7);
   const height = Math.round(width * (CANVAS_HEIGHT / CANVAS_WIDTH));
 
   return { width, height };
