@@ -76,7 +76,8 @@ function resizeGame(game: Phaser.Game): void {
 
 if (gameShell) {
   if (mobile) {
-    document.getElementById('mobile-blocker')!.style.display = 'none';
+    const blocker = document.getElementById('mobile-blocker');
+    if (blocker) blocker.style.display = 'none';
     gameShell.style.height = Math.round(getMobileScreenHeight() * 0.45) + 'px';
   }
 
