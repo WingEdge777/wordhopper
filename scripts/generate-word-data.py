@@ -19,6 +19,7 @@ FILTERS = {
 }
 
 MAX_ZH_LEN = 4
+MAX_MEANINGS = 2
 MANUAL_OVERRIDES = {
     "dont": "别",
     "thats": "那是",
@@ -44,22 +45,28 @@ def collect_needed_words(easy_src: list[str], medium_src: list[str], hard_src: l
     return needed
 
 
+POS_RE = re.compile(r"\b(?:interj|n|vt|vi|v|a|adv|prep|conj|pron|int|art|num|aux|abbr|pl|pref|suf|p|pp|pt)\.\s*", re.IGNORECASE)
+
 def shorten_translation(raw: str) -> str:
     t = raw.replace("\\n", " ").strip()
     t = re.sub(r"\[[^\]]*\]", "", t)
-    t = re.sub(r"^[a-z]+\.\s*", "", t, flags=re.IGNORECASE)
-    t = re.split(r"[,，;；]", t)[0].strip()
-    t = re.sub(r"\([^)]*\)", "", t)
-    t = re.sub(r"\.{2,}", "", t)
-    match = re.search(r"[\u4e00-\u9fff]+", t)
-    if not match:
-        return ""
-    zh = match.group()
-    if len(zh) > 2 and zh[-1] in "的地得":
-        zh = zh[:-1]
-    if len(zh) > MAX_ZH_LEN:
-        zh = zh[:MAX_ZH_LEN]
-    return zh
+    t = re.sub(r"[（(][^）)]*[A-Za-z]{3,}[^）)]*[）)]", "", t)
+    t = re.sub(r"[（(][贬使特尤][）)]", "", t)
+    segments = POS_RE.split(t)
+    all_parts: list[str] = []
+    for seg in segments:
+        for p in re.split(r"[，,;；\s]+", seg):
+            p = p.strip().rstrip("。、：: ")
+            if not p:
+                continue
+            if not re.search(r"[\u4e00-\u9fff]", p):
+                continue
+            if len(p) > 2 and p[-1] in "的地得":
+                p = p[:-1]
+            all_parts.append(p)
+    seen = set()
+    unique = [p for p in all_parts if not (p in seen or seen.add(p))]
+    return "，".join(unique[:MAX_MEANINGS])
 
 
 def load_ecdict_map(ecdict_path: Path, needed: set[str]) -> dict[str, str]:
