@@ -45,6 +45,7 @@ export class GameScene extends Phaser.Scene {
   private speedLabel!: Phaser.GameObjects.Text;
   private speedText!: Phaser.GameObjects.Text;
   private comboText!: Phaser.GameObjects.Text;
+  private hitLabel!: Phaser.GameObjects.Text;
   private typingText!: Phaser.GameObjects.Text;
   private timingLine!: Phaser.GameObjects.Graphics;
   private flashGfx!: Phaser.GameObjects.Graphics;
@@ -164,6 +165,14 @@ export class GameScene extends Phaser.Scene {
       fontStyle: 'bold',
       padding: { right: 8, left: 2, top: 2, bottom: 2 },
     }).setOrigin(0.5).setDepth(20);
+
+    this.hitLabel = addCrispText(this, PLAYER_X, 0, '', {
+      fontSize: '20px',
+      color: '#34D399',
+      fontFamily: FONT_DISPLAY,
+      fontStyle: 'bold',
+      padding: { right: 8, left: 2, top: 2, bottom: 2 },
+    }).setOrigin(0.5).setDepth(20).setAlpha(0);
 
     const typingGfx = this.add.graphics();
     typingGfx.fillStyle(COLORS.PRIMARY, 0.85);
@@ -401,7 +410,7 @@ export class GameScene extends Phaser.Scene {
     this.speedManager.onObstacleCleared();
     this.pendingClear = { obstacle: nearest, targetY };
     this.typingText.setText('');
-    this.updateComboDisplay(perfect);
+    this.updateComboDisplay(perfect, targetY);
     if (this.tutorial) {
       this.tutorial = false;
       markTutorialDone();
@@ -509,17 +518,12 @@ export class GameScene extends Phaser.Scene {
     this.speedText.setText(`${this.speedManager.getSpeedMultiplier().toFixed(1)}x`);
   }
 
-  private updateComboDisplay(perfect: boolean): void {
+  private updateComboDisplay(perfect: boolean, apexY: number): void {
     const combo = this.scoreSystem.getCombo();
-    if (combo < 1) {
-      this.comboText.setText('');
-      return;
-    }
 
-    const label = perfect ? `x${combo} PERFECT` : `x${combo} GOOD`;
-    this.comboText.setText(label);
-    this.comboText.setColor(perfect ? '#34D399' : '#A7F3D0');
-    this.comboText.setFontSize(perfect ? '32px' : '28px');
+    this.comboText.setText(`x${combo} COMBO`);
+    this.comboText.setColor(combo >= 5 ? '#FCD34D' : '#FFFFFF');
+    this.comboText.setFontSize(combo >= 5 ? '32px' : '28px');
 
     this.tweens.killTweensOf(this.comboText);
     this.comboText.setScale(1.4);
@@ -534,6 +538,26 @@ export class GameScene extends Phaser.Scene {
     if (combo >= 5) {
       this.cameras.main.shake(80, 0.003);
     }
+
+    this.showHitLabel(perfect, apexY);
+  }
+
+  private showHitLabel(perfect: boolean, apexY: number): void {
+    const labelY = apexY - 12;
+
+    this.hitLabel.setText(perfect ? 'PERFECT!' : 'GOOD');
+    this.hitLabel.setPosition(PLAYER_X, labelY);
+    this.hitLabel.setColor(perfect ? '#FCD34D' : '#34D399');
+    this.hitLabel.setAlpha(1);
+
+    this.tweens.killTweensOf(this.hitLabel);
+    this.tweens.add({
+      targets: this.hitLabel,
+      y: labelY - 40,
+      alpha: 0,
+      duration: 1200,
+      ease: 'Cubic.easeOut',
+    });
   }
 
   private updateTimingLine(speed: number): void {
