@@ -5,7 +5,7 @@ import { MenuScene } from './scenes/MenuScene';
 import { GameScene } from './scenes/GameScene';
 import { DeathScene } from './scenes/DeathScene';
 import { ShareCardScene } from './scenes/ShareCardScene';
-import { applyRenderZoom, getDisplaySize, getRenderSize, isMobile } from './config/display';
+import { applyRenderZoom, getDisplaySize, getRenderSize, isMobile, getMobileScreenHeight } from './config/display';
 
 export { getDisplaySize, getRenderResolution, getRenderSize, isMobile } from './config/display';
 
@@ -15,7 +15,7 @@ export function createGameConfig(
   devicePixelRatio = window.devicePixelRatio || 1
 ): Phaser.Types.Core.GameConfig {
   const displaySize = getDisplaySize(viewportWidth);
-  const renderSize = getRenderSize(displaySize.width, devicePixelRatio);
+  const renderSize = getRenderSize(displaySize.width, displaySize.height, devicePixelRatio);
 
   return {
     type: Phaser.AUTO,
@@ -64,7 +64,8 @@ async function waitForGameFonts(): Promise<void> {
 }
 
 function resizeGame(game: Phaser.Game): void {
-  const renderSize = getRenderSize(getDisplaySize().width);
+  const displaySize = getDisplaySize();
+  const renderSize = getRenderSize(displaySize.width, displaySize.height);
 
   game.scale.resize(renderSize.width, renderSize.height);
 
@@ -76,6 +77,7 @@ function resizeGame(game: Phaser.Game): void {
 if (gameShell) {
   if (mobile) {
     document.getElementById('mobile-blocker')!.style.display = 'none';
+    gameShell.style.height = Math.round(getMobileScreenHeight() * 0.45) + 'px';
   }
 
   waitForGameFonts().then(() => {
@@ -89,11 +91,22 @@ if (gameShell) {
           (window as any).__wordhopper_jump?.();
         });
       }
-    }
 
-    window.addEventListener('resize', () => {
-      resizeGame(game);
-    });
+      let lastOrientation = screen.orientation?.type || '';
+      screen.orientation?.addEventListener('change', () => {
+        const current = screen.orientation?.type || '';
+        if (current !== lastOrientation) {
+          lastOrientation = current;
+          const h = Math.round(getMobileScreenHeight() * 0.45);
+          gameShell.style.height = h + 'px';
+          resizeGame(game);
+        }
+      });
+    } else {
+      window.addEventListener('resize', () => {
+        resizeGame(game);
+      });
+    }
   });
 } else {
   throw new Error('Missing #game-shell container for Phaser game');

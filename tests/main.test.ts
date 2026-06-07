@@ -72,7 +72,7 @@ describe('main game config', () => {
     const mainModule = await import('../src/main') as Record<string, unknown>;
     const getDisplaySize = mainModule.getDisplaySize as ((viewportWidth?: number) => { width: number; height: number }) | undefined;
     const getRenderResolution = mainModule.getRenderResolution as ((dpr?: number) => number) | undefined;
-    const getRenderSize = mainModule.getRenderSize as ((displayWidth?: number, dpr?: number) => { width: number; height: number }) | undefined;
+    const getRenderSize = mainModule.getRenderSize as ((displayWidth?: number, displayHeight?: number, dpr?: number) => { width: number; height: number }) | undefined;
 
     expect(typeof getDisplaySize).toBe('function');
     expect(typeof getRenderResolution).toBe('function');
@@ -80,7 +80,7 @@ describe('main game config', () => {
     expect(getDisplaySize?.(1440)).toEqual({ width: 1008, height: 567 });
     expect(getRenderResolution?.(3)).toBe(2);
     expect(getRenderResolution?.(1.5)).toBe(1.5);
-    expect(getRenderSize?.(1008, 3)).toEqual({ width: 2016, height: 1134 });
+    expect(getRenderSize?.(1008, 567, 3)).toEqual({ width: 1600, height: 900 });
   });
 
   it('builds a fixed-size game config mounted into the game shell', async () => {
@@ -95,15 +95,15 @@ describe('main game config', () => {
     const config = createGameConfig?.(gameShell, 1440, 2);
 
     expect(config).toMatchObject({
-      width: 2016,
-      height: 1134,
+      width: 1600,
+      height: 900,
       parent: gameShell,
       autoRound: false,
       scale: {
         mode: 'FIT',
         autoCenter: 'CENTER_BOTH',
-        width: 2016,
-        height: 1134,
+        width: 1600,
+        height: 900,
       },
     });
   });
