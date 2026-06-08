@@ -193,18 +193,26 @@ export class Obstacle {
 
   clearWords(): void {
     if (this.word1Untyped?.active) this.word1Untyped.destroy();
+    this.word1Untyped = null;
     if (this.word1Typed?.active) this.word1Typed.destroy();
+    this.word1Typed = null;
     if (this.word2Untyped?.active) this.word2Untyped.destroy();
+    this.word2Untyped = null;
     if (this.word2Typed?.active) this.word2Typed.destroy();
+    this.word2Typed = null;
   }
 
   destroy(): void {
     if (this.upperSp) this.upperSp.destroy();
     if (this.lowerSp) this.lowerSp.destroy();
     if (this.word1Untyped?.active) this.word1Untyped.destroy();
+    this.word1Untyped = null;
     if (this.word1Typed?.active) this.word1Typed.destroy();
+    this.word1Typed = null;
     if (this.word2Untyped?.active) this.word2Untyped.destroy();
+    this.word2Untyped = null;
     if (this.word2Typed?.active) this.word2Typed.destroy();
+    this.word2Typed = null;
   }
 
   private layoutWord(

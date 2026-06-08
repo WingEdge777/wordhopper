@@ -59,7 +59,7 @@ export class GameScene extends Phaser.Scene {
   private alive = true;
   private tickAccumulator = 0;
   private pendingClear: { obstacle: Obstacle; targetY: number } | null = null;
-  private snapshotTaken = false;
+  private typingObstacle: Obstacle | null = null;
 
   constructor() {
     super({ key: 'GameScene' });
@@ -76,6 +76,7 @@ export class GameScene extends Phaser.Scene {
     this.distance = 0;
     this.elapsedTime = 0;
     this.obstacles = [];
+    this.typingObstacle = null;
     this.wordReady = false;
     this.tutorial = isTutorialNeeded();
     this.tutorialStarted = false;
@@ -209,9 +210,10 @@ export class GameScene extends Phaser.Scene {
         e.preventDefault();
         e.stopPropagation();
         this.typingLock = true;
-        this.handleTyping(e.key);
-        gameInput.value = '';
-        requestAnimationFrame(() => { this.typingLock = false; });
+        try { this.handleTyping(e.key); } finally {
+          gameInput.value = '';
+          requestAnimationFrame(() => { this.typingLock = false; });
+        }
       };
       gameInput.addEventListener('keydown', this.gameInputHandler);
 
@@ -229,9 +231,10 @@ export class GameScene extends Phaser.Scene {
           return;
         }
         this.typingLock = true;
-        this.handleTyping(ch);
-        gameInput.value = '';
-        requestAnimationFrame(() => { this.typingLock = false; });
+        try { this.handleTyping(ch); } finally {
+          gameInput.value = '';
+          requestAnimationFrame(() => { this.typingLock = false; });
+        }
       };
       gameInput.addEventListener('input', this.inputInputHandler as EventListener);
 
@@ -289,10 +292,6 @@ export class GameScene extends Phaser.Scene {
     this.checkCollisions();
     this.updateTimingLine(this.speedManager.getSpeed());
     this.cleanupObstacles();
-    if (this.typingSystem.hasWords() && this.obstacles.length === 0) {
-      this.typingSystem.clear();
-      this.wordReady = false;
-    }
     this.checkSpawn();
     this.updateHUD();
     if (DEBUG_HITBOXES) this.drawDebug();
@@ -350,12 +349,12 @@ export class GameScene extends Phaser.Scene {
     const result = this.typingSystem.onKeyPress(key);
     if (result.wrong) {
       this.wordReady = false;
-      const nearest = this.getNearestObstacle();
-      if (nearest) {
-        nearest.flashWrong(result.selectedWord
-          ? (nearest.getConfig().word1 === result.selectedWord ? 1 : 2) : 1);
+      const obs = this.typingObstacle;
+      if (obs) {
+        obs.flashWrong(result.selectedWord
+          ? (obs.getConfig().word1 === result.selectedWord ? 1 : 2) : 1);
         this.time.delayedCall(50, () => {
-          if (!this.typingSystem.getProgress().selectedWord) nearest.resetWordDisplay();
+          if (!this.typingSystem.getProgress().selectedWord) obs.resetWordDisplay();
         });
       }
       this.updateTypingIndicator();
@@ -366,13 +365,13 @@ export class GameScene extends Phaser.Scene {
       this.tutorialStarted = true;
     }
 
-    const nearest = this.getNearestObstacle();
-    if (!nearest) return;
+    const obs = this.typingObstacle;
+    if (!obs) return;
 
-    const config = nearest.getConfig();
+    const config = obs.getConfig();
     const wordIdx = config.word1 === result.selectedWord ? 1 : 2;
-    nearest.highlightWord(wordIdx, result.charIndex);
-    if (result.charIndex === 1) nearest.fadeUnselected(wordIdx);
+    obs.highlightWord(wordIdx, result.charIndex);
+    if (result.charIndex === 1) obs.fadeUnselected(wordIdx);
 
     if (result.completed) {
       this.wordReady = true;
@@ -389,10 +388,10 @@ export class GameScene extends Phaser.Scene {
     if (gameInput) gameInput.value = '';
 
     const progress = this.typingSystem.getProgress();
-    const nearest = this.getNearestObstacle();
-    if (!nearest || !progress.selectedWord) return;
+    const obs = this.typingObstacle;
+    if (!obs || !progress.selectedWord) return;
 
-    const config = nearest.getConfig();
+    const config = obs.getConfig();
     const wordIdx = config.word1 === progress.selectedWord ? 1 : 2;
     const targetY = wordIdx === 1 ? config.word1Y : config.word2Y;
 
@@ -401,7 +400,7 @@ export class GameScene extends Phaser.Scene {
     if (jumpHeight > 0) {
       const speed = this.speedManager.getSpeed();
       const apexTime = Math.sqrt(2 * jumpHeight / GRAVITY);
-      const idealX = nearest.getX() - speed * apexTime;
+      const idealX = obs.getX() - speed * apexTime;
       const windowHalf = Math.max(30, speed * 0.18);
       const dist = Math.abs(PLAYER_X - idealX);
       perfect = dist < windowHalf * 0.3;
@@ -411,26 +410,23 @@ export class GameScene extends Phaser.Scene {
     this.player.jumpToWord(targetY);
     this.scoreSystem.addWordBonus(progress.selectedWord, this.speedManager.getSpeedMultiplier(), perfect);
     this.speedManager.onObstacleCleared();
-    this.pendingClear = { obstacle: nearest, targetY };
+    this.pendingClear = { obstacle: obs, targetY };
     this.typingText.setText('');
     this.updateComboDisplay(perfect, targetY);
-    // this.takeSnapshot();
     if (this.tutorial) {
       this.tutorial = false;
       markTutorialDone();
     }
-    if (!this.snapshotTaken) {
-      this.spawnObstacle();
-    }
+    this.spawnObstacle();
   }
 
   private tutorialShouldPause(): boolean {
     if (!this.tutorial) return false;
     if (!this.tutorialStarted) return true;
     if (!this.wordReady) return false;
-    const nearest = this.getNearestObstacle();
-    if (!nearest) return true;
-    const config = nearest.getConfig();
+    const obs = this.typingObstacle;
+    if (!obs) return true;
+    const config = obs.getConfig();
     const targetY = this.typingSystem.getProgress().selectedWord
       ? (config.word1 === this.typingSystem.getProgress().selectedWord ? config.word1Y : config.word2Y)
       : config.word1Y;
@@ -438,7 +434,7 @@ export class GameScene extends Phaser.Scene {
     if (jumpHeight <= 0) return false;
     const speed = this.speedManager.getSpeed();
     const apexTime = Math.sqrt(2 * jumpHeight / GRAVITY);
-    const idealX = nearest.getX() - speed * apexTime;
+    const idealX = obs.getX() - speed * apexTime;
     return Math.abs(idealX - PLAYER_X) < 3;
   }
 
@@ -472,6 +468,7 @@ export class GameScene extends Phaser.Scene {
     const config = this.obstacleSpawner.generate(speed, isFirstSpawn);
     const obstacle = new Obstacle(this, config, speed);
     this.obstacles.push(obstacle);
+    this.typingObstacle = obstacle;
 
     if (config.word2) {
       this.typingSystem.setWords(config.word1, config.word2);
@@ -569,10 +566,10 @@ export class GameScene extends Phaser.Scene {
 
   private updateTimingLine(speed: number): void {
     this.timingLine.clear();
-    const nearest = this.getNearestObstacle();
-    if (!nearest) return;
+    const obs = this.typingObstacle;
+    if (!obs) return;
 
-    const config = nearest.getConfig();
+    const config = obs.getConfig();
     const targetY = this.typingSystem.getProgress().selectedWord
       ? (config.word1 === this.typingSystem.getProgress().selectedWord ? config.word1Y : config.word2Y)
       : config.word1Y;
@@ -581,7 +578,7 @@ export class GameScene extends Phaser.Scene {
     if (jumpHeight <= 0) return;
 
     const apexTime = Math.sqrt(2 * jumpHeight / GRAVITY);
-    const idealX = nearest.getX() - speed * apexTime;
+    const idealX = obs.getX() - speed * apexTime;
     if (idealX < PLAYER_X - 20 || idealX > CANVAS_WIDTH + 50) return;
 
     const windowHalf = Math.max(30, speed * 0.18);
@@ -645,19 +642,4 @@ export class GameScene extends Phaser.Scene {
       this.pendingClear = null;
     }
   }
-
-  // private takeSnapshot(): void {
-  //   if (this.snapshotTaken) return;
-  //   this.snapshotTaken = true;
-  //   this.time.delayedCall(100, () => {
-  //     this.game.renderer.snapshot((snapshot: HTMLImageElement | Phaser.Display.Color) => {
-  //       const img = snapshot as HTMLImageElement;
-  //       const link = document.createElement('a');
-  //       link.download = `wordhopper-${Date.now()}.png`;
-  //       link.href = img.src;
-  //       link.click();
-  //     });
-  //     this.spawnObstacle();
-  //   });
-  // }
 }
