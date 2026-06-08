@@ -59,6 +59,7 @@ export class GameScene extends Phaser.Scene {
   private alive = true;
   private tickAccumulator = 0;
   private pendingClear: { obstacle: Obstacle; targetY: number } | null = null;
+  private snapshotTaken = false;
 
   constructor() {
     super({ key: 'GameScene' });
@@ -288,7 +289,7 @@ export class GameScene extends Phaser.Scene {
     this.checkCollisions();
     this.updateTimingLine(this.speedManager.getSpeed());
     this.cleanupObstacles();
-    if (this.typingSystem.hasWords() && !this.getNearestObstacle()) {
+    if (this.typingSystem.hasWords() && this.obstacles.length === 0) {
       this.typingSystem.clear();
       this.wordReady = false;
     }
@@ -413,11 +414,14 @@ export class GameScene extends Phaser.Scene {
     this.pendingClear = { obstacle: nearest, targetY };
     this.typingText.setText('');
     this.updateComboDisplay(perfect, targetY);
+    // this.takeSnapshot();
     if (this.tutorial) {
       this.tutorial = false;
       markTutorialDone();
     }
-    this.spawnObstacle();
+    if (!this.snapshotTaken) {
+      this.spawnObstacle();
+    }
   }
 
   private tutorialShouldPause(): boolean {
@@ -641,4 +645,19 @@ export class GameScene extends Phaser.Scene {
       this.pendingClear = null;
     }
   }
+
+  // private takeSnapshot(): void {
+  //   if (this.snapshotTaken) return;
+  //   this.snapshotTaken = true;
+  //   this.time.delayedCall(100, () => {
+  //     this.game.renderer.snapshot((snapshot: HTMLImageElement | Phaser.Display.Color) => {
+  //       const img = snapshot as HTMLImageElement;
+  //       const link = document.createElement('a');
+  //       link.download = `wordhopper-${Date.now()}.png`;
+  //       link.href = img.src;
+  //       link.click();
+  //     });
+  //     this.spawnObstacle();
+  //   });
+  // }
 }
