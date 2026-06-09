@@ -396,7 +396,6 @@ export class GameScene extends Phaser.Scene {
 
   private submitWord(): void {
     if (!this.wordReady) return;
-    if (this.tutorial && this.wordReady && !this.tutorialShouldPause()) return;
     this.wordReady = false;
 
     const gameInput = document.getElementById('game-input') as HTMLInputElement;
@@ -520,13 +519,25 @@ export class GameScene extends Phaser.Scene {
 
   private cleanupObstacles(): void {
     this.obstacles = this.obstacles.filter(o => {
-      if (!o.isActive()) { o.destroy(); return false; }
+      if (!o.isActive()) {
+        if (o === this.typingObstacle) this.typingObstacle = null;
+        o.destroy();
+        return false;
+      }
       return true;
     });
   }
 
   private checkSpawn(): void {
-    if (this.typingSystem.hasWords()) return;
+    if (this.typingSystem.hasWords()) {
+      const obs = this.typingObstacle;
+      if (!obs || !this.obstacles.includes(obs) || obs.getX() < PLAYER_X - 10) {
+        this.typingSystem.clear();
+        this.typingObstacle = null;
+        this.wordReady = false;
+      }
+      if (this.typingSystem.hasWords()) return;
+    }
     const rightEdge = Math.max(...this.obstacles.map(o => o.getX()), 0);
     if (this.obstacleSpawner.canSpawn(rightEdge)) this.spawnObstacle();
   }
