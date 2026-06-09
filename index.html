@@ -15,37 +15,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #F0F7F3; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
-    body.ios-layout { align-items: flex-start; flex-direction: column; }
-    #game-shell { width: 70vw; aspect-ratio: 16 / 9; }
-    #game-shell canvas { display: block; width: 100% !important; height: auto !important; outline: none; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 8px 48px rgba(0,0,0,0.06); }
-    #game-input { position: absolute; top: -100px; left: -100px; width: 1px; height: 1px; opacity: 0; }
-    #ios-input-bar { display: none; width: 100%; padding: 8px 12px; background: rgba(22,163,74,0.92); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 1000; align-items: center; gap: 8px; }
-    #ios-input-bar.active { display: flex; }
-    #ios-input-field { flex: 1; height: 40px; border-radius: 10px; border: 1.5px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.95); color: #1a1a1a; font-family: Quicksand, sans-serif; font-size: 16px; font-weight: 600; padding: 0 14px; outline: none; -webkit-appearance: none; }
-    #ios-input-field::placeholder { color: #9CA3AF; font-weight: 400; }
-    #ios-input-field:focus { border-color: #15803D; box-shadow: 0 0 0 2px rgba(22,163,74,0.2); }
-    #mobile-blocker { display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-family: Quicksand, sans-serif; color: #15803D; padding: 32px; }
-    #mobile-blocker h2 { font-size: 24px; font-weight: 700; margin-bottom: 12px; }
-    #mobile-blocker p { font-size: 15px; color: #6B7280; max-width: 300px; line-height: 1.6; }
-    #mobile-tip { display: none; font-family: Quicksand, sans-serif; font-size: 12px; color: #9CA3AF; text-align: center; padding: 6px 12px; line-height: 1.4; }
-    #github-link { display: none; }
-    #jump-btn { display: none; position: fixed; bottom: 24px; right: 24px; width: 72px; height: 72px; border-radius: 50%; background: rgba(22,163,74,0.85); color: #fff; font-family: Quicksand, sans-serif; font-size: 14px; font-weight: 700; border: none; z-index: 1000; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-    #jump-btn:active { background: rgba(22,163,74,1); transform: scale(0.92); }
-    @media (max-width: 767px), (pointer: coarse) {
-      body { align-items: flex-start; flex-direction: column; }
-      #mobile-tip { display: block; }
-      #game-shell { width: 100vw; }
-      #game-shell canvas { width: 100% !important; height: 100% !important; border-radius: 0; box-shadow: none; }
-      #jump-btn { display: block; }
-      #github-link { display: none; }
-    }
-  </style>
+  <link rel="stylesheet" href="/src/style.css">
 </head>
 <body tabindex="0">
   <div id="mobile-tip">Mobile is for preview only. Best played with a physical keyboard on desktop.</div>
+  <div id="top-bar">
+    <span id="busuanzi">全站访问 <span id="busuanzi_value_site_pv">-</span> 次</span>
+  </div>
+  <a id="github-link" href="https://github.com/WingEdge777/wordhopper" target="_blank" rel="noopener noreferrer">
+    <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+  </a>
   <div id="game-shell" aria-label="Word Hopper game"></div>
   <input id="game-input" type="text" autocomplete="off" autofocus>
   <div id="ios-input-bar">
@@ -53,5 +32,6 @@
   </div>
   <button id="jump-btn">JUMP</button>
   <script type="module" src="/src/main.ts"></script>
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 </body>
 </html>

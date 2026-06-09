@@ -1,0 +1,217 @@
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #F0F7F3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+body.ios-layout {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+/* ── Top Bar ── */
+
+#top-bar {
+  position: fixed;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: Quicksand, sans-serif;
+  font-size: 12px;
+  z-index: 100;
+}
+
+#busuanzi {
+  color: #9CA3AF;
+}
+
+#github-link {
+  position: fixed;
+  top: 8px;
+  right: 10px;
+  z-index: 100;
+  color: #9CA3AF;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+#github-link:hover {
+  color: #15803D;
+}
+
+#github-link svg {
+  width: 28px;
+  height: 28px;
+  fill: currentColor;
+}
+
+/* ── Game Shell ── */
+
+#game-shell {
+  width: 70vw;
+  aspect-ratio: 16 / 9;
+}
+
+#game-shell canvas {
+  display: block;
+  width: 100% !important;
+  height: auto !important;
+  outline: none;
+  border-radius: 16px;
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.08),
+    0 8px 48px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Hidden Input (PC / Android) ── */
+
+#game-input {
+  position: absolute;
+  top: -100px;
+  left: -100px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+/* ── iOS Input Bar ── */
+
+#ios-input-bar {
+  display: none;
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(22, 163, 74, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1000;
+  align-items: center;
+  gap: 8px;
+}
+
+#ios-input-bar.active {
+  display: flex;
+}
+
+#ios-input-field {
+  flex: 1;
+  height: 40px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.95);
+  color: #1a1a1a;
+  font-family: Quicksand, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 0 14px;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+#ios-input-field::placeholder {
+  color: #9CA3AF;
+  font-weight: 400;
+}
+
+#ios-input-field:focus {
+  border-color: #15803D;
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2);
+}
+
+/* ── Mobile ── */
+
+#mobile-blocker {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: Quicksand, sans-serif;
+  color: #15803D;
+  padding: 32px;
+}
+
+#mobile-blocker h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+#mobile-blocker p {
+  font-size: 15px;
+  color: #6B7280;
+  max-width: 300px;
+  line-height: 1.6;
+}
+
+#mobile-tip {
+  display: none;
+  font-family: Quicksand, sans-serif;
+  font-size: 12px;
+  color: #9CA3AF;
+  text-align: center;
+  padding: 6px 12px;
+  line-height: 1.4;
+}
+
+#jump-btn {
+  display: none;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(22, 163, 74, 0.85);
+  color: #fff;
+  font-family: Quicksand, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  z-index: 1000;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#jump-btn:active {
+  background: rgba(22, 163, 74, 1);
+  transform: scale(0.92);
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 767px), (pointer: coarse) {
+  body {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  #mobile-tip {
+    display: block;
+  }
+
+  #game-shell {
+    width: 100vw;
+  }
+
+  #game-shell canvas {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  #jump-btn {
+    display: block;
+  }
+}
