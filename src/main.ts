@@ -5,9 +5,9 @@ import { MenuScene } from './scenes/MenuScene';
 import { GameScene } from './scenes/GameScene';
 import { DeathScene } from './scenes/DeathScene';
 import { ShareCardScene } from './scenes/ShareCardScene';
-import { applyRenderZoom, getDisplaySize, getRenderSize, isMobile, getMobileScreenHeight } from './config/display';
+import { applyRenderZoom, getDisplaySize, getRenderSize, isMobile, isIOS, getMobileScreenHeight } from './config/display';
 
-export { getDisplaySize, getRenderResolution, getRenderSize, isMobile } from './config/display';
+export { getDisplaySize, getRenderResolution, getRenderSize, isMobile, isIOS } from './config/display';
 
 export function createGameConfig(
   parent: HTMLElement,
@@ -84,8 +84,37 @@ if (gameShell) {
   waitForGameFonts().then(() => {
     const game = new Phaser.Game(createGameConfig(gameShell));
 
+    if (isIOS()) {
+      const iosBar = document.getElementById('ios-input-bar');
+      const iosField = document.getElementById('ios-input-field') as HTMLInputElement | null;
+
+      document.body.classList.add('ios-layout');
+      if (iosBar && iosField) {
+        iosBar.classList.add('active');
+        iosField.addEventListener('input', (e: InputEvent) => {
+          const ch = e.data;
+          if (ch && ch.length === 1) {
+            (window as any).__wordhopper_key?.(ch);
+          }
+          iosField.value = '';
+        });
+        iosField.addEventListener('keydown', (e: KeyboardEvent) => {
+          if (e.key === ' ') {
+            e.preventDefault();
+            (window as any).__wordhopper_jump?.();
+            iosField.value = '';
+          }
+        });
+        const gameCanvas = gameShell.querySelector('canvas');
+        if (gameCanvas) {
+          gameCanvas.addEventListener('touchstart', () => { iosField.focus(); }, { passive: true });
+        }
+      }
+    }
+
     if (mobile) {
       const jumpBtn = document.getElementById('jump-btn');
+
       if (jumpBtn) {
         jumpBtn.addEventListener('touchstart', (e) => {
           e.preventDefault();

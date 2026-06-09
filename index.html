@@ -18,9 +18,15 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #F0F7F3; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+    body.ios-layout { align-items: flex-start; flex-direction: column; }
     #game-shell { width: 70vw; aspect-ratio: 16 / 9; }
     #game-shell canvas { display: block; width: 100% !important; height: auto !important; outline: none; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 8px 48px rgba(0,0,0,0.06); }
-    #game-input { position: fixed; top: -100px; left: -100px; width: 1px; height: 1px; opacity: 0; }
+    #game-input { position: absolute; top: -100px; left: -100px; width: 1px; height: 1px; opacity: 0; }
+    #ios-input-bar { display: none; width: 100%; padding: 8px 12px; background: rgba(22,163,74,0.92); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 1000; align-items: center; gap: 8px; }
+    #ios-input-bar.active { display: flex; }
+    #ios-input-field { flex: 1; height: 40px; border-radius: 10px; border: 1.5px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.95); color: #1a1a1a; font-family: Quicksand, sans-serif; font-size: 16px; font-weight: 600; padding: 0 14px; outline: none; -webkit-appearance: none; }
+    #ios-input-field::placeholder { color: #9CA3AF; font-weight: 400; }
+    #ios-input-field:focus { border-color: #15803D; box-shadow: 0 0 0 2px rgba(22,163,74,0.2); }
     #mobile-blocker { display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-family: Quicksand, sans-serif; color: #15803D; padding: 32px; }
     #mobile-blocker h2 { font-size: 24px; font-weight: 700; margin-bottom: 12px; }
     #mobile-blocker p { font-size: 15px; color: #6B7280; max-width: 300px; line-height: 1.6; }
@@ -42,6 +48,9 @@
   <div id="mobile-tip">Mobile is for preview only. Best played with a physical keyboard on desktop.</div>
   <div id="game-shell" aria-label="Word Hopper game"></div>
   <input id="game-input" type="text" autocomplete="off" autofocus>
+  <div id="ios-input-bar">
+    <input id="ios-input-field" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Type here...">
+  </div>
   <button id="jump-btn">JUMP</button>
   <script type="module" src="/src/main.ts"></script>
 </body>

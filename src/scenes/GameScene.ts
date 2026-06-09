@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { applyRenderZoom, isMobile } from '../config/display';
+import { applyRenderZoom, isMobile, isIOS } from '../config/display';
 import { Difficulty, DIFFICULTY_CONFIG, PLAYER_X, GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT, GRAVITY, GROUND_HEIGHT, SPRITE_KEYS } from '../config/constants';
 import { COLORS, FONT_BODY, FONT_TYPING, FONT_DISPLAY } from '../config/colors';
 import { getTranslation } from '../data/translations';
@@ -238,7 +238,7 @@ export class GameScene extends Phaser.Scene {
       };
       gameInput.addEventListener('input', this.inputInputHandler as EventListener);
 
-      this.inputBlurHandler = () => { if (this.alive) gameInput.focus(); };
+      this.inputBlurHandler = () => { if (this.alive && !isIOS()) gameInput.focus(); };
       gameInput.addEventListener('blur', this.inputBlurHandler);
     }
 
@@ -259,6 +259,21 @@ export class GameScene extends Phaser.Scene {
         if (this.wordReady) { this.submitWord(); return; }
         if (this.typingSystem.getProgress().selectedWord) {
           this.handleTyping(' ');
+        }
+      };
+      (window as any).__wordhopper_key = (key: string) => {
+        if (!this.alive) return;
+        if (this.typingLock) return;
+        if (key === ' ') {
+          if (this.wordReady) { this.submitWord(); return; }
+          if (this.typingSystem.getProgress().selectedWord) {
+            this.handleTyping(' ');
+          }
+          return;
+        }
+        this.typingLock = true;
+        try { this.handleTyping(key); } finally {
+          requestAnimationFrame(() => { this.typingLock = false; });
         }
       };
     }
@@ -631,6 +646,7 @@ export class GameScene extends Phaser.Scene {
       }
     }
     delete (window as any).__wordhopper_jump;
+    delete (window as any).__wordhopper_key;
   }
 
   private checkPendingClear(): void {

@@ -9,6 +9,11 @@ export function isMobile(): boolean {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
 }
 
+export function isIOS(): boolean {
+  if (typeof URLSearchParams !== 'undefined' && new URLSearchParams(location.search).has('ios')) return true;
+  return /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
 export function getMobileScreenHeight(): number {
   return screen.height || window.innerHeight;
 }
