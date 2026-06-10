@@ -161,7 +161,9 @@ export class Obstacle {
     const green = word.slice(0, charIndex);
     const rest = word.slice(charIndex);
     typed.setText(green);
+    typed.setColor('#4ade80');
     untyped.setText(rest);
+    untyped.setColor(_wordIndex === 1 ? hex(COLORS.TEXT_ON_LIGHT) : hex(COLORS.TEXT_MUTED));
     this.layoutWord(typed, untyped);
   }
 

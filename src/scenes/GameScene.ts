@@ -46,7 +46,8 @@ export class GameScene extends Phaser.Scene {
   private speedText!: Phaser.GameObjects.Text;
   private comboText!: Phaser.GameObjects.Text;
   private hitLabel!: Phaser.GameObjects.Text;
-  private typingText!: Phaser.GameObjects.Text;
+  private typedText!: Phaser.GameObjects.Text;
+  private remainingText!: Phaser.GameObjects.Text;
   private timingLine!: Phaser.GameObjects.Graphics;
   private flashGfx!: Phaser.GameObjects.Graphics;
   private flashAlpha = 0;
@@ -183,12 +184,19 @@ export class GameScene extends Phaser.Scene {
     typingGfx.fillRoundedRect(CANVAS_WIDTH / 2 - 120, CANVAS_HEIGHT - 22, 240, 28, 14);
     typingGfx.setDepth(20);
 
-    this.typingText = addCrispText(this, CANVAS_WIDTH / 2, CANVAS_HEIGHT - 14, '', {
+    this.typedText = addCrispText(this, CANVAS_WIDTH / 2, CANVAS_HEIGHT - 14, '', {
+      fontSize: '16px',
+      color: '#4ade80',
+      fontFamily: FONT_TYPING,
+      fontStyle: 'bold',
+    }).setOrigin(1, 0.5).setDepth(20);
+
+    this.remainingText = addCrispText(this, CANVAS_WIDTH / 2, CANVAS_HEIGHT - 14, '', {
       fontSize: '16px',
       color: '#FFFFFF',
       fontFamily: FONT_TYPING,
       fontStyle: 'bold',
-    }).setOrigin(0.5).setDepth(20);
+    }).setOrigin(0, 0.5).setDepth(20);
 
     const gameInput = document.getElementById('game-input') as HTMLInputElement;
     if (gameInput) {
@@ -361,15 +369,21 @@ export class GameScene extends Phaser.Scene {
   }
 
   private handleTyping(key: string): void {
+    if (this.wordReady) return;
     const result = this.typingSystem.onKeyPress(key);
     if (result.wrong) {
-      this.wordReady = false;
+      this.scoreSystem.breakCombo();
       const obs = this.typingObstacle;
-      if (obs) {
-        obs.flashWrong(result.selectedWord
-          ? (obs.getConfig().word1 === result.selectedWord ? 1 : 2) : 1);
+      if (obs && result.selectedWord) {
+        const wordIdx = obs.getConfig().word1 === result.selectedWord ? 1 : 2;
+        obs.flashWrong(wordIdx);
         this.time.delayedCall(50, () => {
-          if (!this.typingSystem.getProgress().selectedWord) obs.resetWordDisplay();
+          obs.highlightWord(wordIdx, this.typingSystem.getCharIndex());
+        });
+      } else if (obs) {
+        obs.flashWrong(1);
+        this.time.delayedCall(50, () => {
+          obs.resetWordDisplay();
         });
       }
       this.updateTypingIndicator();
@@ -425,7 +439,8 @@ export class GameScene extends Phaser.Scene {
     this.scoreSystem.addWordBonus(progress.selectedWord, this.speedManager.getSpeedMultiplier(), perfect);
     this.speedManager.onObstacleCleared();
     this.pendingClear = { obstacle: obs, targetY };
-    this.typingText.setText('');
+    this.typedText.setText('');
+    this.remainingText.setText('');
     this.updateComboDisplay(perfect, targetY);
     if (this.tutorial) {
       this.tutorial = false;
@@ -456,11 +471,12 @@ export class GameScene extends Phaser.Scene {
     const progress = this.typingSystem.getProgress();
     if (!progress.selectedWord) {
       if (this.tutorial && !this.tutorialStarted) {
-        this.typingText.setText('Type a word on the obstacle');
-        this.typingText.setColor('#A7F3D0');
+        this.typedText.setText('').setOrigin(1, 0.5);
+        this.remainingText.setText('Type a word on the obstacle').setOrigin(0.5, 0.5).setX(CANVAS_WIDTH / 2).setColor('#A7F3D0');
         return;
       }
-      this.typingText.setText('');
+      this.typedText.setText('');
+      this.remainingText.setText('');
       return;
     }
     const typed = progress.selectedWord.substring(0, progress.correctChars);
@@ -468,11 +484,11 @@ export class GameScene extends Phaser.Scene {
     if (this.wordReady) {
       const zh = getTranslation(progress.selectedWord);
       const display = zh ? `${typed} ${zh}` : typed;
-      this.typingText.setText(`${display} → SPACE at green line`);
-      this.typingText.setColor('#FDE68A');
+      this.typedText.setText(display).setOrigin(1, 0.5).setX(CANVAS_WIDTH / 2);
+      this.remainingText.setText(' → SPACE at green line').setOrigin(0, 0.5).setX(CANVAS_WIDTH / 2).setColor('#FDE68A');
     } else {
-      this.typingText.setText(`${typed}|${remaining}`);
-      this.typingText.setColor('#FFFFFF');
+      this.typedText.setText(typed).setOrigin(1, 0.5).setX(CANVAS_WIDTH / 2);
+      this.remainingText.setText(`|${remaining}`).setOrigin(0, 0.5).setX(CANVAS_WIDTH / 2).setColor('#FFFFFF');
     }
   }
 

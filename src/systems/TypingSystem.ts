@@ -64,11 +64,8 @@ export class TypingSystem {
       return this.makeResult(false, completed);
     }
 
-    const wrongWord = this.selectedWord;
-    this.selectedWord = '';
-    this.charIndex = 0;
     this.wrong = true;
-    return this.makeResult(true, false, wrongWord);
+    return this.makeResult(true);
   }
 
   getSelectedWord(): string {
