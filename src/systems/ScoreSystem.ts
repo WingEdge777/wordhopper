@@ -6,6 +6,7 @@ export class ScoreSystem {
   private totalChars = 0;
   private bestWord = '';
   private combo = 0;
+  private maxCombo = 0;
 
   addTick(): void {
     this.score += BASE_SCORE_PER_TICK;
@@ -13,6 +14,7 @@ export class ScoreSystem {
 
   addWordBonus(word: string, speedMultiplier: number, perfect: boolean): void {
     this.combo++;
+    if (this.combo > this.maxCombo) this.maxCombo = this.combo;
     const base = WORD_SCORE_PER_CHAR * word.length * speedMultiplier;
     const comboAdd = this.combo * COMBO_BONUS;
     const bonus = (base + comboAdd) * (perfect ? PERFECT_MULTIPLIER : 1.0);
@@ -48,6 +50,10 @@ export class ScoreSystem {
     return this.bestWord;
   }
 
+  getMaxCombo(): number {
+    return this.maxCombo;
+  }
+
   getWPM(elapsedSeconds: number): number {
     if (elapsedSeconds <= 0) return 0;
     return Math.round((this.totalChars / 5) / (elapsedSeconds / 60));
@@ -59,5 +65,6 @@ export class ScoreSystem {
     this.totalChars = 0;
     this.bestWord = '';
     this.combo = 0;
+    this.maxCombo = 0;
   }
 }

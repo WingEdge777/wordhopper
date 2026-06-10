@@ -529,6 +529,7 @@ export class GameScene extends Phaser.Scene {
         wordsTyped: this.scoreSystem.getWordsTyped(),
         wpm: this.scoreSystem.getWPM(this.elapsedTime),
         bestWord: this.scoreSystem.getBestWord(),
+        maxCombo: this.scoreSystem.getMaxCombo(),
         difficulty: this.difficulty,
       });
     });

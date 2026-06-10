@@ -19,6 +19,7 @@ export interface DeathData {
   wordsTyped: number;
   wpm: number;
   bestWord: string;
+  maxCombo: number;
   difficulty: Difficulty;
 }
 
@@ -216,15 +217,16 @@ export class DeathScene extends Phaser.Scene {
 
     const cardW = 72;
     const cardH = 34;
-    const cardGap = 10;
-    const totalCardsWidth = cardW * 3 + cardGap * 2;
+    const cardGap = 8;
+    const totalCardsWidth = cardW * 4 + cardGap * 3;
     const cardsStartX = (w - totalCardsWidth) / 2;
     const cardsY = barY + 55;
 
     const cards = [
-      { value: data.wordsTyped.toString(), label: 'WORDS', fontSize: '16px' },
-      { value: data.wpm.toString(), label: 'WPM', fontSize: '16px' },
-      { value: data.bestWord || '—', label: 'BEST WORD', fontSize: '11px' },
+      { value: data.wordsTyped.toString(), label: 'WORDS', fontSize: '14px' },
+      { value: data.wpm.toString(), label: 'WPM', fontSize: '14px' },
+      { value: `x${data.maxCombo}`, label: 'MAX COMBO', fontSize: '14px' },
+      { value: data.bestWord || '—', label: 'BEST WORD', fontSize: '10px' },
     ];
 
     cards.forEach((card, i) => {

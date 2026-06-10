@@ -32,6 +32,7 @@ export class ObstacleSpawner {
   }
 
   canSpawn(currentRightEdge: number): boolean {
+    if (currentRightEdge <= 0) return true;
     return currentRightEdge <= CANVAS_WIDTH - this.getMinSpacing();
   }
 
@@ -87,7 +88,7 @@ export class ObstacleSpawner {
     const typingWindow = avgCharCount * TYPING_WINDOW_PER_CHAR + DECISION_BUFFER;
     const speed = this.speedManager.getSpeed();
     const compression = this.speedManager.getCompressionFactor();
-    return speed * typingWindow * SPACING_SAFETY_FACTOR * compression;
+    return Math.min(speed * typingWindow * SPACING_SAFETY_FACTOR * compression, CANVAS_WIDTH * 0.7);
   }
 
   private pickLayout(): ObstacleLayout {
