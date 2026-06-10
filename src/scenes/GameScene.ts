@@ -373,6 +373,7 @@ export class GameScene extends Phaser.Scene {
     const result = this.typingSystem.onKeyPress(key);
     if (result.wrong) {
       this.scoreSystem.breakCombo();
+      this.comboText.setText('');
       const obs = this.typingObstacle;
       if (obs && result.selectedWord) {
         const wordIdx = obs.getConfig().word1 === result.selectedWord ? 1 : 2;
