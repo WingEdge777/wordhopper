@@ -17,15 +17,31 @@ const WORD_CACHE: Record<Difficulty, string[]> = {
   hard: (hardWords as string[]).filter((w) => w.length >= 8),
 };
 
+const HARD_TIERS = [
+  { min: 9, max: 10 },
+  { min: 11, max: 12 },
+  { min: 13, max: 14 },
+  { min: 14, max: Infinity },
+];
+const HARD_TIER_INTERVAL = 5;
+
 export class WordSpawner {
   private words: string[] = [];
   private deck: string[] = [];
   private lastPicked = '';
+  private difficulty: Difficulty = 'easy';
+  private obstaclesCleared = 0;
 
   loadWords(difficulty: Difficulty): void {
+    this.difficulty = difficulty;
+    this.obstaclesCleared = 0;
     this.words = WORD_CACHE[difficulty] || [];
     this.lastPicked = '';
     this.reshuffleDeck();
+  }
+
+  onObstacleCleared(): void {
+    this.obstaclesCleared++;
   }
 
   generatePair(): WordPair {
@@ -36,6 +52,16 @@ export class WordSpawner {
 
   generateSingle(): string {
     return this.takeFromDeck();
+  }
+
+  private getPool(): string[] {
+    if (this.difficulty !== 'hard') return this.words;
+    const tierIdx = Math.min(
+      Math.floor(this.obstaclesCleared / HARD_TIER_INTERVAL),
+      HARD_TIERS.length - 1
+    );
+    const tier = HARD_TIERS[tierIdx];
+    return this.words.filter(w => w.length >= tier.min && w.length <= tier.max);
   }
 
   private takeFromDeck(options?: { exclude?: string; firstLetterNot?: string }): string {
@@ -57,7 +83,7 @@ export class WordSpawner {
       word = pickFromDeck();
     }
     if (!word) {
-      const fallback = this.words.filter(matches);
+      const fallback = this.getPool().filter(matches);
       word = fallback[Math.floor(Math.random() * fallback.length)] || this.words[0] || '';
     }
 
@@ -66,13 +92,13 @@ export class WordSpawner {
   }
 
   private reshuffleDeck(): void {
-    this.deck = this.shuffle([...this.words]);
+    this.deck = this.shuffle([...this.getPool()]);
     if (this.lastPicked && this.deck.length > 1 && this.deck[0] === this.lastPicked) {
       [this.deck[0], this.deck[1]] = [this.deck[1], this.deck[0]];
     }
   }
 
-  private shuffle<T>(items: T[]): T[] {
+  private shuffle(items: string[]): string[] {
     for (let i = items.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [items[i], items[j]] = [items[j], items[i]];

@@ -438,6 +438,7 @@ export class GameScene extends Phaser.Scene {
     this.player.jumpToWord(targetY);
     this.scoreSystem.addWordBonus(progress.selectedWord, this.speedManager.getSpeedMultiplier(), perfect);
     this.speedManager.onObstacleCleared();
+    this.wordSpawner.onObstacleCleared();
     this.pendingClear = { obstacle: obs, targetY };
     this.typedText.setText('');
     this.remainingText.setText('');
