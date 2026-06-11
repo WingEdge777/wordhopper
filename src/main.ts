@@ -94,14 +94,14 @@ if (gameShell) {
         iosField.addEventListener('input', (e: InputEvent) => {
           const ch = e.data;
           if (ch && ch.length === 1) {
-            (window as any).__wordhopper_key?.(ch);
+            window.__wordhopper_key?.(ch);
           }
           iosField.value = '';
         });
         iosField.addEventListener('keydown', (e: KeyboardEvent) => {
           if (e.key === ' ') {
             e.preventDefault();
-            (window as any).__wordhopper_jump?.();
+            window.__wordhopper_jump?.();
             iosField.value = '';
           }
         });
@@ -118,7 +118,7 @@ if (gameShell) {
       if (jumpBtn) {
         jumpBtn.addEventListener('touchstart', (e) => {
           e.preventDefault();
-          (window as any).__wordhopper_jump?.();
+          window.__wordhopper_jump?.();
         });
       }
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Build short Chinese translations from local ECDICT for the in-game word lists."""
+
 from __future__ import annotations
 
 import csv
@@ -28,7 +29,9 @@ MANUAL_OVERRIDES = {
 }
 
 
-def collect_needed_words(easy_src: list[str], medium_src: list[str], hard_src: list[str]) -> set[str]:
+def collect_needed_words(
+    easy_src: list[str], medium_src: list[str], hard_src: list[str]
+) -> set[str]:
     needed: set[str] = set()
     for raw in easy_src:
         w = raw.lower().strip()
@@ -45,7 +48,11 @@ def collect_needed_words(easy_src: list[str], medium_src: list[str], hard_src: l
     return needed
 
 
-POS_RE = re.compile(r"\b(?:interj|n|vt|vi|v|a|adv|prep|conj|pron|int|art|num|aux|abbr|pl|pref|suf|p|pp|pt)\.\s*", re.IGNORECASE)
+POS_RE = re.compile(
+    r"\b(?:interj|n|vt|vi|v|a|adv|prep|conj|pron|int|art|num|aux|abbr|pl|pref|suf|p|pp|pt)\.\s*",
+    re.IGNORECASE,
+)
+
 
 def shorten_translation(raw: str) -> str:
     t = raw.replace("\\n", " ").strip()
@@ -95,7 +102,9 @@ def main() -> int:
         return 1
 
     easy_src = json.loads((DATA_DIR / "words-easy.json").read_text(encoding="utf-8"))
-    medium_src = json.loads((DATA_DIR / "words-medium.json").read_text(encoding="utf-8"))
+    medium_src = json.loads(
+        (DATA_DIR / "words-medium.json").read_text(encoding="utf-8")
+    )
     hard_src = json.loads((DATA_DIR / "words-hard.json").read_text(encoding="utf-8"))
 
     needed = collect_needed_words(easy_src, medium_src, hard_src)

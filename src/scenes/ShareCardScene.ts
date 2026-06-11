@@ -197,7 +197,7 @@ export class ShareCardScene extends Phaser.Scene {
     }
 
     if (isMobile()) {
-      (window as any).__wordhopper_jump = () => this.play();
+      window.__wordhopper_jump = () => this.play();
     }
   }
 
@@ -221,6 +221,6 @@ export class ShareCardScene extends Phaser.Scene {
       if (gameInput) gameInput.removeEventListener('keydown', this.gameInputHandler);
       this.gameInputHandler = null;
     }
-    delete (window as any).__wordhopper_jump;
+    delete window.__wordhopper_jump;
   }
 }

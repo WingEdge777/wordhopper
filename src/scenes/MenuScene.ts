@@ -7,7 +7,7 @@ import { hex, darker } from '../config/utils';
 
 export class MenuScene extends Phaser.Scene {
   private selectedDifficulty: Difficulty = 'easy';
-  private difficultyBtns: Record<Difficulty, Phaser.GameObjects.Container> = {} as any;
+  private difficultyBtns: Record<Difficulty, Phaser.GameObjects.Container> = {} as Record<Difficulty, Phaser.GameObjects.Container>;
   private gameInputHandler: ((e: KeyboardEvent) => void) | null = null;
   private keyboardHandler: ((event: KeyboardEvent) => void) | null = null;
 
@@ -20,7 +20,7 @@ export class MenuScene extends Phaser.Scene {
   create(): void {
     applyRenderZoom(this);
     this.selectedDifficulty = 'easy';
-    this.difficultyBtns = {} as any;
+    this.difficultyBtns = {} as Record<Difficulty, Phaser.GameObjects.Container>;
     const width = CANVAS_WIDTH;
     const height = CANVAS_HEIGHT;
 
@@ -194,7 +194,7 @@ export class MenuScene extends Phaser.Scene {
     this.updateHighlight();
 
     if (isMobile()) {
-      (window as any).__wordhopper_jump = () => this.startGame();
+      window.__wordhopper_jump = () => this.startGame();
     }
   }
 
@@ -239,6 +239,6 @@ export class MenuScene extends Phaser.Scene {
       if (gameInput) gameInput.removeEventListener('keydown', this.gameInputHandler);
       this.gameInputHandler = null;
     }
-    delete (window as any).__wordhopper_jump;
+    delete window.__wordhopper_jump;
   }
 }

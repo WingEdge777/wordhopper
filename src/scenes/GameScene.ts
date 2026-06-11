@@ -262,14 +262,14 @@ export class GameScene extends Phaser.Scene {
     document.addEventListener('visibilitychange', this.visibilityHandler);
 
     if (isMobile()) {
-      (window as any).__wordhopper_jump = () => {
+      window.__wordhopper_jump = () => {
         if (!this.alive) return;
         if (this.wordReady) { this.submitWord(); return; }
         if (this.typingSystem.getProgress().selectedWord) {
           this.handleTyping(' ');
         }
       };
-      (window as any).__wordhopper_key = (key: string) => {
+      window.__wordhopper_key = (key: string) => {
         if (!this.alive) return;
         if (this.typingLock) return;
         if (key === ' ') {
@@ -675,8 +675,8 @@ export class GameScene extends Phaser.Scene {
         this.inputBlurHandler = null;
       }
     }
-    delete (window as any).__wordhopper_jump;
-    delete (window as any).__wordhopper_key;
+    delete window.__wordhopper_jump;
+    delete window.__wordhopper_key;
   }
 
   private checkPendingClear(): void {

@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { applyRenderZoom } from '../config/display';
 import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, ObstacleType, SPRITE_KEYS } from '../config/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, SPRITE_KEYS } from '../config/constants';
 import { addCrispText } from '../config/text';
 import { hex, darker, lighter } from '../config/utils';
 import { parseShareParams } from './ShareCardScene';

@@ -4,7 +4,7 @@ import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
 import { Difficulty, CANVAS_WIDTH, CANVAS_HEIGHT, SPRITE_KEYS } from '../config/constants';
 import { addCrispText } from '../config/text';
 import { hex, darker } from '../config/utils';
-import { buildShareURL, ShareCardData } from './ShareCardScene';
+import { buildShareURL } from './ShareCardScene';
 
 function getBestScore(difficulty: Difficulty): number {
   try { return parseInt(localStorage.getItem(`word-hopper-best-${difficulty}`) || '0', 10); } catch { return 0; }
@@ -318,7 +318,7 @@ export class DeathScene extends Phaser.Scene {
     }
 
     if (isMobile()) {
-      (window as any).__wordhopper_jump = () => this.retry();
+      window.__wordhopper_jump = () => this.retry();
     }
   }
 
@@ -367,6 +367,6 @@ export class DeathScene extends Phaser.Scene {
       if (gameInput) gameInput.removeEventListener('keydown', this.gameInputHandler);
       this.gameInputHandler = null;
     }
-    delete (window as any).__wordhopper_jump;
+    delete window.__wordhopper_jump;
   }
 }
