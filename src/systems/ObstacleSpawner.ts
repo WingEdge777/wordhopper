@@ -1,6 +1,7 @@
 import {
   CANVAS_WIDTH,
   GROUND_Y,
+  GRAVITY,
   PLAYER_HEIGHT,
   SINGLE_OBSTACLE_CHANCE,
   TYPING_WINDOW_PER_CHAR,
@@ -86,9 +87,10 @@ export class ObstacleSpawner {
     const config = DIFFICULTY_CONFIG[this.difficulty];
     const avgCharCount = (config.minLen + Math.min(config.maxLen, 15)) / 2;
     const typingWindow = avgCharCount * TYPING_WINDOW_PER_CHAR + DECISION_BUFFER;
+    const maxJumpHeight = GROUND_Y - (config.gapMin * PLAYER_HEIGHT / 2 + 20);
+    const jumpTime = 2 * Math.sqrt(2 * maxJumpHeight / GRAVITY);
     const speed = this.speedManager.getSpeed();
-    const compression = this.speedManager.getCompressionFactor();
-    return Math.min(speed * typingWindow * SPACING_SAFETY_FACTOR * compression, CANVAS_WIDTH * 0.7);
+    return speed * (jumpTime + typingWindow) * SPACING_SAFETY_FACTOR;
   }
 
   private pickLayout(): ObstacleLayout {
