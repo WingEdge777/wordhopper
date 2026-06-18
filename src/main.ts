@@ -122,6 +122,14 @@ if (gameShell) {
         });
       }
 
+      const pauseBtn = document.getElementById('pause-btn');
+      if (pauseBtn) {
+        pauseBtn.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          window.__wordhopper_togglePause?.();
+        });
+      }
+
       let lastOrientation = screen.orientation?.type || '';
       screen.orientation?.addEventListener('change', () => {
         const current = screen.orientation?.type || '';

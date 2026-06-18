@@ -52,6 +52,8 @@ export class GameScene extends Phaser.Scene {
   private flashGfx!: Phaser.GameObjects.Graphics;
   private flashAlpha = 0;
   private flashX = 0;
+  private paused = false;
+  private pauseOverlay!: Phaser.GameObjects.Container;
   private visibilityHandler: (() => void) | null = null;
   private debugGfx!: Phaser.GameObjects.Graphics;
   private groundTiles: Phaser.GameObjects.TileSprite[] = [];
@@ -74,6 +76,8 @@ export class GameScene extends Phaser.Scene {
   create(): void {
     applyRenderZoom(this);
     this.alive = true;
+    this.paused = false;
+    this.pauseOverlay = undefined!;
     this.distance = 0;
     this.elapsedTime = 0;
     this.obstacles = [];
@@ -204,6 +208,17 @@ export class GameScene extends Phaser.Scene {
       gameInput.focus();
       this.gameInputHandler = (e: KeyboardEvent) => {
         if (!this.alive) return;
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          e.stopPropagation();
+          if (this.paused) {
+            this.resumeGame();
+          } else {
+            this.pauseGame();
+          }
+          return;
+        }
+        if (this.paused) return;
         if (this.typingLock) return;
         if (e.key === ' ') {
           e.preventDefault();
@@ -253,24 +268,28 @@ export class GameScene extends Phaser.Scene {
     this.spawnObstacle();
 
     this.visibilityHandler = () => {
-      if (document.hidden && this.alive) {
+      if (document.hidden && this.alive && !this.paused) {
         this.scene.pause();
-      } else if (!document.hidden) {
+      } else if (!document.hidden && !this.paused) {
         this.scene.resume();
       }
     };
     document.addEventListener('visibilitychange', this.visibilityHandler);
 
     if (isMobile()) {
-      window.__wordhopper_jump = () => {
+      window.__wordhopper_togglePause = () => {
         if (!this.alive) return;
+        if (this.paused) { this.resumeGame(); } else { this.pauseGame(); }
+      };
+      window.__wordhopper_jump = () => {
+        if (!this.alive || this.paused) return;
         if (this.wordReady) { this.submitWord(); return; }
         if (this.typingSystem.getProgress().selectedWord) {
           this.handleTyping(' ');
         }
       };
       window.__wordhopper_key = (key: string) => {
-        if (!this.alive) return;
+        if (!this.alive || this.paused) return;
         if (this.typingLock) return;
         if (key === ' ') {
           if (this.wordReady) { this.submitWord(); return; }
@@ -288,7 +307,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(_time: number, delta: number): void {
-    if (!this.alive) return;
+    if (!this.alive || this.paused) return;
     const dt = delta / 1000;
     const speed = this.tutorialShouldPause() ? 0 : this.speedManager.getSpeed();
 
@@ -518,6 +537,32 @@ export class GameScene extends Phaser.Scene {
     return upcoming[0];
   }
 
+  private pauseGame(): void {
+    if (this.paused) return;
+    this.paused = true;
+    this.scene.pause();
+    if (!this.pauseOverlay) {
+      const bg = this.add.rectangle(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, 0x000000, 0.5).setOrigin(0).setDepth(100);
+      const text = addCrispText(this, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, 'PAUSED', {
+        fontSize: '24px',
+        color: '#FFFFFF',
+        fontFamily: FONT_DISPLAY,
+        fontStyle: 'bold',
+        align: 'center',
+        padding: { right: 8, left: 2, top: 2, bottom: 2 },
+      }).setOrigin(0.5).setDepth(101);
+      this.pauseOverlay = this.add.container(0, 0, [bg, text]).setDepth(100);
+    }
+    this.pauseOverlay.setVisible(true);
+  }
+
+  private resumeGame(): void {
+    if (!this.paused) return;
+    this.paused = false;
+    this.pauseOverlay.setVisible(false);
+    this.scene.resume();
+  }
+
   private die(): void {
     this.alive = false;
     this.scoreSystem.breakCombo();
@@ -677,6 +722,7 @@ export class GameScene extends Phaser.Scene {
     }
     delete window.__wordhopper_jump;
     delete window.__wordhopper_key;
+    delete window.__wordhopper_togglePause;
   }
 
   private checkPendingClear(): void {

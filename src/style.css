@@ -188,6 +188,30 @@ body.ios-layout {
   transform: scale(0.92);
 }
 
+#pause-btn {
+  display: none;
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font-family: Quicksand, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  border: none;
+  z-index: 1000;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#pause-btn:active {
+  background: rgba(0, 0, 0, 0.6);
+  transform: scale(0.92);
+}
+
 /* ── Responsive ── */
 
 @media (max-width: 767px), (pointer: coarse) {
@@ -212,6 +236,10 @@ body.ios-layout {
   }
 
   #jump-btn {
+    display: block;
+  }
+
+  #pause-btn {
     display: block;
   }
 }
