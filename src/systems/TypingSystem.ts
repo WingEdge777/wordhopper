@@ -64,6 +64,22 @@ export class TypingSystem {
       return this.makeResult(false, completed);
     }
 
+    if (this.charIndex === 0) {
+      if (lowerKey === this.word1[0]) {
+        this.selectedWord = this.word1;
+        this.charIndex = 1;
+        this.wrong = false;
+        return this.makeResult(false);
+      }
+      if (this.word2 && lowerKey === this.word2[0]) {
+        this.selectedWord = this.word2;
+        this.charIndex = 1;
+        this.wrong = false;
+        return this.makeResult(false);
+      }
+    }
+
+    this.charIndex = 0;
     this.wrong = true;
     return this.makeResult(true);
   }

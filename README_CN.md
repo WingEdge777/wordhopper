@@ -26,9 +26,9 @@
 ## 开发
 
 ```bash
-npm install
-npm run dev
-npm run build
-npm run preview
-npm test
+bun install
+bun run dev
+bun run build
+bun run preview
+bun run test
 ```

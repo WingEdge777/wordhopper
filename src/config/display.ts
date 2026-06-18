@@ -10,7 +10,7 @@ export function isMobile(): boolean {
 }
 
 export function isIOS(): boolean {
-  if (typeof URLSearchParams !== 'undefined' && new URLSearchParams(location.search).has('ios')) return true;
+  if (typeof location !== 'undefined' && typeof URLSearchParams !== 'undefined' && new URLSearchParams(location.search).has('ios')) return true;
   return /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 }
 
