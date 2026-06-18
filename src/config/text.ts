@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { getRenderResolution } from './display';
+import { getRenderScale } from './display';
 
 export function snapPixel(value: number): number {
   return Math.round(value);
@@ -13,7 +13,7 @@ export function addCrispText(
   style: Phaser.Types.GameObjects.Text.TextStyle
 ): Phaser.GameObjects.Text {
   return scene.add.text(snapPixel(x), snapPixel(y), text, {
-    resolution: getRenderResolution(),
+    resolution: getRenderScale(),
     ...style,
   });
 }

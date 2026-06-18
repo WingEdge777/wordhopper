@@ -7,7 +7,7 @@ import { DeathScene } from './scenes/DeathScene';
 import { ShareCardScene } from './scenes/ShareCardScene';
 import { applyRenderZoom, getDisplaySize, getRenderSize, isMobile, isIOS, getMobileScreenHeight } from './config/display';
 
-export { getDisplaySize, getRenderResolution, getRenderSize, isMobile, isIOS } from './config/display';
+export { getDisplaySize, getRenderResolution, getRenderScale, getRenderSize, isMobile, isIOS } from './config/display';
 
 export function createGameConfig(
   parent: HTMLElement,

@@ -65,8 +65,6 @@ body.ios-layout {
 
 #game-shell canvas {
   display: block;
-  width: 100% !important;
-  height: auto !important;
   outline: none;
   border-radius: 16px;
   box-shadow:
@@ -229,8 +227,6 @@ body.ios-layout {
   }
 
   #game-shell canvas {
-    width: 100% !important;
-    height: 100% !important;
     border-radius: 0;
     box-shadow: none;
   }

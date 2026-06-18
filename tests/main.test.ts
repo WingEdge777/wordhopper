@@ -83,6 +83,17 @@ describe('main game config', () => {
     expect(getRenderSize?.(1008, 567, 3)).toEqual({ width: 1600, height: 900 });
   });
 
+  it('snaps fractional render scale to integer zoom for crisp rendering', async () => {
+    mockBrowserEnvironment(1.75);
+
+    const mainModule = await import('../src/main') as Record<string, unknown>;
+    const getRenderScale = mainModule.getRenderScale as ((displayWidth?: number, displayHeight?: number, dpr?: number) => number) | undefined;
+    const getRenderSize = mainModule.getRenderSize as ((displayWidth?: number, displayHeight?: number, dpr?: number) => { width: number; height: number }) | undefined;
+
+    expect(getRenderScale?.(768, 432, 1.75)).toBe(2);
+    expect(getRenderSize?.(768, 432, 1.75)).toEqual({ width: 1600, height: 900 });
+  });
+
   it('builds a fixed-size game config mounted into the game shell', async () => {
     mockBrowserEnvironment(2);
 

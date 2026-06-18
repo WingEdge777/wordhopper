@@ -22,6 +22,10 @@ export function getRenderResolution(devicePixelRatio = window.devicePixelRatio |
   return Math.min(Math.max(devicePixelRatio, 1), MAX_RENDER_RESOLUTION);
 }
 
+function snapRenderScale(scale: number): number {
+  return Math.min(Math.max(Math.round(scale), 1), MAX_RENDER_SCALE);
+}
+
 export function getDisplaySize(viewportWidth = window.innerWidth, _viewportHeight = window.innerHeight): { width: number; height: number } {
   if (isMobile()) {
     const width = viewportWidth;
@@ -34,6 +38,17 @@ export function getDisplaySize(viewportWidth = window.innerWidth, _viewportHeigh
   return { width, height };
 }
 
+/** Effective camera zoom; matches text rasterization scale. */
+export function getRenderScale(
+  displayWidth = getDisplaySize().width,
+  _displayHeight = getDisplaySize().height,
+  devicePixelRatio = window.devicePixelRatio || 1
+): number {
+  const resolution = getRenderResolution(devicePixelRatio);
+  const rawScale = Math.min((displayWidth / CANVAS_WIDTH) * resolution, MAX_RENDER_SCALE);
+  return snapRenderScale(rawScale);
+}
+
 export function getRenderSize(
   displayWidth = getDisplaySize().width,
   displayHeight = getDisplaySize().height,
@@ -42,15 +57,15 @@ export function getRenderSize(
   const resolution = getRenderResolution(devicePixelRatio);
 
   if (isMobile()) {
-    const renderScaleX = Math.min((displayWidth / CANVAS_WIDTH) * resolution, MAX_RENDER_SCALE);
-    const renderScaleY = Math.min((displayHeight / CANVAS_HEIGHT) * resolution, MAX_RENDER_SCALE);
+    const renderScaleX = snapRenderScale(Math.min((displayWidth / CANVAS_WIDTH) * resolution, MAX_RENDER_SCALE));
+    const renderScaleY = snapRenderScale(Math.min((displayHeight / CANVAS_HEIGHT) * resolution, MAX_RENDER_SCALE));
     return {
       width: Math.round(CANVAS_WIDTH * renderScaleX),
       height: Math.round(CANVAS_HEIGHT * renderScaleY),
     };
   }
 
-  const renderScale = Math.min((displayWidth / CANVAS_WIDTH) * resolution, MAX_RENDER_SCALE);
+  const renderScale = getRenderScale(displayWidth, displayHeight, devicePixelRatio);
   return {
     width: Math.round(CANVAS_WIDTH * renderScale),
     height: Math.round(CANVAS_HEIGHT * renderScale),
