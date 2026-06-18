@@ -12,7 +12,7 @@ Obstacles scroll toward you from the right, each displaying one or two words.
 2. **Finish typing** the rest of the word
 3. **Press SPACE** to jump through the gap matching that word
 
-Type the wrong letter and you'll have to start over. Collide with an obstacle and it's game over.
+Type the wrong letter and you'll need to retype from that position. Collide with an obstacle and it's game over.
 
 After completing a word, a **green timing line** appears on screen — it marks the ideal moment to press SPACE. Jump closer to the line for a more precise landing; the flash glows brighter the nearer you are.
 

@@ -30,24 +30,26 @@ describe('TypingSystem', () => {
     expect(result.selectedWord).toBe('cat');
   });
 
-  it('should reset on wrong letter', () => {
+  it('should keep progress on wrong letter', () => {
     const typing = new TypingSystem();
     typing.setWords('leaf', 'run');
     typing.onKeyPress('l');
+    typing.onKeyPress('e');
     const result = typing.onKeyPress('x');
     expect(result.wrong).toBe(true);
-    expect(result.charIndex).toBe(0);
+    expect(result.charIndex).toBe(2);
     expect(result.selectedWord).toBe('leaf');
   });
 
-  it('should allow switching to other word after wrong letter', () => {
+  it('should continue from error position after wrong letter', () => {
     const typing = new TypingSystem();
     typing.setWords('leaf', 'run');
     typing.onKeyPress('l');
     typing.onKeyPress('x');
-    const result = typing.onKeyPress('r');
-    expect(result.selectedWord).toBe('run');
-    expect(result.charIndex).toBe(1);
+    const result = typing.onKeyPress('e');
+    expect(result.wrong).toBe(false);
+    expect(result.charIndex).toBe(2);
+    expect(result.selectedWord).toBe('leaf');
   });
 
   it('should allow switching word before starting', () => {
