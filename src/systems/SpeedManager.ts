@@ -20,10 +20,6 @@ export class SpeedManager {
     return this.baseMultiplier * this.multiplier;
   }
 
-  getCompressionFactor(): number {
-    return 1.0 / Math.sqrt(this.multiplier);
-  }
-
   onObstacleCleared(): void {
     if (this.multiplier >= MAX_SPEED_MULTIPLIER) return;
 

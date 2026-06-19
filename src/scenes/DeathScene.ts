@@ -36,6 +36,7 @@ export async function shareResult(data: { title: string; url: string }): Promise
   if (navigator.share) {
     try {
       await navigator.share({ title: data.title, url: data.url });
+      return true;
     } catch {
       return false;
     }

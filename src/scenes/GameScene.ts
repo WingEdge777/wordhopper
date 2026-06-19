@@ -57,7 +57,6 @@ export class GameScene extends Phaser.Scene {
   private visibilityHandler: (() => void) | null = null;
   private debugGfx!: Phaser.GameObjects.Graphics;
   private groundTiles: Phaser.GameObjects.TileSprite[] = [];
-  private distance = 0;
   private elapsedTime = 0;
   private alive = true;
   private tickAccumulator = 0;
@@ -78,7 +77,6 @@ export class GameScene extends Phaser.Scene {
     this.alive = true;
     this.paused = false;
     this.pauseOverlay = undefined!;
-    this.distance = 0;
     this.elapsedTime = 0;
     this.obstacles = [];
     this.typingObstacle = null;
@@ -311,7 +309,6 @@ export class GameScene extends Phaser.Scene {
     const dt = delta / 1000;
     const speed = this.tutorialShouldPause() ? 0 : this.speedManager.getSpeed();
 
-    this.distance += speed * dt;
     if (speed > 0) this.elapsedTime += dt;
     for (const tile of this.groundTiles) {
       tile.tilePositionX += speed * dt;
@@ -528,13 +525,6 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (isFirstSpawn) this.updateTypingIndicator();
-  }
-
-  private getNearestObstacle(): Obstacle | null {
-    const upcoming = this.obstacles.filter(o => o.isActive() && o.getX() > PLAYER_X - 10);
-    if (upcoming.length === 0) return null;
-    upcoming.sort((a, b) => a.getX() - b.getX());
-    return upcoming[0];
   }
 
   private pauseGame(): void {

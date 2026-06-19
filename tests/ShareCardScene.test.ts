@@ -92,7 +92,7 @@ describe('shareResult', () => {
       url: 'https://example.com/game?s=0',
     });
 
-    expect(copied).toBe(false);
+    expect(copied).toBe(true);
     expect(share).toHaveBeenCalledWith({
       title: 'Word Hopper',
       url: 'https://example.com/game?s=0',
@@ -113,7 +113,7 @@ describe('shareResult', () => {
       url: 'https://example.com/game?s=5',
     });
 
-    expect(copied).toBe(false);
+    expect(copied).toBe(true);
     expect(writeText).toHaveBeenCalledWith('https://example.com/game?s=5');
     expect(share).toHaveBeenCalledWith({
       title: 'Word Hopper',

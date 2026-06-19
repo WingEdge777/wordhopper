@@ -24,17 +24,6 @@ describe('SpeedManager', () => {
     expect(mgr.getSpeedMultiplier()).toBeLessThanOrEqual(2.5);
   });
 
-  it('should compute compression factor', () => {
-    const mgr = new SpeedManager();
-    expect(mgr.getCompressionFactor()).toBe(1.0);
-    for (let i = 0; i < 100; i++) {
-      mgr.onObstacleCleared();
-    }
-    const factor = mgr.getCompressionFactor();
-    expect(factor).toBeLessThan(1.0);
-    expect(factor).toBeCloseTo(1.0 / Math.sqrt(mgr.getSpeedMultiplier()), 4);
-  });
-
   it('should reset', () => {
     const mgr = new SpeedManager();
     mgr.onObstacleCleared();
