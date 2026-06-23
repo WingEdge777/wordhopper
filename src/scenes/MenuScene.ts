@@ -80,11 +80,11 @@ export class MenuScene extends Phaser.Scene {
 
     const difficulties: { key: Difficulty; label: string; desc: string }[] = isMobile()
       ? [
-          { key: 'chill', label: 'CHILL', desc: '3–5 chars, slow' },
+          { key: 'chill', label: 'CHILL', desc: '3–5 chars' },
           { key: 'easy', label: 'EASY', desc: '3–5 chars' },
         ]
       : [
-          { key: 'chill', label: 'CHILL', desc: '3–5 chars, slow' },
+          { key: 'chill', label: 'CHILL', desc: '3–5 chars' },
           { key: 'easy', label: 'EASY', desc: '3–5 chars' },
           { key: 'medium', label: 'MEDIUM', desc: '6–8 chars' },
           { key: 'hard', label: 'HARD', desc: '8+ chars' },
