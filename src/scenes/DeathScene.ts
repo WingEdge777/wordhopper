@@ -4,6 +4,7 @@ import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
 import { Difficulty, CANVAS_WIDTH, CANVAS_HEIGHT, SPRITE_KEYS } from '../config/constants';
 import { addCrispText } from '../config/text';
 import { hex, darker } from '../config/utils';
+import { getNickname } from '../config/nickname';
 import { buildShareURL } from './ShareCardScene';
 
 function getBestScore(difficulty: Difficulty): number {
@@ -66,6 +67,7 @@ export class DeathScene extends Phaser.Scene {
       wpm: data.wpm,
       bestWord: data.bestWord,
       difficulty: data.difficulty,
+      nickname: getNickname(),
     });
     const w = CANVAS_WIDTH;
     const h = CANVAS_HEIGHT;
@@ -122,6 +124,13 @@ export class DeathScene extends Phaser.Scene {
       color: hex(COLORS.PRIMARY),
       fontStyle: 'bold',
       padding: { right: 8, left: 2, top: 2, bottom: 2 },
+    }).setOrigin(0.5).setDepth(10);
+
+    addCrispText(this, w / 2, 118, `> ${getNickname().toUpperCase()} <`, {
+      fontSize: '11px',
+      fontFamily: FONT_BODY,
+      color: hex(COLORS.TEXT_MUTED),
+      fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(10);
 
     const best = getBestScore(data.difficulty);
@@ -329,8 +338,10 @@ export class DeathScene extends Phaser.Scene {
   }
 
   private async share(): Promise<void> {
+    const nickname = getNickname();
+    const score = this.deathData?.score.toLocaleString() ?? '0';
     const copied = await shareResult({
-      title: 'Word Hopper',
+      title: `${nickname} scored ${score} on Word Hopper`,
       url: this.shareURL,
     });
     if (copied) {

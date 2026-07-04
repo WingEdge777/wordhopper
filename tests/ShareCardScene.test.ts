@@ -56,7 +56,38 @@ describe('parseShareParams', () => {
       wpm: 0,
       bestWord: '',
       difficulty: 'easy',
+      nickname: undefined,
     });
+  });
+
+  it('includes nickname when present in share links', async () => {
+    setWindowLocation('?s=120&w=42&bw=leaf&d=medium&n=SwiftHamster42');
+
+    const { parseShareParams } = await import('../src/scenes/ShareCardScene');
+
+    expect(parseShareParams()).toEqual({
+      score: 120,
+      wpm: 42,
+      bestWord: 'leaf',
+      difficulty: 'medium',
+      nickname: 'SwiftHamster42',
+    });
+  });
+});
+
+describe('buildShareURL', () => {
+  it('includes nickname in share links when provided', async () => {
+    setWindowLocation('');
+
+    const { buildShareURL } = await import('../src/scenes/ShareCardScene');
+
+    expect(buildShareURL({
+      score: 99,
+      wpm: 30,
+      bestWord: 'cat',
+      difficulty: 'easy',
+      nickname: 'Alice',
+    })).toBe('https://example.com/game?s=99&w=30&bw=cat&d=easy&n=Alice');
   });
 });
 

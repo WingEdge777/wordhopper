@@ -6,6 +6,12 @@ import { GameScene } from './scenes/GameScene';
 import { DeathScene } from './scenes/DeathScene';
 import { ShareCardScene } from './scenes/ShareCardScene';
 import { applyRenderZoom, getDisplaySize, getRenderSize, isMobile, isIOS, getMobileScreenHeight } from './config/display';
+import {
+  dismissNicknameHint,
+  ensureNickname,
+  setNickname,
+  shouldShowNicknameHint,
+} from './config/nickname';
 
 export { getDisplaySize, getRenderResolution, getRenderScale, getRenderSize, isMobile, isIOS } from './config/display';
 
@@ -63,6 +69,38 @@ async function waitForGameFonts(): Promise<void> {
   ]);
 }
 
+function setupNicknameInput(): void {
+  const input = document.getElementById('nickname-input') as HTMLInputElement | null;
+  const hint = document.getElementById('nickname-hint');
+  if (!input) return;
+
+  const { nickname, isNew } = ensureNickname();
+  input.value = nickname;
+
+  const hideHint = (): void => {
+    if (hint) hint.hidden = true;
+    dismissNicknameHint();
+  };
+
+  if (isNew && shouldShowNicknameHint() && hint) {
+    hint.hidden = false;
+    window.setTimeout(hideHint, 4000);
+  } else if (hint) {
+    hint.hidden = true;
+  }
+
+  input.addEventListener('focus', hideHint);
+  input.addEventListener('blur', () => {
+    input.value = setNickname(input.value);
+  });
+  input.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      input.blur();
+    }
+  });
+}
+
 function resizeGame(game: Phaser.Game): void {
   const displaySize = getDisplaySize();
   const renderSize = getRenderSize(displaySize.width, displaySize.height);
@@ -75,6 +113,8 @@ function resizeGame(game: Phaser.Game): void {
 }
 
 if (gameShell) {
+  setupNicknameInput();
+
   if (mobile) {
     const blocker = document.getElementById('mobile-blocker');
     if (blocker) blocker.style.display = 'none';

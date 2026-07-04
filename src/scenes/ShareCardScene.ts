@@ -10,6 +10,7 @@ export interface ShareCardData {
   wpm: number;
   bestWord: string;
   difficulty: Difficulty;
+  nickname?: string;
 }
 
 export function buildShareURL(data: ShareCardData): string {
@@ -20,6 +21,9 @@ export function buildShareURL(data: ShareCardData): string {
     bw: data.bestWord,
     d: data.difficulty,
   });
+  if (data.nickname) {
+    params.set('n', data.nickname);
+  }
   return `${base}?${params.toString()}`;
 }
 
@@ -30,8 +34,9 @@ export function parseShareParams(): ShareCardData | null {
   const wpm = parseInt(params.get('w') || '', 10);
   const bestWord = params.get('bw') || '';
   const difficulty = (params.get('d') || '') as Difficulty;
+  const nickname = params.get('n') || '';
   if (Number.isNaN(score) || !['chill', 'easy', 'medium', 'hard'].includes(difficulty)) return null;
-  return { score, wpm: wpm || 0, bestWord, difficulty };
+  return { score, wpm: wpm || 0, bestWord, difficulty, nickname: nickname || undefined };
 }
 
 export function clearShareParams(): void {
@@ -75,7 +80,8 @@ export class ShareCardScene extends Phaser.Scene {
       ease: 'Sine.easeInOut',
     });
 
-    addCrispText(this, w / 2, 88, 'Friend\'s Score', {
+    const cardTitle = data.nickname ? `${data.nickname}'s Score` : 'Friend\'s Score';
+    addCrispText(this, w / 2, 88, cardTitle, {
       fontSize: '24px',
       fontFamily: FONT_DISPLAY,
       color: hex(COLORS.PRIMARY),
