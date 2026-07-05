@@ -114,11 +114,18 @@ export class DeathScene extends Phaser.Scene {
       fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(10).setAlpha(0);
 
-    const liu = this.add.sprite(w / 2, 48, SPRITE_KEYS.PLAYER_DEAD);
+    const spriteY = 44;
+    const titleY = 90;
+    const nicknameY = 114;
+    const scoreBlockY = 156;
+    const scoreCardH = 54;
+    const scoreCardHalfH = scoreCardH / 2;
+
+    const liu = this.add.sprite(w / 2, spriteY, SPRITE_KEYS.PLAYER_DEAD);
     liu.setDisplaySize(52, 60);
     liu.setDepth(10);
 
-    addCrispText(this, w / 2, 98, 'GAME OVER', {
+    addCrispText(this, w / 2, titleY, 'GAME OVER', {
       fontSize: '28px',
       fontFamily: FONT_DISPLAY,
       color: hex(COLORS.PRIMARY),
@@ -126,7 +133,7 @@ export class DeathScene extends Phaser.Scene {
       padding: { right: 8, left: 2, top: 2, bottom: 2 },
     }).setOrigin(0.5).setDepth(10);
 
-    addCrispText(this, w / 2, 118, `> ${getNickname().toUpperCase()} <`, {
+    addCrispText(this, w / 2, nicknameY, `> ${getNickname().toUpperCase()} <`, {
       fontSize: '11px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.TEXT_MUTED),
@@ -140,21 +147,20 @@ export class DeathScene extends Phaser.Scene {
     const pct = displayBest > 0 ? Math.min(data.score / displayBest, 1) : 0;
 
     const scoreCenterX = w / 2;
-    const scoreY = 140;
 
     const scoreCard1 = this.add.graphics();
     scoreCard1.fillStyle(COLORS.PRIMARY, 0.08);
-    scoreCard1.fillRoundedRect(scoreCenterX - 120, scoreY - 16, 110, 52, 12);
+    scoreCard1.fillRoundedRect(scoreCenterX - 120, scoreBlockY - scoreCardHalfH, 110, scoreCardH, 12);
     scoreCard1.setDepth(7);
 
-    addCrispText(this, scoreCenterX - 65, scoreY - 2, data.score.toLocaleString(), {
+    addCrispText(this, scoreCenterX - 65, scoreBlockY - 8, data.score.toLocaleString(), {
       fontSize: '26px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.PRIMARY),
       fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(10);
 
-    addCrispText(this, scoreCenterX - 65, scoreY + 20, 'THIS RUN', {
+    addCrispText(this, scoreCenterX - 65, scoreBlockY + 18, 'THIS RUN', {
       fontSize: '10px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.PRIMARY),
@@ -163,17 +169,17 @@ export class DeathScene extends Phaser.Scene {
 
     const scoreCard2 = this.add.graphics();
     scoreCard2.fillStyle(COLORS.ACCENT, 0.08);
-    scoreCard2.fillRoundedRect(scoreCenterX + 10, scoreY - 16, 110, 52, 12);
+    scoreCard2.fillRoundedRect(scoreCenterX + 10, scoreBlockY - scoreCardHalfH, 110, scoreCardH, 12);
     scoreCard2.setDepth(7);
 
-    addCrispText(this, scoreCenterX + 65, scoreY - 2, displayBest.toLocaleString(), {
+    addCrispText(this, scoreCenterX + 65, scoreBlockY - 8, displayBest.toLocaleString(), {
       fontSize: '26px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.ACCENT),
       fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(10);
 
-    addCrispText(this, scoreCenterX + 65, scoreY + 20, 'BEST', {
+    addCrispText(this, scoreCenterX + 65, scoreBlockY + 18, 'BEST', {
       fontSize: '10px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.ACCENT),
@@ -181,11 +187,12 @@ export class DeathScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(10);
 
     if (isNewBest) {
+      const newBestY = scoreBlockY + scoreCardHalfH + 18;
       const nbGfx = this.add.graphics();
       nbGfx.fillStyle(COLORS.ACCENT, 0.15);
-      nbGfx.fillRoundedRect(w / 2 - 60, scoreY + 44, 120, 22, 11);
+      nbGfx.fillRoundedRect(w / 2 - 60, newBestY - 11, 120, 22, 11);
       nbGfx.setDepth(7);
-      addCrispText(this, w / 2, scoreY + 56, '* NEW BEST *', {
+      addCrispText(this, w / 2, newBestY, '* NEW BEST *', {
         fontSize: '12px',
         fontFamily: FONT_BODY,
         color: hex(COLORS.ACCENT),
@@ -196,7 +203,7 @@ export class DeathScene extends Phaser.Scene {
     const barWidth = w * 0.45;
     const barHeight = 8;
     const barX = (w - barWidth) / 2;
-    const barY = isNewBest ? scoreY + 78 : scoreY + 56;
+    const barY = isNewBest ? scoreBlockY + scoreCardHalfH + 44 : scoreBlockY + scoreCardHalfH + 24;
 
     const barTrack = this.add.graphics();
     barTrack.fillStyle(COLORS.MUTED_DARK, 0.5);
@@ -218,7 +225,7 @@ export class DeathScene extends Phaser.Scene {
       },
     });
 
-    addCrispText(this, w / 2, barY + barHeight + 10, `${Math.round(pct * 100)}% of best`, {
+    addCrispText(this, w / 2, barY + barHeight + 14, `${Math.round(pct * 100)}% of best`, {
       fontSize: '10px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.TEXT_ON_LIGHT),
@@ -226,11 +233,11 @@ export class DeathScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(10);
 
     const cardW = 72;
-    const cardH = 34;
+    const cardH = 38;
     const cardGap = 8;
     const totalCardsWidth = cardW * 4 + cardGap * 3;
     const cardsStartX = (w - totalCardsWidth) / 2;
-    const cardsY = barY + 55;
+    const cardsY = barY + barHeight + 38;
 
     const cards = [
       { value: data.wordsTyped.toString(), label: 'WORDS', fontSize: '14px' },
@@ -246,14 +253,14 @@ export class DeathScene extends Phaser.Scene {
       cardGfx.fillRoundedRect(cx, cardsY, cardW, cardH, 10);
       cardGfx.setDepth(7);
 
-      addCrispText(this, cx + cardW / 2, cardsY + 12, card.value, {
+      addCrispText(this, cx + cardW / 2, cardsY + 13, card.value, {
         fontSize: card.fontSize,
         fontFamily: FONT_BODY,
         color: hex(COLORS.TEXT_ON_LIGHT),
         fontStyle: 'bold',
       }).setOrigin(0.5).setDepth(10);
 
-      addCrispText(this, cx + cardW / 2, cardsY + 26, card.label, {
+      addCrispText(this, cx + cardW / 2, cardsY + 29, card.label, {
         fontSize: '10px',
         fontFamily: FONT_BODY,
         color: hex(COLORS.TEXT_ON_LIGHT),
@@ -261,14 +268,14 @@ export class DeathScene extends Phaser.Scene {
       }).setOrigin(0.5).setDepth(10);
     });
 
-    addCrispText(this, w / 2, cardsY + cardH + 12, `> ${data.difficulty.toUpperCase()} <`, {
+    addCrispText(this, w / 2, cardsY + cardH + 18, `> ${data.difficulty.toUpperCase()} <`, {
       fontSize: '10px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.TEXT_ON_LIGHT),
       fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(10);
 
-    const btnY = cardsY + cardH + 36;
+    const btnY = cardsY + cardH + 44;
 
     const retryGfx = this.add.graphics();
     retryGfx.fillStyle(COLORS.PRIMARY, 1);
@@ -304,7 +311,7 @@ export class DeathScene extends Phaser.Scene {
       fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(10);
 
-    addCrispText(this, w / 2, btnY + 42, 'or press SPACE', {
+    addCrispText(this, w / 2, btnY + 44, 'or press SPACE', {
       fontSize: '11px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.TEXT_ON_LIGHT),
