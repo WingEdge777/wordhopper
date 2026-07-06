@@ -68,6 +68,29 @@
   </div>
   <button id="jump-btn" aria-hidden="true">JUMP</button>
   <button id="pause-btn" aria-hidden="true">II</button>
+  <div id="leaderboard-panel" hidden>
+    <div id="lb-backdrop"></div>
+    <div class="lb-card" role="dialog" aria-modal="true" aria-labelledby="lb-title">
+      <div class="lb-header">
+        <h2 id="lb-title">Leaderboard</h2>
+        <button id="lb-close" type="button" aria-label="Close leaderboard">×</button>
+      </div>
+      <div class="lb-tabs" role="tablist" aria-label="Difficulty">
+        <button type="button" class="lb-tab" data-lb-difficulty="chill" role="tab">CHILL</button>
+        <button type="button" class="lb-tab active" data-lb-difficulty="easy" role="tab" aria-selected="true">EASY</button>
+        <button type="button" class="lb-tab" data-lb-difficulty="medium" role="tab">MEDIUM</button>
+        <button type="button" class="lb-tab" data-lb-difficulty="hard" role="tab">HARD</button>
+      </div>
+      <div class="lb-list-head" aria-hidden="true">
+        <span>#</span>
+        <span>Player</span>
+        <span>Score</span>
+        <span>WPM</span>
+      </div>
+      <ol id="lb-list" class="lb-list"></ol>
+      <p id="lb-status" class="lb-status"></p>
+    </div>
+  </div>
   <script type="module" src="/src/main.ts"></script>
   <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 </body>

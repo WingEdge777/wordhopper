@@ -7,16 +7,11 @@ repos:
         language: system
         pass_filenames: false
 
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.20
+    hooks:
       - id: ruff-check
-        name: ruff check
-        entry: ruff check --fix server/
-        language: system
-        types: [python]
-        pass_filenames: false
-
+        args: [--fix]
+        files: ^server/
       - id: ruff-format
-        name: ruff format
-        entry: ruff format server/
-        language: system
-        types: [python]
-        pass_filenames: false
+        files: ^server/

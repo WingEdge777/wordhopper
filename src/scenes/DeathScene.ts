@@ -5,14 +5,22 @@ import { Difficulty, CANVAS_WIDTH, CANVAS_HEIGHT, SPRITE_KEYS } from '../config/
 import { addCrispText } from '../config/text';
 import { hex, darker } from '../config/utils';
 import { getNickname } from '../config/nickname';
+import { getLocalBestScore, markLocalBestSynced, setLocalBestScore } from '../config/localScores';
+import { submitScore } from '../api/leaderboard';
 import { buildShareURL } from './ShareCardScene';
 
-function getBestScore(difficulty: Difficulty): number {
-  try { return parseInt(localStorage.getItem(`word-hopper-best-${difficulty}`) || '0', 10); } catch { return 0; }
-}
-
-function setBestScore(difficulty: Difficulty, score: number): void {
-  try { localStorage.setItem(`word-hopper-best-${difficulty}`, score.toString()); } catch { /* noop */ }
+function submitNewBest(data: DeathData): void {
+  void submitScore({
+    nickname: getNickname(),
+    difficulty: data.difficulty,
+    score: data.score,
+    wpm: data.wpm,
+    best_word: data.bestWord,
+  }).then((accepted) => {
+    if (accepted) {
+      markLocalBestSynced(data.difficulty);
+    }
+  });
 }
 
 export interface DeathData {
@@ -140,9 +148,12 @@ export class DeathScene extends Phaser.Scene {
       fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(10);
 
-    const best = getBestScore(data.difficulty);
+    const best = getLocalBestScore(data.difficulty);
     const isNewBest = data.score > best;
-    if (isNewBest) setBestScore(data.difficulty, data.score);
+    if (isNewBest) {
+      setLocalBestScore(data.difficulty, data.score);
+      submitNewBest(data);
+    }
     const displayBest = isNewBest ? data.score : best;
     const pct = displayBest > 0 ? Math.min(data.score / displayBest, 1) : 0;
 
