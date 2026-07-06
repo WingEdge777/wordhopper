@@ -7,5 +7,6 @@ declare global {
     __wordhopper_togglePause?: () => void;
     __wordhopper_showLeaderboard?: (difficulty?: 'chill' | 'easy' | 'medium' | 'hard') => void;
     __wordhopper_closeLeaderboard?: () => void;
+    __wordhopper_setGameInputEnabled?: (enabled: boolean) => void;
   }
 }

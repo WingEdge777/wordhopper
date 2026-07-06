@@ -254,6 +254,7 @@ body.ios-layout {
   align-items: center;
   justify-content: center;
   padding: 16px;
+  pointer-events: auto;
 }
 
 #leaderboard-panel[hidden] {
@@ -409,6 +410,11 @@ body.ios-layout {
   font-size: 11px;
   color: #9CA3AF;
   text-align: center;
+}
+
+body.leaderboard-open #game-shell,
+body.leaderboard-open #game-shell canvas {
+  pointer-events: none;
 }
 
 body.leaderboard-open #game-input {

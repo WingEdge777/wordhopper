@@ -126,6 +126,10 @@ if (gameShell) {
   waitForGameFonts().then(() => {
     const game = new Phaser.Game(createGameConfig(gameShell));
 
+    window.__wordhopper_setGameInputEnabled = (enabled: boolean) => {
+      game.input.enabled = enabled;
+    };
+
     if (isIOS()) {
       const iosBar = document.getElementById('ios-input-bar');
       const iosField = document.getElementById('ios-input-field') as HTMLInputElement | null;

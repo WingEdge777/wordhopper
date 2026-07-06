@@ -1,4 +1,5 @@
 import type { Difficulty } from '../config/constants';
+import { apiUrl } from '../config/api';
 import { getUnsyncedLocalBests, markLocalBestSynced } from '../config/localScores';
 
 export interface LeaderboardEntry {
@@ -23,30 +24,83 @@ export interface SubmitScorePayload {
   best_word: string;
 }
 
-const API_BASE = '/api';
+const CACHE_TTL_MS = 60_000;
+const cache = new Map<Difficulty, { fetchedAt: number; data: LeaderboardResponse }>();
+let bootstrapPromise: Promise<number> | null = null;
 
 async function parseJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
     throw new Error(`Request failed: ${response.status}`);
   }
+  const contentType = response.headers.get('content-type') ?? '';
+  if (!contentType.includes('application/json')) {
+    throw new Error('Invalid API response');
+  }
   return response.json() as Promise<T>;
+}
+
+export function getCachedLeaderboard(difficulty: Difficulty): LeaderboardResponse | null {
+  return cache.get(difficulty)?.data ?? null;
+}
+
+export function isLeaderboardCacheFresh(difficulty: Difficulty): boolean {
+  const entry = cache.get(difficulty);
+  if (!entry) return false;
+  return Date.now() - entry.fetchedAt < CACHE_TTL_MS;
+}
+
+export function invalidateLeaderboardCache(difficulty?: Difficulty): void {
+  if (difficulty) {
+    cache.delete(difficulty);
+    return;
+  }
+  cache.clear();
+}
+
+export function resetLeaderboardSession(): void {
+  cache.clear();
+  bootstrapPromise = null;
+}
+
+export function ensureBootstrapLocalScores(nickname: string): Promise<number> {
+  if (!bootstrapPromise) {
+    bootstrapPromise = bootstrapLocalScores(nickname).catch(() => 0);
+  }
+  return bootstrapPromise;
 }
 
 export async function fetchLeaderboard(
   difficulty: Difficulty,
   limit = 50,
+  options?: { refresh?: boolean },
 ): Promise<LeaderboardResponse> {
+  if (!options?.refresh && isLeaderboardCacheFresh(difficulty)) {
+    return cache.get(difficulty)!.data;
+  }
+
   const params = new URLSearchParams({
     difficulty,
     limit: limit.toString(),
   });
-  return parseJson<LeaderboardResponse>(
-    await fetch(`${API_BASE}/leaderboard?${params.toString()}`),
+  const data = await parseJson<LeaderboardResponse>(
+    await fetch(apiUrl(`/leaderboard?${params.toString()}`)),
+  );
+  cache.set(difficulty, { fetchedAt: Date.now(), data });
+  return data;
+}
+
+export async function prefetchLeaderboards(
+  nickname: string,
+  difficulties: Difficulty[],
+): Promise<void> {
+  await ensureBootstrapLocalScores(nickname);
+  await Promise.allSettled(
+    difficulties.map((difficulty) => fetchLeaderboard(difficulty, 50, { refresh: true })),
   );
 }
 
 export async function submitScore(payload: SubmitScorePayload): Promise<boolean> {
-  const response = await fetch(`${API_BASE}/scores`, {
+  const response = await fetch(apiUrl('/scores'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -61,6 +115,9 @@ export async function submitScore(payload: SubmitScorePayload): Promise<boolean>
     return false;
   }
   const data = await response.json() as { accepted?: boolean };
+  if (data.accepted) {
+    invalidateLeaderboardCache(payload.difficulty);
+  }
   return Boolean(data.accepted);
 }
 
@@ -70,7 +127,7 @@ export async function bootstrapLocalScores(nickname: string): Promise<number> {
     return 0;
   }
 
-  const response = await fetch(`${API_BASE}/scores/bootstrap`, {
+  const response = await fetch(apiUrl('/scores/bootstrap'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -90,18 +147,27 @@ export async function bootstrapLocalScores(nickname: string): Promise<number> {
   const data = await response.json() as { accepted?: number };
   for (const record of records) {
     markLocalBestSynced(record.difficulty);
+    invalidateLeaderboardCache(record.difficulty);
   }
   return data.accepted ?? 0;
 }
 
+export async function loadLeaderboardForDifficulty(
+  nickname: string,
+  difficulty: Difficulty,
+  options?: { refresh?: boolean },
+): Promise<LeaderboardResponse> {
+  if (!options?.refresh && isLeaderboardCacheFresh(difficulty)) {
+    return cache.get(difficulty)!.data;
+  }
+  await ensureBootstrapLocalScores(nickname);
+  return fetchLeaderboard(difficulty, 50, options);
+}
+
+/** @deprecated use loadLeaderboardForDifficulty */
 export async function syncAndFetchLeaderboard(
   nickname: string,
   difficulty: Difficulty,
 ): Promise<LeaderboardResponse> {
-  try {
-    await bootstrapLocalScores(nickname);
-  } catch {
-    // Leaderboard can still render cached server data when bootstrap fails.
-  }
-  return fetchLeaderboard(difficulty);
+  return loadLeaderboardForDifficulty(nickname, difficulty, { refresh: true });
 }

@@ -1,6 +1,12 @@
 import type { Difficulty } from '../config/constants';
 import { getNickname } from '../config/nickname';
-import { syncAndFetchLeaderboard, type LeaderboardEntry } from '../api/leaderboard';
+import {
+  getCachedLeaderboard,
+  isLeaderboardCacheFresh,
+  loadLeaderboardForDifficulty,
+  prefetchLeaderboards,
+  type LeaderboardEntry,
+} from '../api/leaderboard';
 
 const DIFFICULTIES: Difficulty[] = ['chill', 'easy', 'medium', 'hard'];
 
@@ -10,6 +16,7 @@ let statusEl: HTMLElement | null = null;
 let activeDifficulty: Difficulty = 'easy';
 let isOpen = false;
 let loadToken = 0;
+let prefetchStarted = false;
 
 function getPanel(): HTMLElement | null {
   if (!panel) {
@@ -21,6 +28,15 @@ function getPanel(): HTMLElement | null {
 function focusGameInput(): void {
   const gameInput = document.getElementById('game-input') as HTMLInputElement | null;
   gameInput?.focus();
+}
+
+function blurGameInput(): void {
+  const gameInput = document.getElementById('game-input') as HTMLInputElement | null;
+  gameInput?.blur();
+}
+
+function setPhaserInputEnabled(enabled: boolean): void {
+  window.__wordhopper_setGameInputEnabled?.(enabled);
 }
 
 function setStatus(message: string): void {
@@ -70,6 +86,14 @@ function renderEntries(entries: LeaderboardEntry[]): void {
   }
 }
 
+function showCachedEntries(difficulty: Difficulty): boolean {
+  const cached = getCachedLeaderboard(difficulty);
+  if (!cached) return false;
+  renderEntries(cached.entries);
+  setStatus(`${cached.entries.length} player${cached.entries.length === 1 ? '' : 's'}`);
+  return true;
+}
+
 function updateTabs(): void {
   const tabs = document.querySelectorAll<HTMLButtonElement>('[data-lb-difficulty]');
   tabs.forEach((tab) => {
@@ -79,29 +103,51 @@ function updateTabs(): void {
   });
 }
 
+function warmRemainingLeaderboards(current: Difficulty): void {
+  if (prefetchStarted) return;
+  prefetchStarted = true;
+  const others = DIFFICULTIES.filter((d) => d !== current);
+  void prefetchLeaderboards(getNickname(), others);
+}
+
 async function loadLeaderboard(difficulty: Difficulty): Promise<void> {
   const token = ++loadToken;
   activeDifficulty = difficulty;
   updateTabs();
-  setStatus('Loading...');
-  if (listEl) {
-    listEl.replaceChildren();
+
+  const hasFreshCache = isLeaderboardCacheFresh(difficulty);
+  if (hasFreshCache) {
+    showCachedEntries(difficulty);
+    return;
+  }
+
+  const hasStaleCache = showCachedEntries(difficulty);
+  if (!hasStaleCache) {
+    setStatus('Loading...');
+    if (listEl) listEl.replaceChildren();
   }
 
   try {
-    const data = await syncAndFetchLeaderboard(getNickname(), difficulty);
+    const data = await loadLeaderboardForDifficulty(
+      getNickname(),
+      difficulty,
+      { refresh: !hasFreshCache },
+    );
     if (!isOpen || token !== loadToken) return;
     renderEntries(data.entries);
     setStatus(`${data.entries.length} player${data.entries.length === 1 ? '' : 's'}`);
+    warmRemainingLeaderboards(difficulty);
   } catch {
     if (!isOpen || token !== loadToken) return;
-    setStatus('Could not load leaderboard');
-    if (listEl) {
-      listEl.replaceChildren();
-      const error = document.createElement('li');
-      error.className = 'lb-empty-row';
-      error.textContent = 'Server unavailable. Try again later.';
-      listEl.appendChild(error);
+    if (!hasStaleCache) {
+      setStatus('Could not load leaderboard');
+      if (listEl) {
+        listEl.replaceChildren();
+        const error = document.createElement('li');
+        error.className = 'lb-empty-row';
+        error.textContent = 'Server unavailable. Try again later.';
+        listEl.appendChild(error);
+      }
     }
   }
 }
@@ -113,6 +159,7 @@ export function closeLeaderboard(): void {
   isOpen = false;
   element.hidden = true;
   document.body.classList.remove('leaderboard-open');
+  setPhaserInputEnabled(true);
   focusGameInput();
 }
 
@@ -123,6 +170,8 @@ export function openLeaderboard(difficulty: Difficulty = activeDifficulty): void
   isOpen = true;
   element.hidden = false;
   document.body.classList.add('leaderboard-open');
+  blurGameInput();
+  setPhaserInputEnabled(false);
   void loadLeaderboard(difficulty);
 }
 
@@ -135,11 +184,15 @@ export function setupLeaderboardOverlay(): void {
 
   closeBtn?.addEventListener('click', closeLeaderboard);
   backdrop?.addEventListener('click', closeLeaderboard);
+  panel?.addEventListener('pointerdown', (event) => {
+    event.stopPropagation();
+  });
 
   document.querySelectorAll<HTMLButtonElement>('[data-lb-difficulty]').forEach((tab) => {
     tab.addEventListener('click', () => {
       const difficulty = tab.dataset.lbDifficulty as Difficulty | undefined;
       if (!difficulty || !DIFFICULTIES.includes(difficulty)) return;
+      if (difficulty === activeDifficulty) return;
       void loadLeaderboard(difficulty);
     });
   });
