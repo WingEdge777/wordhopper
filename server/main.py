@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from dictionary import load, lookup
+from dictionary import DEFAULT_DICT_PATH, load, lookup
 from leaderboard import (
     DEFAULT_LIMIT,
     LeaderboardStore,
@@ -24,8 +24,7 @@ store: LeaderboardStore | None = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global store
-    dict_path = os.environ.get("DICT_PATH", "")
-    load(dict_path)
+    load(os.environ.get("DICT_PATH", DEFAULT_DICT_PATH))
     db_path = os.environ.get("DB_PATH", str(DEFAULT_DB_PATH))
     store = LeaderboardStore(db_path)
     yield
