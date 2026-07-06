@@ -1,5 +1,6 @@
 import type { Difficulty } from '../config/constants';
 import { apiUrl } from '../config/api';
+import { finishRun } from './runs';
 import { getUnsyncedLocalBests, markLocalBestSynced } from '../config/localScores';
 
 export interface LeaderboardEntry {
@@ -17,10 +18,15 @@ export interface LeaderboardResponse {
 }
 
 export interface SubmitScorePayload {
+  run_id: string;
   nickname: string;
   difficulty: Difficulty;
   score: number;
   wpm: number;
+  words_typed: number;
+  total_chars: number;
+  max_combo: number;
+  duration_sec: number;
   best_word: string;
 }
 
@@ -100,25 +106,22 @@ export async function prefetchLeaderboards(
 }
 
 export async function submitScore(payload: SubmitScorePayload): Promise<boolean> {
-  const response = await fetch(apiUrl('/scores'), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      nickname: payload.nickname,
-      difficulty: payload.difficulty,
-      score: payload.score,
-      wpm: payload.wpm,
-      best_word: payload.best_word,
-    }),
+  const accepted = await finishRun({
+    run_id: payload.run_id,
+    nickname: payload.nickname,
+    difficulty: payload.difficulty,
+    score: payload.score,
+    wpm: payload.wpm,
+    words_typed: payload.words_typed,
+    total_chars: payload.total_chars,
+    max_combo: payload.max_combo,
+    duration_sec: payload.duration_sec,
+    best_word: payload.best_word,
   });
-  if (!response.ok) {
-    return false;
-  }
-  const data = await response.json() as { accepted?: boolean };
-  if (data.accepted) {
+  if (accepted) {
     invalidateLeaderboardCache(payload.difficulty);
   }
-  return Boolean(data.accepted);
+  return accepted;
 }
 
 export async function bootstrapLocalScores(nickname: string): Promise<number> {

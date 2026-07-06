@@ -36,19 +36,24 @@ afterEach(() => {
 });
 
 describe('leaderboard api', () => {
-  it('submits a score payload', async () => {
+  it('submits a score payload via run finish', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(jsonResponse({ accepted: true }));
 
     const accepted = await submitScore({
+      run_id: 'abc123',
       nickname: 'Alice',
       difficulty: 'easy',
       score: 916,
       wpm: 17,
+      words_typed: 20,
+      total_chars: 85,
+      max_combo: 8,
+      duration_sec: 120,
       best_word: 'canon',
     });
 
     expect(accepted).toBe(true);
-    expect(fetch).toHaveBeenCalledWith('/api/scores', expect.objectContaining({ method: 'POST' }));
+    expect(fetch).toHaveBeenCalledWith('/api/runs/finish', expect.objectContaining({ method: 'POST' }));
   });
 
   it('bootstraps unsynced local bests', async () => {

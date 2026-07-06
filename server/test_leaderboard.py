@@ -45,6 +45,13 @@ class LeaderboardStoreTest(unittest.TestCase):
         self.assertEqual(len(self.store.get_leaderboard("easy")), 1)
         self.assertEqual(len(self.store.get_leaderboard("hard")), 1)
 
+    def test_bootstrap_rejects_high_scores(self) -> None:
+        accepted = self.store.bootstrap_records(
+            "Bob",
+            [{"difficulty": "easy", "score": 900, "wpm": 0, "best_word": ""}],
+        )
+        self.assertEqual(accepted, 0)
+
     def test_leaderboard_orders_by_score_desc(self) -> None:
         self.store.upsert_score("Alice", "easy", 300, 10)
         self.store.upsert_score("Bob", "easy", 500, 20)

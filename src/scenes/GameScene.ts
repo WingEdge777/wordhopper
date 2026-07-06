@@ -12,6 +12,7 @@ import { WordSpawner } from '../systems/WordSpawner';
 import { ScoreSystem } from '../systems/ScoreSystem';
 import { SpeedManager } from '../systems/SpeedManager';
 import { ObstacleSpawner } from '../systems/ObstacleSpawner';
+import { startRun } from '../api/runs';
 
 const DEBUG_HITBOXES = false;
 const TUTORIAL_KEY = 'word-hopper-tutorial-done';
@@ -62,6 +63,7 @@ export class GameScene extends Phaser.Scene {
   private tickAccumulator = 0;
   private pendingClear: { obstacle: Obstacle; targetY: number } | null = null;
   private typingObstacle: Obstacle | null = null;
+  private runId: string | null = null;
 
   constructor() {
     super({ key: 'GameScene' });
@@ -89,6 +91,12 @@ export class GameScene extends Phaser.Scene {
     this.typingSystem = new TypingSystem();
     this.obstacleSpawner = new ObstacleSpawner(this.wordSpawner, this.speedManager);
     this.obstacleSpawner.setDifficulty(this.difficulty);
+    this.runId = null;
+    void startRun(this.difficulty).then((session) => {
+      this.runId = session.run_id;
+    }).catch(() => {
+      this.runId = null;
+    });
 
     this.physics.world.setBounds(0, 0, CANVAS_WIDTH, GROUND_Y);
 
@@ -566,7 +574,10 @@ export class GameScene extends Phaser.Scene {
         wpm: this.scoreSystem.getWPM(this.elapsedTime),
         bestWord: this.scoreSystem.getBestWord(),
         maxCombo: this.scoreSystem.getMaxCombo(),
+        totalChars: this.scoreSystem.getTotalChars(),
+        durationSec: this.elapsedTime,
         difficulty: this.difficulty,
+        runId: this.runId,
       });
     });
   }

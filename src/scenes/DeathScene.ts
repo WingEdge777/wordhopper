@@ -10,11 +10,17 @@ import { submitScore } from '../api/leaderboard';
 import { buildShareURL } from './ShareCardScene';
 
 function submitNewBest(data: DeathData): void {
+  if (!data.runId) return;
   void submitScore({
+    run_id: data.runId,
     nickname: getNickname(),
     difficulty: data.difficulty,
     score: data.score,
     wpm: data.wpm,
+    words_typed: data.wordsTyped,
+    total_chars: data.totalChars,
+    max_combo: data.maxCombo,
+    duration_sec: data.durationSec,
     best_word: data.bestWord,
   }).then((accepted) => {
     if (accepted) {
@@ -29,7 +35,10 @@ export interface DeathData {
   wpm: number;
   bestWord: string;
   maxCombo: number;
+  totalChars: number;
+  durationSec: number;
   difficulty: Difficulty;
+  runId: string | null;
 }
 
 export async function shareResult(data: { title: string; url: string }): Promise<boolean> {

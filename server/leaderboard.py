@@ -146,6 +146,8 @@ class LeaderboardStore:
         nickname: str,
         records: list[dict[str, object]],
     ) -> int:
+        from score_validation import ValidationError, validate_bootstrap_record
+
         accepted = 0
         for record in records:
             difficulty = normalize_difficulty(str(record.get("difficulty", "")))
@@ -163,6 +165,16 @@ class LeaderboardStore:
                 continue
 
             best_word = normalize_best_word(str(record.get("best_word", "")))
+            try:
+                validate_bootstrap_record(
+                    difficulty=difficulty,
+                    score=normalized_score,
+                    wpm=normalized_wpm,
+                    best_word=best_word,
+                )
+            except ValidationError:
+                continue
+
             if self.upsert_score(
                 nickname, difficulty, normalized_score, normalized_wpm, best_word
             ):
