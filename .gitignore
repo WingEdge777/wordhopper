@@ -40,6 +40,13 @@ Thumbs.db
 *.temp
 .cache/
 
+# Leaderboard database
+server/wordhopper.db
+server/wordhopper.log
+wordhopper.db
+wordhopper.log
+*.sqlite
+
 # Sensitive files (auto-detected)
 node_modules
 dist

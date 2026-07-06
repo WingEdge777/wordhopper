@@ -12,6 +12,7 @@ import {
   setNickname,
   shouldShowNicknameHint,
 } from './config/nickname';
+import { setupLeaderboardOverlay } from './ui/leaderboard';
 
 export { getDisplaySize, getRenderResolution, getRenderScale, getRenderSize, isMobile, isIOS } from './config/display';
 
@@ -114,6 +115,7 @@ function resizeGame(game: Phaser.Game): void {
 
 if (gameShell) {
   setupNicknameInput();
+  setupLeaderboardOverlay();
 
   if (mobile) {
     const blocker = document.getElementById('mobile-blocker');
@@ -123,6 +125,10 @@ if (gameShell) {
 
   waitForGameFonts().then(() => {
     const game = new Phaser.Game(createGameConfig(gameShell));
+
+    window.__wordhopper_setGameInputEnabled = (enabled: boolean) => {
+      game.input.enabled = enabled;
+    };
 
     if (isIOS()) {
       const iosBar = document.getElementById('ios-input-bar');

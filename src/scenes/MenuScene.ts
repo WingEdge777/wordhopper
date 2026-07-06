@@ -138,14 +138,14 @@ export class MenuScene extends Phaser.Scene {
       this.difficultyBtns[key] = container;
     });
 
-    const promptBgH = 30;
+    const promptBgH = 48;
     const promptBgY = btnStartY + difficulties.length * btnStepY + 2;
     const promptBg = this.add.graphics();
     promptBg.fillStyle(COLORS.ACCENT, 0.12);
     promptBg.fillRoundedRect(width / 2 - 110, promptBgY, 220, promptBgH, 12);
     promptBg.setDepth(4);
 
-    const startPrompt = addCrispText(this, width / 2, promptBgY + promptBgH / 2, '> TYPE + SPACE TO PLAY <', {
+    const startPrompt = addCrispText(this, width / 2, promptBgY + 14, '> TYPE + SPACE TO PLAY <', {
       fontSize: '14px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.ACCENT),
@@ -158,6 +158,19 @@ export class MenuScene extends Phaser.Scene {
       duration: 800,
       yoyo: true,
       repeat: -1,
+    });
+
+    const leaderboardPrompt = addCrispText(this, width / 2, promptBgY + 34, '> LEADERBOARD <', {
+      fontSize: '12px',
+      fontFamily: FONT_BODY,
+      color: hex(COLORS.PRIMARY),
+      fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(5).setInteractive({ useHandCursor: true });
+
+    leaderboardPrompt.on('pointerover', () => { this.input.setDefaultCursor('pointer'); });
+    leaderboardPrompt.on('pointerout', () => { this.input.setDefaultCursor('default'); });
+    leaderboardPrompt.on('pointerdown', () => {
+      window.__wordhopper_showLeaderboard?.(this.selectedDifficulty);
     });
 
     const moveSelection = (delta: -1 | 1): void => {

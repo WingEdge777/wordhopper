@@ -1,5 +1,7 @@
 import { defineConfig } from 'vite';
 
+import { PRODUCTION_ORIGIN } from './src/config/api';
+
 export default defineConfig({
   root: './',
   base: './',
@@ -9,5 +11,12 @@ export default defineConfig({
   },
   server: {
     open: true,
+    proxy: {
+      '/api': {
+        target: PRODUCTION_ORIGIN,
+        changeOrigin: true,
+        secure: true,
+      },
+    },
   },
 });

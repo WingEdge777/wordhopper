@@ -36,13 +36,22 @@ function mockBrowserEnvironment(devicePixelRatio: number): void {
   Object.defineProperty(globalThis, 'document', {
     configurable: true,
     value: {
-      body: {},
+      body: { classList: { add: vi.fn(), remove: vi.fn() } },
       fonts: {
         ready: Promise.resolve(),
+        load: vi.fn().mockResolvedValue([]),
       },
+      querySelectorAll: vi.fn(() => []),
       getElementById: vi.fn((id: string) => {
-        if (id === 'game-shell') return { id };
+        if (id === 'game-shell') return { id, style: {}, querySelector: vi.fn() };
         if (id === 'mobile-blocker') return { style: { display: 'none' } };
+        if (id === 'nickname-input') return { value: '', addEventListener: vi.fn() };
+        if (id === 'nickname-hint') return { hidden: true };
+        if (id === 'leaderboard-panel') return { hidden: true };
+        if (id === 'lb-list') return { replaceChildren: vi.fn(), appendChild: vi.fn() };
+        if (id === 'lb-status') return { textContent: '' };
+        if (id === 'lb-close') return { addEventListener: vi.fn() };
+        if (id === 'lb-backdrop') return { addEventListener: vi.fn() };
         return null;
       }),
     },
