@@ -23,6 +23,7 @@ function mockBrowserEnvironment(devicePixelRatio: number): void {
       innerWidth: 1440,
       devicePixelRatio,
       addEventListener: vi.fn(),
+      setTimeout: vi.fn(),
     },
   });
 
@@ -47,7 +48,7 @@ function mockBrowserEnvironment(devicePixelRatio: number): void {
         if (id === 'mobile-blocker') return { style: { display: 'none' } };
         if (id === 'nickname-input') return { value: '', addEventListener: vi.fn() };
         if (id === 'nickname-hint') return { hidden: true };
-        if (id === 'leaderboard-panel') return { hidden: true };
+        if (id === 'leaderboard-panel') return { hidden: true, addEventListener: vi.fn() };
         if (id === 'lb-list') return { replaceChildren: vi.fn(), appendChild: vi.fn() };
         if (id === 'lb-status') return { textContent: '' };
         if (id === 'lb-close') return { addEventListener: vi.fn() };

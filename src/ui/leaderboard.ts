@@ -10,6 +10,81 @@ import {
 
 const DIFFICULTIES: Difficulty[] = ['chill', 'easy', 'medium', 'hard'];
 
+/** Inject overlay markup when a cached index.html predates the leaderboard UI. */
+export function ensureLeaderboardDom(): HTMLElement {
+  const existing = document.getElementById('leaderboard-panel');
+  if (existing) return existing;
+
+  const panel = document.createElement('div');
+  panel.id = 'leaderboard-panel';
+  panel.hidden = true;
+
+  const backdrop = document.createElement('div');
+  backdrop.id = 'lb-backdrop';
+
+  const card = document.createElement('div');
+  card.className = 'lb-card';
+  card.setAttribute('role', 'dialog');
+  card.setAttribute('aria-modal', 'true');
+  card.setAttribute('aria-labelledby', 'lb-title');
+
+  const header = document.createElement('div');
+  header.className = 'lb-header';
+
+  const title = document.createElement('h2');
+  title.id = 'lb-title';
+  title.textContent = 'Leaderboard';
+
+  const closeBtn = document.createElement('button');
+  closeBtn.id = 'lb-close';
+  closeBtn.type = 'button';
+  closeBtn.setAttribute('aria-label', 'Close leaderboard');
+  closeBtn.textContent = '×';
+
+  header.append(title, closeBtn);
+
+  const tabs = document.createElement('div');
+  tabs.className = 'lb-tabs';
+  tabs.setAttribute('role', 'tablist');
+  tabs.setAttribute('aria-label', 'Difficulty');
+
+  for (const difficulty of DIFFICULTIES) {
+    const tab = document.createElement('button');
+    tab.type = 'button';
+    tab.className = 'lb-tab';
+    tab.dataset.lbDifficulty = difficulty;
+    tab.setAttribute('role', 'tab');
+    tab.textContent = difficulty.toUpperCase();
+    if (difficulty === 'easy') {
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+    }
+    tabs.appendChild(tab);
+  }
+
+  const listHead = document.createElement('div');
+  listHead.className = 'lb-list-head';
+  listHead.setAttribute('aria-hidden', 'true');
+  for (const label of ['#', 'Player', 'Score', 'WPM']) {
+    const span = document.createElement('span');
+    span.textContent = label;
+    listHead.appendChild(span);
+  }
+
+  const list = document.createElement('ol');
+  list.id = 'lb-list';
+  list.className = 'lb-list';
+
+  const status = document.createElement('p');
+  status.id = 'lb-status';
+  status.className = 'lb-status';
+
+  card.append(header, tabs, listHead, list, status);
+  panel.append(backdrop, card);
+  document.body.appendChild(panel);
+  return panel;
+}
+
 let panel: HTMLElement | null = null;
 let listEl: HTMLElement | null = null;
 let statusEl: HTMLElement | null = null;
@@ -176,6 +251,7 @@ export function openLeaderboard(difficulty: Difficulty = activeDifficulty): void
 }
 
 export function setupLeaderboardOverlay(): void {
+  ensureLeaderboardDom();
   panel = document.getElementById('leaderboard-panel');
   listEl = document.getElementById('lb-list');
   statusEl = document.getElementById('lb-status');
