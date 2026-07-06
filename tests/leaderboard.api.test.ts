@@ -52,12 +52,19 @@ describe('leaderboard api', () => {
   });
 
   it('bootstraps unsynced local bests', async () => {
-    storage.set('word-hopper-best-easy', '916');
+    storage.set('word-hopper-best-easy', JSON.stringify({ score: 916, wpm: 42, bestWord: 'planet' }));
     vi.mocked(fetch).mockResolvedValueOnce(jsonResponse({ accepted: 1 }));
 
     const accepted = await bootstrapLocalScores('Alice');
     expect(accepted).toBe(1);
     expect(storage.get('word-hopper-leaderboard-synced-easy')).toBe('1');
+    expect(fetch).toHaveBeenCalledWith('/api/scores/bootstrap', expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({
+        nickname: 'Alice',
+        records: [{ difficulty: 'easy', score: 916, wpm: 42, best_word: 'planet' }],
+      }),
+    }));
   });
 
   it('fetches leaderboard entries', async () => {

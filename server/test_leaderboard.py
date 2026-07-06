@@ -24,6 +24,15 @@ class LeaderboardStoreTest(unittest.TestCase):
         self.assertEqual(board[0]["score"], 150)
         self.assertEqual(board[0]["best_word"], "leaf")
 
+    def test_upsert_fills_missing_wpm_when_score_is_unchanged(self) -> None:
+        self.assertTrue(self.store.upsert_score("Alice", "easy", 500, 0, ""))
+        self.assertTrue(self.store.upsert_score("Alice", "easy", 500, 42, "planet"))
+
+        board = self.store.get_leaderboard("easy")
+        self.assertEqual(board[0]["score"], 500)
+        self.assertEqual(board[0]["wpm"], 42)
+        self.assertEqual(board[0]["best_word"], "planet")
+
     def test_bootstrap_accepts_multiple_difficulties(self) -> None:
         accepted = self.store.bootstrap_records(
             "Bob",

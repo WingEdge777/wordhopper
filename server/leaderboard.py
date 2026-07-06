@@ -97,13 +97,34 @@ class LeaderboardStore:
         with self._connect() as conn:
             row = conn.execute(
                 """
-                SELECT score FROM leaderboard
+                SELECT score, wpm, best_word FROM leaderboard
                 WHERE nickname = ? AND difficulty = ?
                 """,
                 (nickname, difficulty),
             ).fetchone()
-            if row and row["score"] >= score:
-                return False
+            if row:
+                if row["score"] > score:
+                    return False
+                if row["score"] == score:
+                    improved_wpm = wpm > row["wpm"] or (row["wpm"] == 0 and wpm > 0)
+                    improved_word = len(best_word) > len(row["best_word"] or "")
+                    if not improved_wpm and not improved_word:
+                        return False
+                    conn.execute(
+                        """
+                        UPDATE leaderboard
+                        SET wpm = ?, best_word = ?, updated_at = ?
+                        WHERE nickname = ? AND difficulty = ?
+                        """,
+                        (
+                            max(wpm, row["wpm"]),
+                            best_word or row["best_word"],
+                            _utc_now(),
+                            nickname,
+                            difficulty,
+                        ),
+                    )
+                    return True
 
             conn.execute(
                 """

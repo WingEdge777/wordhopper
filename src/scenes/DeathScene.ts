@@ -151,7 +151,7 @@ export class DeathScene extends Phaser.Scene {
     const best = getLocalBestScore(data.difficulty);
     const isNewBest = data.score > best;
     if (isNewBest) {
-      setLocalBestScore(data.difficulty, data.score);
+      setLocalBestScore(data.difficulty, data.score, data.wpm, data.bestWord);
       submitNewBest(data);
     }
     const displayBest = isNewBest ? data.score : best;

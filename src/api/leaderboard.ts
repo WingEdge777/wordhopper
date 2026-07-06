@@ -135,8 +135,8 @@ export async function bootstrapLocalScores(nickname: string): Promise<number> {
       records: records.map((record) => ({
         difficulty: record.difficulty,
         score: record.score,
-        wpm: 0,
-        best_word: '',
+        wpm: record.wpm,
+        best_word: record.bestWord,
       })),
     }),
   });
