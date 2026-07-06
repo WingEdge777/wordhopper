@@ -40,10 +40,23 @@ body.ios-layout {
 
 #nickname-wrap {
   display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nickname-label {
+  color: #6B7280;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.nickname-label::after {
+  content: ':';
 }
 
 #nickname-input {
-  width: 9.5rem;
+  width: 8.5rem;
   padding: 2px 8px;
   border-radius: 8px;
   border: 1px solid rgba(22, 163, 74, 0.25);
