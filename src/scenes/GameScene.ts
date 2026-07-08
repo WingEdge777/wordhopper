@@ -4,7 +4,7 @@ import { Difficulty, DIFFICULTY_CONFIG, PLAYER_X, GROUND_Y, CANVAS_WIDTH, CANVAS
 import { COLORS, FONT_BODY, FONT_TYPING, FONT_DISPLAY } from '../config/colors';
 import { getTranslation } from '../data/translations';
 import { addCrispText } from '../config/text';
-import { darker } from '../config/utils';
+import { getLocalBestScore } from '../config/localScores';
 import { Player } from '../entities/Player';
 import { Obstacle } from '../entities/Obstacle';
 import { TypingSystem } from '../systems/TypingSystem';
@@ -16,6 +16,9 @@ import { startRun } from '../api/runs';
 
 const DEBUG_HITBOXES = false;
 const TUTORIAL_KEY = 'word-hopper-tutorial-done';
+const BEST_APPROACH_RATIO = 0.90;
+const HUD_LABEL_COLOR = '#D1FAE5';
+const HUD_VALUE_COLOR = '#FFFFFF';
 
 function isTutorialNeeded(): boolean {
   try { return !localStorage.getItem(TUTORIAL_KEY); } catch { return true; }
@@ -43,6 +46,8 @@ export class GameScene extends Phaser.Scene {
   private tutorialStarted = false;
   private scoreLabel!: Phaser.GameObjects.Text;
   private scoreText!: Phaser.GameObjects.Text;
+  private bestLabel!: Phaser.GameObjects.Text;
+  private bestText!: Phaser.GameObjects.Text;
   private speedLabel!: Phaser.GameObjects.Text;
   private speedText!: Phaser.GameObjects.Text;
   private comboText!: Phaser.GameObjects.Text;
@@ -64,6 +69,8 @@ export class GameScene extends Phaser.Scene {
   private pendingClear: { obstacle: Obstacle; targetY: number } | null = null;
   private typingObstacle: Obstacle | null = null;
   private runId: string | null = null;
+  private storedLocalBest = 0;
+  private bestBreathingActive = false;
 
   constructor() {
     super({ key: 'GameScene' });
@@ -91,6 +98,8 @@ export class GameScene extends Phaser.Scene {
     this.typingSystem = new TypingSystem();
     this.obstacleSpawner = new ObstacleSpawner(this.wordSpawner, this.speedManager);
     this.obstacleSpawner.setDifficulty(this.difficulty);
+    this.storedLocalBest = getLocalBestScore(this.difficulty);
+    this.bestBreathingActive = false;
     this.runId = null;
     void startRun(this.difficulty).then((session) => {
       this.runId = session.run_id;
@@ -136,39 +145,59 @@ export class GameScene extends Phaser.Scene {
     }
 
     const hudX = CANVAS_WIDTH - 154;
+    const hudY = 6;
+    const hudW = 148;
+    const hudH = 60;
     const hudGfx = this.add.graphics();
     hudGfx.fillStyle(COLORS.PRIMARY, 0.85);
-    hudGfx.fillRoundedRect(hudX, 6, 148, 42, 16);
-    hudGfx.fillStyle(darker(COLORS.PRIMARY, 0.2), 0.3);
-    hudGfx.fillRoundedRect(hudX, 26, 148, 20, 10);
+    hudGfx.fillRoundedRect(hudX, hudY, hudW, hudH, 16);
+    hudGfx.lineStyle(1, 0xffffff, 0.12);
+    hudGfx.lineBetween(hudX + 10, hudY + 20, hudX + hudW - 10, hudY + 20);
+    hudGfx.lineBetween(hudX + 10, hudY + 38, hudX + hudW - 10, hudY + 38);
     hudGfx.setDepth(20);
 
-    this.scoreLabel = addCrispText(this, hudX + 8, 12, 'SCORE', {
-      fontSize: '13px',
-      color: '#FFFFFF',
+    const rowY = [hudY + 6, hudY + 24, hudY + 42];
+
+    this.bestLabel = addCrispText(this, hudX + 8, rowY[0], 'BEST', {
+      fontSize: '12px',
+      color: HUD_LABEL_COLOR,
       fontFamily: FONT_BODY,
       fontStyle: 'bold',
     }).setDepth(20);
 
-    this.scoreText = addCrispText(this, hudX + 140, 12, '0', {
-      fontSize: '13px',
-      color: '#FFFFFF',
+    this.bestText = addCrispText(this, hudX + hudW - 8, rowY[0], this.storedLocalBest.toLocaleString(), {
+      fontSize: '12px',
+      color: HUD_LABEL_COLOR,
       fontFamily: FONT_BODY,
       fontStyle: 'bold',
     }).setOrigin(1, 0).setDepth(20);
 
-    this.speedLabel = addCrispText(this, hudX + 8, 30, 'SPEED', {
+    this.scoreLabel = addCrispText(this, hudX + 8, rowY[1], 'SCORE', {
       fontSize: '12px',
-      color: '#D1FAE5',
+      color: HUD_LABEL_COLOR,
       fontFamily: FONT_BODY,
-      fontStyle: 'normal',
+      fontStyle: 'bold',
     }).setDepth(20);
 
-    this.speedText = addCrispText(this, hudX + 140, 30, '1.0x', {
-      fontSize: '12px',
-      color: '#D1FAE5',
+    this.scoreText = addCrispText(this, hudX + hudW - 8, rowY[1], '0', {
+      fontSize: '13px',
+      color: HUD_VALUE_COLOR,
       fontFamily: FONT_BODY,
-      fontStyle: 'normal',
+      fontStyle: 'bold',
+    }).setOrigin(1, 0).setDepth(20);
+
+    this.speedLabel = addCrispText(this, hudX + 8, rowY[2], 'SPEED', {
+      fontSize: '12px',
+      color: HUD_LABEL_COLOR,
+      fontFamily: FONT_BODY,
+      fontStyle: 'bold',
+    }).setDepth(20);
+
+    this.speedText = addCrispText(this, hudX + hudW - 8, rowY[2], '1.0x', {
+      fontSize: '12px',
+      color: HUD_LABEL_COLOR,
+      fontFamily: FONT_BODY,
+      fontStyle: 'bold',
     }).setOrigin(1, 0).setDepth(20);
 
     this.comboText = addCrispText(this, CANVAS_WIDTH / 2, 28, '', {
@@ -608,8 +637,43 @@ export class GameScene extends Phaser.Scene {
   }
 
   private updateHUD(): void {
-    this.scoreText.setText(this.scoreSystem.getScore().toLocaleString());
+    const score = this.scoreSystem.getScore();
+    this.scoreText.setText(score.toLocaleString());
     this.speedText.setText(`${this.speedManager.getSpeedMultiplier().toFixed(1)}x`);
+
+    const displayBest = Math.max(this.storedLocalBest, score);
+    this.bestText.setText(displayBest.toLocaleString());
+
+    const approaching = this.storedLocalBest > 0
+      && score >= this.storedLocalBest * BEST_APPROACH_RATIO
+      && score < this.storedLocalBest;
+    this.setBestBreathing(approaching);
+  }
+
+  private setBestBreathing(active: boolean): void {
+    if (active === this.bestBreathingActive) return;
+    this.bestBreathingActive = active;
+
+    const targets = [this.bestLabel, this.bestText];
+    this.tweens.killTweensOf(targets);
+
+    if (active) {
+      targets.forEach((target) => {
+        target.setAlpha(1);
+      });
+      this.tweens.add({
+        targets,
+        alpha: 0.35,
+        duration: 450,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+      });
+    } else {
+      targets.forEach((target) => {
+        target.setAlpha(1);
+      });
+    }
   }
 
   private updateComboDisplay(perfect: boolean, apexY: number): void {
