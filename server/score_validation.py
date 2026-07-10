@@ -106,13 +106,16 @@ def validate_run_finish(
     if score > upper_bound:
         raise ValidationError("Score exceeds plausible maximum")
 
-    if wpm > 0 and total_chars > 0:
-        expected_wpm = compute_wpm(total_chars, duration_sec)
-        if abs(expected_wpm - wpm) > WPM_TOLERANCE:
-            raise ValidationError("WPM mismatch")
+    if wpm <= 0:
+        raise ValidationError("Incomplete score: missing WPM")
+    if total_chars <= 0:
+        raise ValidationError("Incomplete score: missing character count")
+    if words_typed <= 0:
+        raise ValidationError("Incomplete score: missing words typed")
 
-    if strict and wpm > 0 and total_chars == 0:
-        raise ValidationError("WPM without typed characters")
+    expected_wpm = compute_wpm(total_chars, duration_sec)
+    if abs(expected_wpm - wpm) > WPM_TOLERANCE:
+        raise ValidationError("WPM mismatch")
 
 
 def validate_bootstrap_record(
@@ -124,8 +127,8 @@ def validate_bootstrap_record(
 ) -> None:
     if score <= 0 or score > BOOTSTRAP_MAX_SCORE:
         raise ValidationError("Bootstrap score out of allowed range")
-    if wpm < 0 or wpm > 300:
-        raise ValidationError("Invalid bootstrap WPM")
+    if wpm <= 0 or wpm > 300:
+        raise ValidationError("Incomplete bootstrap: missing or invalid WPM")
     if best_word and not _word_is_plausible(difficulty, best_word):
         raise ValidationError("Invalid bootstrap best word")
 

@@ -124,9 +124,23 @@ export async function submitScore(payload: SubmitScorePayload): Promise<boolean>
   return accepted;
 }
 
+function isCompleteBootstrapRecord(record: { score: number; wpm: number }): boolean {
+  return record.score > 0 && record.wpm > 0;
+}
+
 export async function bootstrapLocalScores(nickname: string): Promise<number> {
   const records = getUnsyncedLocalBests();
   if (records.length === 0) {
+    return 0;
+  }
+
+  // Incomplete local history (e.g. legacy score-only / wpm=0) is never uploaded.
+  const complete = records.filter(isCompleteBootstrapRecord);
+  const incomplete = records.filter((record) => !isCompleteBootstrapRecord(record));
+  for (const record of incomplete) {
+    markLocalBestSynced(record.difficulty);
+  }
+  if (complete.length === 0) {
     return 0;
   }
 
@@ -135,7 +149,7 @@ export async function bootstrapLocalScores(nickname: string): Promise<number> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       nickname,
-      records: records.map((record) => ({
+      records: complete.map((record) => ({
         difficulty: record.difficulty,
         score: record.score,
         wpm: record.wpm,
@@ -148,7 +162,7 @@ export async function bootstrapLocalScores(nickname: string): Promise<number> {
   }
 
   const data = await response.json() as { accepted?: number };
-  for (const record of records) {
+  for (const record of complete) {
     markLocalBestSynced(record.difficulty);
     invalidateLeaderboardCache(record.difficulty);
   }

@@ -9,8 +9,12 @@ import { getLocalBestScore, markLocalBestSynced, setLocalBestScore } from '../co
 import { submitScore } from '../api/leaderboard';
 import { buildShareURL } from './ShareCardScene';
 
+function isCompleteScore(data: DeathData): boolean {
+  return data.wpm > 0 && data.wordsTyped > 0 && data.totalChars > 0 && data.durationSec > 0;
+}
+
 function submitNewBest(data: DeathData): void {
-  if (!data.runId) return;
+  if (!data.runId || !isCompleteScore(data)) return;
   void submitScore({
     run_id: data.runId,
     nickname: getNickname(),

@@ -95,8 +95,20 @@ describe('leaderboard api', () => {
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 
-  it('bootstraps before fetching leaderboard', async () => {
+  it('skips incomplete local bests during bootstrap', async () => {
     storage.set('word-hopper-best-medium', '500');
+
+    const accepted = await bootstrapLocalScores('Bob');
+    expect(accepted).toBe(0);
+    expect(fetch).not.toHaveBeenCalled();
+    expect(storage.get('word-hopper-leaderboard-synced-medium')).toBe('1');
+  });
+
+  it('bootstraps before fetching leaderboard', async () => {
+    storage.set(
+      'word-hopper-best-medium',
+      JSON.stringify({ score: 400, wpm: 30, bestWord: 'mountain' }),
+    );
     vi.mocked(fetch)
       .mockResolvedValueOnce(jsonResponse({ accepted: 1 }))
       .mockResolvedValueOnce(jsonResponse({ difficulty: 'medium', entries: [] }));
@@ -109,7 +121,10 @@ describe('leaderboard api', () => {
   });
 
   it('bootstrap runs once per session', async () => {
-    storage.set('word-hopper-best-medium', '500');
+    storage.set(
+      'word-hopper-best-medium',
+      JSON.stringify({ score: 400, wpm: 30, bestWord: 'mountain' }),
+    );
     vi.mocked(fetch)
       .mockResolvedValueOnce(jsonResponse({ accepted: 1 }))
       .mockResolvedValueOnce(jsonResponse({ difficulty: 'medium', entries: [] }))

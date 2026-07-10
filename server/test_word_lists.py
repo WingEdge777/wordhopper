@@ -13,20 +13,29 @@ class WordListTest(unittest.TestCase):
 
 
 class BootstrapValidationTest(unittest.TestCase):
-    def test_accepts_low_legacy_score(self) -> None:
+    def test_accepts_complete_low_score(self) -> None:
         validate_bootstrap_record(
             difficulty="easy",
             score=500,
-            wpm=0,
+            wpm=32,
             best_word="",
         )
+
+    def test_rejects_zero_wpm_bootstrap(self) -> None:
+        with self.assertRaises(ValidationError):
+            validate_bootstrap_record(
+                difficulty="easy",
+                score=400,
+                wpm=0,
+                best_word="",
+            )
 
     def test_rejects_high_bootstrap_score(self) -> None:
         with self.assertRaises(ValidationError):
             validate_bootstrap_record(
                 difficulty="easy",
                 score=501,
-                wpm=0,
+                wpm=32,
                 best_word="",
             )
 

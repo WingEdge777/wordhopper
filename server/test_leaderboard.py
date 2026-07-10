@@ -37,18 +37,25 @@ class LeaderboardStoreTest(unittest.TestCase):
         accepted = self.store.bootstrap_records(
             "Bob",
             [
-                {"difficulty": "easy", "score": 200, "wpm": 0, "best_word": ""},
-                {"difficulty": "hard", "score": 300, "wpm": 0, "best_word": ""},
+                {"difficulty": "easy", "score": 200, "wpm": 28, "best_word": ""},
+                {"difficulty": "hard", "score": 300, "wpm": 32, "best_word": ""},
             ],
         )
         self.assertEqual(accepted, 2)
         self.assertEqual(len(self.store.get_leaderboard("easy")), 1)
         self.assertEqual(len(self.store.get_leaderboard("hard")), 1)
 
+    def test_bootstrap_rejects_zero_wpm(self) -> None:
+        accepted = self.store.bootstrap_records(
+            "Bob",
+            [{"difficulty": "easy", "score": 200, "wpm": 0, "best_word": ""}],
+        )
+        self.assertEqual(accepted, 0)
+
     def test_bootstrap_rejects_high_scores(self) -> None:
         accepted = self.store.bootstrap_records(
             "Bob",
-            [{"difficulty": "easy", "score": 900, "wpm": 0, "best_word": ""}],
+            [{"difficulty": "easy", "score": 900, "wpm": 40, "best_word": ""}],
         )
         self.assertEqual(accepted, 0)
 

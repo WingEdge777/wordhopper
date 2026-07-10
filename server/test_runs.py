@@ -45,6 +45,19 @@ class ScoreValidationTest(unittest.TestCase):
                 best_word="",
             )
 
+    def test_rejects_zero_wpm(self) -> None:
+        with self.assertRaises(ValidationError):
+            validate_run_finish(
+                difficulty="easy",
+                score=500,
+                wpm=0,
+                words_typed=10,
+                duration_sec=60,
+                total_chars=50,
+                max_combo=5,
+                best_word="",
+            )
+
     def test_upper_bound_grows_with_duration(self) -> None:
         short = max_plausible_score(30, 10, "easy")
         long = max_plausible_score(300, 100, "easy")
