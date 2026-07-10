@@ -201,8 +201,8 @@ async def bootstrap_scores(req: BootstrapScoresRequest):
         raise HTTPException(status_code=429, detail="Bootstrap already used recently")
 
     records = [record.model_dump() for record in req.records]
-    accepted = _require_store().bootstrap_records(nickname, records)
-    return {"accepted": accepted}
+    accepted, difficulties = _require_store().bootstrap_records(nickname, records)
+    return {"accepted": accepted, "difficulties": difficulties}
 
 
 @app.get("/api/leaderboard")

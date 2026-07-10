@@ -145,10 +145,11 @@ class LeaderboardStore:
         self,
         nickname: str,
         records: list[dict[str, object]],
-    ) -> int:
+    ) -> tuple[int, list[str]]:
         from score_validation import ValidationError, validate_bootstrap_record
 
         accepted = 0
+        accepted_difficulties: list[str] = []
         for record in records:
             difficulty = normalize_difficulty(str(record.get("difficulty", "")))
             score = record.get("score")
@@ -179,7 +180,8 @@ class LeaderboardStore:
                 nickname, difficulty, normalized_score, normalized_wpm, best_word
             ):
                 accepted += 1
-        return accepted
+                accepted_difficulties.append(difficulty)
+        return accepted, accepted_difficulties
 
     def get_leaderboard(
         self, difficulty: str, limit: int = DEFAULT_LIMIT

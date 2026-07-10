@@ -14,7 +14,8 @@ function isCompleteScore(data: DeathData): boolean {
   return data.wpm > 0 && data.wordsTyped > 0 && data.totalChars > 0 && data.durationSec > 0;
 }
 
-function submitNewBest(data: DeathData): void {
+/** Submit every complete run; server keeps the higher score. */
+function submitRunScore(data: DeathData): void {
   if (!data.runId || !isCompleteScore(data)) return;
   void submitScore({
     run_id: data.runId,
@@ -28,7 +29,8 @@ function submitNewBest(data: DeathData): void {
     duration_sec: data.durationSec,
     best_word: data.bestWord,
   }).then((accepted) => {
-    if (accepted) {
+    // Only mark local best synced when this score covers the stored best.
+    if (accepted && data.score >= getLocalBestScore(data.difficulty)) {
       markLocalBestSynced(data.difficulty);
     }
   });
@@ -166,9 +168,10 @@ export class DeathScene extends Phaser.Scene {
     const isNewBest = data.score > best;
     if (isNewBest) {
       setLocalBestScore(data.difficulty, data.score, data.wpm, data.bestWord);
-      submitNewBest(data);
       playSfx('newBest', 0.65);
     }
+    // Always try to sync; server upserts only when this score is higher.
+    submitRunScore(data);
     const displayBest = isNewBest ? data.score : best;
     const pct = displayBest > 0 ? Math.min(data.score / displayBest, 1) : 0;
 

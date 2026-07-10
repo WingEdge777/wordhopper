@@ -128,6 +128,9 @@ function isCompleteBootstrapRecord(record: { score: number; wpm: number }): bool
   return record.score > 0 && record.wpm > 0;
 }
 
+/** Must stay in sync with server score_validation.BOOTSTRAP_MAX_SCORE */
+const BOOTSTRAP_MAX_SCORE = 500;
+
 export async function bootstrapLocalScores(nickname: string): Promise<number> {
   const records = getUnsyncedLocalBests();
   if (records.length === 0) {
@@ -140,7 +143,10 @@ export async function bootstrapLocalScores(nickname: string): Promise<number> {
   for (const record of incomplete) {
     markLocalBestSynced(record.difficulty);
   }
-  if (complete.length === 0) {
+
+  // Over-max scores can only sync via authenticated finish_run, not bootstrap.
+  const bootstrappable = complete.filter((record) => record.score <= BOOTSTRAP_MAX_SCORE);
+  if (bootstrappable.length === 0) {
     return 0;
   }
 
@@ -149,7 +155,7 @@ export async function bootstrapLocalScores(nickname: string): Promise<number> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       nickname,
-      records: complete.map((record) => ({
+      records: bootstrappable.map((record) => ({
         difficulty: record.difficulty,
         score: record.score,
         wpm: record.wpm,
@@ -161,12 +167,19 @@ export async function bootstrapLocalScores(nickname: string): Promise<number> {
     return 0;
   }
 
-  const data = await response.json() as { accepted?: number };
-  for (const record of complete) {
-    markLocalBestSynced(record.difficulty);
-    invalidateLeaderboardCache(record.difficulty);
+  const data = await response.json() as {
+    accepted?: number;
+    difficulties?: string[];
+  };
+  const acceptedDifficulties = new Set(data.difficulties ?? []);
+  // Only mark difficulties the server actually accepted (rejected scores stay unsynced).
+  for (const record of bootstrappable) {
+    if (acceptedDifficulties.has(record.difficulty)) {
+      markLocalBestSynced(record.difficulty);
+      invalidateLeaderboardCache(record.difficulty);
+    }
   }
-  return data.accepted ?? 0;
+  return data.accepted ?? acceptedDifficulties.size;
 }
 
 export async function loadLeaderboardForDifficulty(

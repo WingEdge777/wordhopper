@@ -57,8 +57,11 @@ describe('leaderboard api', () => {
   });
 
   it('bootstraps unsynced local bests', async () => {
-    storage.set('word-hopper-best-easy', JSON.stringify({ score: 916, wpm: 42, bestWord: 'planet' }));
-    vi.mocked(fetch).mockResolvedValueOnce(jsonResponse({ accepted: 1 }));
+    storage.set('word-hopper-best-easy', JSON.stringify({ score: 400, wpm: 42, bestWord: 'planet' }));
+    vi.mocked(fetch).mockResolvedValueOnce(jsonResponse({
+      accepted: 1,
+      difficulties: ['easy'],
+    }));
 
     const accepted = await bootstrapLocalScores('Alice');
     expect(accepted).toBe(1);
@@ -67,9 +70,30 @@ describe('leaderboard api', () => {
       method: 'POST',
       body: JSON.stringify({
         nickname: 'Alice',
-        records: [{ difficulty: 'easy', score: 916, wpm: 42, best_word: 'planet' }],
+        records: [{ difficulty: 'easy', score: 400, wpm: 42, best_word: 'planet' }],
       }),
     }));
+  });
+
+  it('does not mark rejected bootstrap scores as synced', async () => {
+    storage.set('word-hopper-best-hard', JSON.stringify({ score: 400, wpm: 40, bestWord: 'enterprise' }));
+    vi.mocked(fetch).mockResolvedValueOnce(jsonResponse({
+      accepted: 0,
+      difficulties: [],
+    }));
+
+    const accepted = await bootstrapLocalScores('Swift');
+    expect(accepted).toBe(0);
+    expect(storage.get('word-hopper-leaderboard-synced-hard')).toBeUndefined();
+  });
+
+  it('skips bootstrap for scores above the bootstrap cap', async () => {
+    storage.set('word-hopper-best-hard', JSON.stringify({ score: 584, wpm: 40, bestWord: 'enterprise' }));
+
+    const accepted = await bootstrapLocalScores('Swift');
+    expect(accepted).toBe(0);
+    expect(fetch).not.toHaveBeenCalled();
+    expect(storage.get('word-hopper-leaderboard-synced-hard')).toBeUndefined();
   });
 
   it('fetches leaderboard entries', async () => {
@@ -110,7 +134,7 @@ describe('leaderboard api', () => {
       JSON.stringify({ score: 400, wpm: 30, bestWord: 'mountain' }),
     );
     vi.mocked(fetch)
-      .mockResolvedValueOnce(jsonResponse({ accepted: 1 }))
+      .mockResolvedValueOnce(jsonResponse({ accepted: 1, difficulties: ['medium'] }))
       .mockResolvedValueOnce(jsonResponse({ difficulty: 'medium', entries: [] }));
 
     await syncAndFetchLeaderboard('Bob', 'medium');
@@ -126,7 +150,7 @@ describe('leaderboard api', () => {
       JSON.stringify({ score: 400, wpm: 30, bestWord: 'mountain' }),
     );
     vi.mocked(fetch)
-      .mockResolvedValueOnce(jsonResponse({ accepted: 1 }))
+      .mockResolvedValueOnce(jsonResponse({ accepted: 1, difficulties: ['medium'] }))
       .mockResolvedValueOnce(jsonResponse({ difficulty: 'medium', entries: [] }))
       .mockResolvedValueOnce(jsonResponse({ difficulty: 'easy', entries: [] }));
 
