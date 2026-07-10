@@ -13,6 +13,7 @@ import { ScoreSystem } from '../systems/ScoreSystem';
 import { SpeedManager } from '../systems/SpeedManager';
 import { ObstacleSpawner } from '../systems/ObstacleSpawner';
 import { startRun } from '../api/runs';
+import { playSfx } from '../audio/SoundManager';
 
 const DEBUG_HITBOXES = false;
 const TUTORIAL_KEY = 'word-hopper-tutorial-done';
@@ -427,6 +428,7 @@ export class GameScene extends Phaser.Scene {
     if (result.wrong) {
       this.scoreSystem.breakCombo();
       this.comboText.setText('');
+      playSfx('wrong', 0.45);
       const obs = this.typingObstacle;
       if (obs && result.selectedWord) {
         const wordIdx = obs.getConfig().word1 === result.selectedWord ? 1 : 2;
@@ -458,6 +460,7 @@ export class GameScene extends Phaser.Scene {
 
     if (result.completed) {
       this.wordReady = true;
+      playSfx('word', 0.5);
     }
     this.updateTypingIndicator();
   }
@@ -595,6 +598,7 @@ export class GameScene extends Phaser.Scene {
     this.scoreSystem.breakCombo();
     this.comboText.setText('');
     this.player.die();
+    playSfx('die', 0.55);
     this.cleanupDOMListeners();
     this.time.delayedCall(500, () => {
       this.scene.start('DeathScene', {
@@ -708,6 +712,7 @@ export class GameScene extends Phaser.Scene {
     this.hitLabel.setPosition(PLAYER_X, labelY);
     this.hitLabel.setColor(perfect ? '#FCD34D' : '#34D399');
     this.hitLabel.setAlpha(1);
+    playSfx(perfect ? 'perfect' : 'good', perfect ? 0.6 : 0.5);
 
     this.tweens.killTweensOf(this.hitLabel);
     this.tweens.add({

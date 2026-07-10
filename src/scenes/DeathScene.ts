@@ -8,6 +8,7 @@ import { getNickname } from '../config/nickname';
 import { getLocalBestScore, markLocalBestSynced, setLocalBestScore } from '../config/localScores';
 import { submitScore } from '../api/leaderboard';
 import { buildShareURL } from './ShareCardScene';
+import { playSfx } from '../audio/SoundManager';
 
 function isCompleteScore(data: DeathData): boolean {
   return data.wpm > 0 && data.wordsTyped > 0 && data.totalChars > 0 && data.durationSec > 0;
@@ -166,6 +167,7 @@ export class DeathScene extends Phaser.Scene {
     if (isNewBest) {
       setLocalBestScore(data.difficulty, data.score, data.wpm, data.bestWord);
       submitNewBest(data);
+      playSfx('newBest', 0.65);
     }
     const displayBest = isNewBest ? data.score : best;
     const pct = displayBest > 0 ? Math.min(data.score / displayBest, 1) : 0;

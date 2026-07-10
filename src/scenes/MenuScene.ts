@@ -4,6 +4,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, Difficulty, SPRITE_KEYS } from '../config/
 import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
 import { addCrispText } from '../config/text';
 import { hex, darker } from '../config/utils';
+import { playSfx } from '../audio/SoundManager';
 
 export class MenuScene extends Phaser.Scene {
   private selectedDifficulty: Difficulty = 'easy';
@@ -127,6 +128,7 @@ export class MenuScene extends Phaser.Scene {
       container.setSize(220, 32);
       container.setInteractive({ useHandCursor: true });
       container.on('pointerdown', () => {
+        playSfx('ui', 0.4);
         if (this.selectedDifficulty === key) {
           this.startGame();
         } else {
@@ -170,6 +172,7 @@ export class MenuScene extends Phaser.Scene {
     leaderboardPrompt.on('pointerover', () => { this.input.setDefaultCursor('pointer'); });
     leaderboardPrompt.on('pointerout', () => { this.input.setDefaultCursor('default'); });
     leaderboardPrompt.on('pointerdown', () => {
+      playSfx('ui', 0.4);
       window.__wordhopper_showLeaderboard?.(this.selectedDifficulty);
     });
 

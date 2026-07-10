@@ -13,6 +13,7 @@ import {
   shouldShowNicknameHint,
 } from './config/nickname';
 import { setupLeaderboardOverlay } from './ui/leaderboard';
+import { bindSoundGame, setupMuteToggle, unlockAudio, isMuted } from './audio/SoundManager';
 
 export { getDisplaySize, getRenderResolution, getRenderScale, getRenderSize, isMobile, isIOS } from './config/display';
 
@@ -116,6 +117,7 @@ function resizeGame(game: Phaser.Game): void {
 if (gameShell) {
   setupNicknameInput();
   setupLeaderboardOverlay();
+  setupMuteToggle();
 
   if (mobile) {
     const blocker = document.getElementById('mobile-blocker');
@@ -125,6 +127,18 @@ if (gameShell) {
 
   waitForGameFonts().then(() => {
     const game = new Phaser.Game(createGameConfig(gameShell));
+    bindSoundGame(game);
+    if (game.sound) {
+      game.sound.mute = isMuted();
+    }
+
+    const unlockOnce = (): void => {
+      unlockAudio();
+      window.removeEventListener('pointerdown', unlockOnce);
+      window.removeEventListener('keydown', unlockOnce);
+    };
+    window.addEventListener('pointerdown', unlockOnce);
+    window.addEventListener('keydown', unlockOnce);
 
     window.__wordhopper_setGameInputEnabled = (enabled: boolean) => {
       game.input.enabled = enabled;

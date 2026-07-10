@@ -7,6 +7,7 @@ import {
   prefetchLeaderboards,
   type LeaderboardEntry,
 } from '../api/leaderboard';
+import { playSfx } from '../audio/SoundManager';
 
 const DIFFICULTIES: Difficulty[] = ['chill', 'easy', 'medium', 'hard'];
 
@@ -247,6 +248,7 @@ export function openLeaderboard(difficulty: Difficulty = activeDifficulty): void
   document.body.classList.add('leaderboard-open');
   blurGameInput();
   setPhaserInputEnabled(false);
+  playSfx('ui', 0.35);
   void loadLeaderboard(difficulty);
 }
 
@@ -269,6 +271,7 @@ export function setupLeaderboardOverlay(): void {
       const difficulty = tab.dataset.lbDifficulty as Difficulty | undefined;
       if (!difficulty || !DIFFICULTIES.includes(difficulty)) return;
       if (difficulty === activeDifficulty) return;
+      playSfx('ui', 0.35);
       void loadLeaderboard(difficulty);
     });
   });

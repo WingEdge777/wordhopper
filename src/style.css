@@ -79,6 +79,28 @@ body.ios-layout {
   white-space: nowrap;
 }
 
+#mute-btn {
+  border: 1px solid rgba(22, 163, 74, 0.25);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #15803D;
+  font-family: Quicksand, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+#mute-btn:hover {
+  border-color: #15803D;
+  background: rgba(236, 253, 245, 0.95);
+}
+
+#mute-btn[aria-pressed="true"] {
+  color: #6B7280;
+}
+
 #busuanzi {
   color: #9CA3AF;
 }

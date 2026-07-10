@@ -5,6 +5,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, SPRITE_KEYS } from '../config/constants';
 import { addCrispText } from '../config/text';
 import { hex, darker, lighter } from '../config/utils';
 import { parseShareParams } from './ShareCardScene';
+import { preloadSfx } from '../audio/SoundManager';
 
 function clayRect(g: Phaser.GameObjects.Graphics, x: number, y: number, w: number, h: number, r: number, color: number): void {
   g.fillStyle(darker(color, 0.4), 0.12);
@@ -91,6 +92,7 @@ export class BootScene extends Phaser.Scene {
     this.load.spritesheet(SPRITE_KEYS.PLAYER_RUN, 'assets/sprites/hamster-sheet.png', { frameWidth: 48, frameHeight: 48 });
     this.load.image(SPRITE_KEYS.PLAYER_JUMP, 'assets/sprites/hamster-jump.png');
     this.load.image(SPRITE_KEYS.PLAYER_DEAD, 'assets/sprites/hamster-dead.png');
+    preloadSfx(this);
 
     this.load.on('progress', (value: number) => {
       bar.clear();
