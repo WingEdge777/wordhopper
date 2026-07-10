@@ -2,33 +2,90 @@
 
 [中文版](./README_CN.md)
 
-A hopping game for word typing practice.
+**Type to survive. Jump to thrive.**
 
-## How to Play
+A free browser game that turns typing practice into a side-scrolling runner.
+Type the word on an obstacle, then press **SPACE** at the green timing line to jump through the gap.
 
-Obstacles scroll toward you from the right, each displaying one or two words.
+**Play now:** [https://wordhopper.wingedge777.com](https://wordhopper.wingedge777.com/)
 
-1. **Type the first letter** of a word to select it
+> Best played on **desktop with a physical keyboard**. Mobile is preview-only.
+
+---
+
+## Why this exists
+
+Typing drills are useful but dull. Word Hopper keeps the practice loop (accuracy, speed, WPM) and wraps it in a hopping runner: pick a word, finish it, nail the jump timing, chase a new best.
+
+## How to play
+
+Obstacles scroll in from the right. Each one shows one or two words.
+
+1. **Type the first letter** to select a word
 2. **Finish typing** the rest of the word
-3. **Press SPACE** to jump through the gap matching that word
+3. **Press SPACE** near the **green timing line** to jump the matching gap
 
-Type the wrong letter and you'll need to retype from that position. Collide with an obstacle and it's game over.
+Miss a letter and you continue from that position (combo breaks). Hit an obstacle and the run ends.
 
-After completing a word, a **green timing line** appears on screen — it marks the ideal moment to press SPACE. Jump closer to the line for a more precise landing; the flash glows brighter the nearer you are.
+Closer jumps to the green line score better (`PERFECT` / `GOOD`). Speed rises as you clear obstacles.
 
-The game speeds up as you clear obstacles. Four difficulty levels control word length and speed:
+### Difficulty
 
-- **Chill** — 3–5 characters, half speed
-- **Easy** — 3–5 characters
-- **Medium** — 6–8 characters
-- **Hard** — 8+ characters
+| Mode | Word length | Speed |
+|------|-------------|-------|
+| **Chill** | 3–5 chars | 0.5× |
+| **Easy** | 3–5 chars | 1.0× |
+| **Medium** | 6–8 chars | 1.0× |
+| **Hard** | 8+ chars | 1.0× |
+
+## Features
+
+- Four difficulty modes with large word lists
+- Local best score in-HUD (pulses when you approach a record)
+- Global leaderboard per difficulty
+- Auto-generated nickname (editable)
+- Shareable result links
+- First-run tutorial tips
+- Chinese glosses for completed words (UI is English)
+
+## Tech
+
+| Layer | Stack |
+|-------|--------|
+| Game | Phaser 3, TypeScript, Vite, Bun |
+| API | FastAPI, SQLite |
+| Deploy | GitHub Actions → VPS (Nginx) |
+
+Score submits use a short-lived run token plus server-side plausibility checks (not bulletproof anti-cheat, enough to block casual curl spam).
 
 ## Development
 
 ```bash
 bun install
-bun run dev
+bun run dev      # game + Vite proxy to /api
 bun run build
 bun run preview
 bun run test
+bun run lint
 ```
+
+### API server
+
+```bash
+cd server
+python3 -m pip install -r requirements.txt
+./start.sh       # kills old run.py, starts on :9999
+```
+
+Optional leaderboard maintenance:
+
+```bash
+cd server
+python3 cleanup_zero_wpm.py --dry-run
+python3 seed_leaderboard.py --print
+python3 seed_leaderboard.py --refresh-wpm
+```
+
+## License
+
+ISC — see `package.json`.
