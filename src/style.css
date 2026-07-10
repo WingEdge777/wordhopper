@@ -24,15 +24,15 @@ body.ios-layout {
 
 #top-bar {
   position: fixed;
-  top: 4px;
+  top: 6px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 6px 10px;
-  max-width: calc(100vw - 56px);
+  gap: 2px 6px;
+  max-width: min(320px, calc(100vw - 160px));
   font-family: Quicksand, sans-serif;
   font-size: 12px;
   z-index: 100;
@@ -79,49 +79,89 @@ body.ios-layout {
   white-space: nowrap;
 }
 
-#mute-btn {
-  border: 1px solid rgba(22, 163, 74, 0.25);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #15803D;
+#busuanzi {
+  position: fixed;
+  top: 10px;
+  left: 12px;
+  z-index: 100;
+  color: #B0B7C3;
   font-family: Quicksand, sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 2px 8px;
-  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+  max-width: min(42vw, 220px);
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
+  pointer-events: none;
+}
+
+#mute-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #9CA3AF;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
 }
 
 #mute-btn:hover {
-  border-color: #15803D;
-  background: rgba(236, 253, 245, 0.95);
+  color: #15803D;
+  background: rgba(22, 163, 74, 0.08);
 }
 
 #mute-btn[aria-pressed="true"] {
-  color: #6B7280;
+  color: #9CA3AF;
 }
 
-#busuanzi {
-  color: #9CA3AF;
+#mute-btn .mute-icon {
+  width: 18px;
+  height: 18px;
+  display: none;
+}
+
+#mute-btn .mute-icon-on {
+  display: block;
+}
+
+#mute-btn[aria-pressed="true"] .mute-icon-on {
+  display: none;
+}
+
+#mute-btn[aria-pressed="true"] .mute-icon-off {
+  display: block;
 }
 
 #github-link {
   position: fixed;
-  top: 8px;
+  top: 6px;
   right: 10px;
   z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   color: #9CA3AF;
   text-decoration: none;
-  transition: color 0.2s;
+  border-radius: 8px;
+  transition: color 0.2s, background 0.2s;
 }
 
 #github-link:hover {
   color: #15803D;
+  background: rgba(22, 163, 74, 0.08);
 }
 
 #github-link svg {
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   fill: currentColor;
 }
 

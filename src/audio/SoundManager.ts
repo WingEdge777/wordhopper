@@ -75,8 +75,8 @@ export function setupMuteToggle(): void {
   if (!btn) return;
 
   const syncLabel = (): void => {
-    btn.textContent = muted ? 'Sound: Off' : 'Sound: On';
     btn.setAttribute('aria-pressed', muted ? 'true' : 'false');
+    btn.setAttribute('aria-label', muted ? 'Unmute sound effects' : 'Mute sound effects');
     btn.title = muted ? 'Unmute sound effects' : 'Mute sound effects';
   };
 
