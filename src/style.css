@@ -105,19 +105,23 @@ body.ios-layout {
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: #9CA3AF;
+  color: #15803D;
   padding: 0;
   cursor: pointer;
   transition: color 0.2s, background 0.2s;
 }
 
 #mute-btn:hover {
-  color: #15803D;
   background: rgba(22, 163, 74, 0.08);
 }
 
 #mute-btn[aria-pressed="true"] {
   color: #9CA3AF;
+}
+
+#mute-btn[aria-pressed="true"]:hover {
+  color: #6B7280;
+  background: rgba(156, 163, 175, 0.12);
 }
 
 #mute-btn .mute-icon {
