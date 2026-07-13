@@ -254,7 +254,10 @@ export class GameScene extends Phaser.Scene {
           }
           return;
         }
-        if (this.paused) return;
+        if (this.paused) {
+          gameInput.value = '';
+          return;
+        }
         if (this.typingLock) return;
         if (e.key === ' ') {
           e.preventDefault();
@@ -278,6 +281,10 @@ export class GameScene extends Phaser.Scene {
 
       this.inputInputHandler = (e: InputEvent) => {
         if (!this.alive) return;
+        if (this.paused) {
+          gameInput.value = '';
+          return;
+        }
         if (this.typingLock) return;
         const ch = e.data;
         if (!ch || ch.length !== 1) return;

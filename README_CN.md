@@ -76,15 +76,6 @@ python3 -m pip install -r requirements.txt
 ./start.sh       # 先杀旧 run.py，再在 :9999 启动
 ```
 
-排行榜维护（可选）：
-
-```bash
-cd server
-python3 cleanup_zero_wpm.py --dry-run
-python3 seed_leaderboard.py --print
-python3 seed_leaderboard.py --refresh-wpm
-```
-
 ## 许可证
 
 ISC — 见 `package.json`。

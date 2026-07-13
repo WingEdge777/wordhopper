@@ -77,15 +77,6 @@ python3 -m pip install -r requirements.txt
 ./start.sh       # kills old run.py, starts on :9999
 ```
 
-Optional leaderboard maintenance:
-
-```bash
-cd server
-python3 cleanup_zero_wpm.py --dry-run
-python3 seed_leaderboard.py --print
-python3 seed_leaderboard.py --refresh-wpm
-```
-
 ## License
 
 ISC — see `package.json`.
