@@ -230,13 +230,14 @@ async function loadLeaderboard(difficulty: Difficulty): Promise<void> {
 
 export function closeLeaderboard(): void {
   const element = getPanel();
-  if (!element) return;
+  if (!element || !isOpen) return;
 
   isOpen = false;
   element.hidden = true;
   document.body.classList.remove('leaderboard-open');
   setPhaserInputEnabled(true);
   focusGameInput();
+  playSfx('ui', 0.35);
 }
 
 export function openLeaderboard(difficulty: Difficulty = activeDifficulty): void {
