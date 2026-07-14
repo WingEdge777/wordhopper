@@ -143,7 +143,21 @@ function renderEntries(entries: LeaderboardEntry[]): void {
 
     const rank = document.createElement('span');
     rank.className = 'lb-rank';
-    rank.textContent = `#${entry.rank}`;
+    if (entry.rank === 1) {
+      rank.textContent = '🥇';
+      rank.classList.add('lb-rank-medal');
+      rank.setAttribute('aria-label', 'Rank 1');
+    } else if (entry.rank === 2) {
+      rank.textContent = '🥈';
+      rank.classList.add('lb-rank-medal');
+      rank.setAttribute('aria-label', 'Rank 2');
+    } else if (entry.rank === 3) {
+      rank.textContent = '🥉';
+      rank.classList.add('lb-rank-medal');
+      rank.setAttribute('aria-label', 'Rank 3');
+    } else {
+      rank.textContent = `#${entry.rank}`;
+    }
 
     const name = document.createElement('span');
     name.className = 'lb-name';
