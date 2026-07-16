@@ -73,7 +73,7 @@ bun run lint
 ```bash
 cd server
 python3 -m pip install -r requirements.txt
-./start.sh       # 先杀旧 run.py，再在 :9999 启动
+./start.sh
 ```
 
 ## 许可证

@@ -74,7 +74,7 @@ bun run lint
 ```bash
 cd server
 python3 -m pip install -r requirements.txt
-./start.sh       # kills old run.py, starts on :9999
+./start.sh
 ```
 
 ## License
