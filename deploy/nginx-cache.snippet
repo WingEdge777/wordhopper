@@ -1,9 +1,0 @@
-# Add inside the wordhopper server { } block.
-# Prevents browsers from serving a stale index.html after deploys.
-
-location = /index.html {
-    add_header Cache-Control "no-cache, no-store, must-revalidate" always;
-    add_header Pragma "no-cache" always;
-    add_header Expires "0" always;
-    try_files $uri =404;
-}
