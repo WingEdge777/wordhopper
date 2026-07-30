@@ -161,7 +161,34 @@ describe('leaderboard api', () => {
     expect(fetch).toHaveBeenNthCalledWith(1, '/api/scores/bootstrap', expect.any(Object));
   });
 
-  it('reconciles local best when loading a leaderboard', async () => {
+  it('raises local best from leaderboard when server is ahead', async () => {
+    storage.set('word-hopper-best-hard', JSON.stringify({ score: 100, wpm: 20, bestWord: 'cat' }));
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(jsonResponse({ accepted: 1, difficulties: ['hard'] }))
+      .mockResolvedValueOnce(jsonResponse({
+        difficulty: 'hard',
+        entries: [{
+          rank: 1,
+          nickname: 'Swift',
+          score: 300,
+          wpm: 32,
+          best_word: 'enterprise',
+          updated_at: 't',
+        }],
+      }));
+
+    await loadLeaderboardForDifficulty('Swift', 'hard', { refresh: true });
+
+    expect(JSON.parse(storage.get('word-hopper-best-hard')!)).toEqual({
+      score: 300,
+      wpm: 32,
+      bestWord: 'enterprise',
+    });
+    expect(storage.get('word-hopper-leaderboard-synced-hard')).toBe('1');
+  });
+
+  it('does not lower a higher local best from the leaderboard', async () => {
+    // Over bootstrap cap so bootstrap is skipped; only the leaderboard fetch runs.
     storage.set('word-hopper-best-hard', JSON.stringify({ score: 584, wpm: 40, bestWord: 'enterprise' }));
     vi.mocked(fetch).mockResolvedValueOnce(jsonResponse({
       difficulty: 'hard',
@@ -178,10 +205,10 @@ describe('leaderboard api', () => {
     await loadLeaderboardForDifficulty('Swift', 'hard', { refresh: true });
 
     expect(JSON.parse(storage.get('word-hopper-best-hard')!)).toEqual({
-      score: 186,
-      wpm: 32,
+      score: 584,
+      wpm: 40,
       bestWord: 'enterprise',
     });
-    expect(storage.get('word-hopper-leaderboard-synced-hard')).toBe('1');
+    expect(storage.get('word-hopper-leaderboard-synced-hard')).toBeUndefined();
   });
 });

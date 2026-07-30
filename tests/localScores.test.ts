@@ -46,10 +46,30 @@ describe('localScores', () => {
     expect(getLocalBestStats('easy')).toEqual({ score: 916, wpm: 0, bestWord: '' });
   });
 
-  it('adopts server best when reconciling leaderboard entries', () => {
-    setLocalBestScore('hard', 584, 40, 'enterprise');
+  it('raises local best when server score is higher', () => {
+    setLocalBestScore('hard', 100, 20, 'cat');
     expect(isLocalBestSynced('hard')).toBe(false);
 
+    const changed = reconcileLocalBestFromEntries('hard', 'SwiftPlayer71', [
+      {
+        nickname: 'SwiftPlayer71',
+        score: 300,
+        wpm: 32,
+        best_word: 'enterprise',
+      },
+    ]);
+
+    expect(changed).toBe(true);
+    expect(getLocalBestStats('hard')).toEqual({
+      score: 300,
+      wpm: 32,
+      bestWord: 'enterprise',
+    });
+    expect(isLocalBestSynced('hard')).toBe(true);
+  });
+
+  it('keeps a higher local best when server is behind', () => {
+    setLocalBestScore('hard', 584, 40, 'enterprise');
     const changed = reconcileLocalBestFromEntries('hard', 'SwiftPlayer71', [
       {
         nickname: 'SwiftPlayer71',
@@ -59,13 +79,19 @@ describe('localScores', () => {
       },
     ]);
 
+    expect(changed).toBe(false);
+    expect(getLocalBestScore('hard')).toBe(584);
+    expect(isLocalBestSynced('hard')).toBe(false);
+  });
+
+  it('marks equal scores as synced without lowering local', () => {
+    setLocalBestScore('easy', 200, 25, 'cat');
+    const changed = reconcileLocalBestFromEntries('easy', 'Alice', [
+      { nickname: 'Alice', score: 200, wpm: 25, best_word: 'cat' },
+    ]);
     expect(changed).toBe(true);
-    expect(getLocalBestStats('hard')).toEqual({
-      score: 186,
-      wpm: 32,
-      bestWord: 'enterprise',
-    });
-    expect(isLocalBestSynced('hard')).toBe(true);
+    expect(getLocalBestScore('easy')).toBe(200);
+    expect(isLocalBestSynced('easy')).toBe(true);
   });
 
   it('does nothing when nickname is missing from leaderboard', () => {

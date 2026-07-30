@@ -76,7 +76,7 @@ export function setLocalBestScore(
   }
 }
 
-/** Adopt the server leaderboard entry as local best and mark it synced. */
+/** Raise local best to a server entry (never used to lower a personal best). */
 export function applyServerBest(
   difficulty: Difficulty,
   score: number,
@@ -96,8 +96,8 @@ export function applyServerBest(
 }
 
 /**
- * When the current nickname appears on a leaderboard, server score is the source of truth.
- * Fixes inflated local BEST that never successfully uploaded.
+ * Local personal BEST is authoritative (never lowered).
+ * Only adopt a server entry when it is strictly higher, or equal (mark synced).
  */
 export function reconcileLocalBestFromEntries(
   difficulty: Difficulty,
@@ -108,15 +108,28 @@ export function reconcileLocalBestFromEntries(
   if (!mine || mine.score <= 0) return false;
 
   const local = getLocalBestStats(difficulty);
-  const alreadyMatched =
-    local.score === mine.score
-    && local.wpm === mine.wpm
-    && local.bestWord === mine.best_word
-    && isLocalBestSynced(difficulty);
-  if (alreadyMatched) return false;
+  if (mine.score > local.score) {
+    applyServerBest(difficulty, mine.score, mine.wpm, mine.best_word);
+    return true;
+  }
 
-  applyServerBest(difficulty, mine.score, mine.wpm, mine.best_word);
-  return true;
+  if (mine.score === local.score) {
+    const alreadyMatched =
+      local.wpm === mine.wpm
+      && local.bestWord === mine.best_word
+      && isLocalBestSynced(difficulty);
+    if (alreadyMatched) return false;
+    applyServerBest(
+      difficulty,
+      mine.score,
+      mine.wpm || local.wpm,
+      mine.best_word || local.bestWord,
+    );
+    return true;
+  }
+
+  // local > server: keep the personal best; leave unsynced so uploads can catch up
+  return false;
 }
 
 export function isLocalBestSynced(difficulty: Difficulty): boolean {
