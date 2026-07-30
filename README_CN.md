@@ -75,7 +75,3 @@ cd server
 python3 -m pip install -r requirements.txt
 ./start.sh
 ```
-
-## 许可证
-
-ISC — 见 `package.json`。
