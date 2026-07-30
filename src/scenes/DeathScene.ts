@@ -5,8 +5,14 @@ import { Difficulty, CANVAS_WIDTH, CANVAS_HEIGHT, SPRITE_KEYS } from '../config/
 import { addCrispText } from '../config/text';
 import { hex, darker } from '../config/utils';
 import { getNickname } from '../config/nickname';
-import { getLocalBestScore, markLocalBestSynced, setLocalBestScore } from '../config/localScores';
-import { submitScore } from '../api/leaderboard';
+import {
+  getLocalBestScore,
+  isLocalBestSynced,
+  markLocalBestSynced,
+  reconcileLocalBestFromEntries,
+  setLocalBestScore,
+} from '../config/localScores';
+import { getCachedLeaderboard, submitScore } from '../api/leaderboard';
 import { buildShareURL } from './ShareCardScene';
 import { playSfx } from '../audio/SoundManager';
 
@@ -14,9 +20,17 @@ function isCompleteScore(data: DeathData): boolean {
   return data.wpm > 0 && data.wordsTyped > 0 && data.totalChars > 0 && data.durationSec > 0;
 }
 
+type SyncResult = 'skipped' | 'accepted' | 'rejected';
+
 /** Submit every complete run; server keeps the higher score. */
-function submitRunScore(data: DeathData): void {
-  if (!data.runId || !isCompleteScore(data)) return;
+function submitRunScore(
+  data: DeathData,
+  onResult?: (result: SyncResult) => void,
+): void {
+  if (!data.runId || !isCompleteScore(data)) {
+    onResult?.('skipped');
+    return;
+  }
   void submitScore({
     run_id: data.runId,
     nickname: getNickname(),
@@ -33,6 +47,9 @@ function submitRunScore(data: DeathData): void {
     if (accepted && data.score >= getLocalBestScore(data.difficulty)) {
       markLocalBestSynced(data.difficulty);
     }
+    onResult?.(accepted ? 'accepted' : 'rejected');
+  }).catch(() => {
+    onResult?.('rejected');
   });
 }
 
@@ -164,16 +181,20 @@ export class DeathScene extends Phaser.Scene {
       fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(10);
 
+    const cached = getCachedLeaderboard(data.difficulty);
+    if (cached) {
+      reconcileLocalBestFromEntries(data.difficulty, getNickname(), cached.entries);
+    }
+
     const best = getLocalBestScore(data.difficulty);
     const isNewBest = data.score > best;
     if (isNewBest) {
       setLocalBestScore(data.difficulty, data.score, data.wpm, data.bestWord);
       playSfx('newBest', 0.65);
     }
-    // Always try to sync; server upserts only when this score is higher.
-    submitRunScore(data);
     const displayBest = isNewBest ? data.score : best;
     const pct = displayBest > 0 ? Math.min(data.score / displayBest, 1) : 0;
+    const willUpload = Boolean(data.runId && isCompleteScore(data));
 
     const scoreCenterX = w / 2;
 
@@ -261,12 +282,49 @@ export class DeathScene extends Phaser.Scene {
       fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(10);
 
+    const syncHint = addCrispText(this, w / 2, barY + barHeight + 28, '', {
+      fontSize: '9px',
+      fontFamily: FONT_BODY,
+      color: hex(COLORS.TEXT_MUTED),
+      fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(10).setAlpha(0.9);
+
+    const setSyncHint = (message: string): void => {
+      syncHint.setText(message);
+      syncHint.setVisible(message.length > 0);
+    };
+
+    const showSyncRow = willUpload
+      || (displayBest > 0 && !isLocalBestSynced(data.difficulty));
+
+    if (willUpload) {
+      setSyncHint('Syncing score…');
+    } else if (displayBest > 0 && !isLocalBestSynced(data.difficulty)) {
+      setSyncHint('Local BEST not on leaderboard yet');
+    } else {
+      setSyncHint('');
+    }
+
+    submitRunScore(data, (result) => {
+      if (result === 'accepted') {
+        if (data.score >= getLocalBestScore(data.difficulty)) {
+          setSyncHint('Synced to leaderboard');
+          return;
+        }
+      }
+      if (getLocalBestScore(data.difficulty) > 0 && !isLocalBestSynced(data.difficulty)) {
+        setSyncHint('Local BEST not on leaderboard yet');
+        return;
+      }
+      setSyncHint('');
+    });
+
     const cardW = 72;
     const cardH = 38;
     const cardGap = 8;
     const totalCardsWidth = cardW * 4 + cardGap * 3;
     const cardsStartX = (w - totalCardsWidth) / 2;
-    const cardsY = barY + barHeight + 38;
+    const cardsY = barY + barHeight + (showSyncRow ? 48 : 38);
 
     const cards = [
       { value: data.wordsTyped.toString(), label: 'WORDS', fontSize: '14px' },

@@ -1,7 +1,11 @@
 import type { Difficulty } from '../config/constants';
 import { apiUrl } from '../config/api';
 import { finishRun } from './runs';
-import { getUnsyncedLocalBests, markLocalBestSynced } from '../config/localScores';
+import {
+  getUnsyncedLocalBests,
+  markLocalBestSynced,
+  reconcileLocalBestFromEntries,
+} from '../config/localScores';
 
 export interface LeaderboardEntry {
   rank: number;
@@ -101,7 +105,10 @@ export async function prefetchLeaderboards(
 ): Promise<void> {
   await ensureBootstrapLocalScores(nickname);
   await Promise.allSettled(
-    difficulties.map((difficulty) => fetchLeaderboard(difficulty, 50, { refresh: true })),
+    difficulties.map(async (difficulty) => {
+      const data = await fetchLeaderboard(difficulty, 50, { refresh: true });
+      reconcileLocalBestFromEntries(difficulty, nickname, data.entries);
+    }),
   );
 }
 
@@ -188,10 +195,14 @@ export async function loadLeaderboardForDifficulty(
   options?: { refresh?: boolean },
 ): Promise<LeaderboardResponse> {
   if (!options?.refresh && isLeaderboardCacheFresh(difficulty)) {
-    return cache.get(difficulty)!.data;
+    const cached = cache.get(difficulty)!.data;
+    reconcileLocalBestFromEntries(difficulty, nickname, cached.entries);
+    return cached;
   }
   await ensureBootstrapLocalScores(nickname);
-  return fetchLeaderboard(difficulty, 50, options);
+  const data = await fetchLeaderboard(difficulty, 50, options);
+  reconcileLocalBestFromEntries(difficulty, nickname, data.entries);
+  return data;
 }
 
 /** @deprecated use loadLeaderboardForDifficulty */

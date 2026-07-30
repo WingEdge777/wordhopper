@@ -172,7 +172,6 @@ export class MenuScene extends Phaser.Scene {
     leaderboardPrompt.on('pointerover', () => { this.input.setDefaultCursor('pointer'); });
     leaderboardPrompt.on('pointerout', () => { this.input.setDefaultCursor('default'); });
     leaderboardPrompt.on('pointerdown', () => {
-      playSfx('ui', 0.4);
       window.__wordhopper_showLeaderboard?.(this.selectedDifficulty);
     });
 

@@ -76,6 +76,49 @@ export function setLocalBestScore(
   }
 }
 
+/** Adopt the server leaderboard entry as local best and mark it synced. */
+export function applyServerBest(
+  difficulty: Difficulty,
+  score: number,
+  wpm = 0,
+  bestWord = '',
+): void {
+  if (score <= 0) return;
+  try {
+    localStorage.setItem(
+      bestKey(difficulty),
+      JSON.stringify({ score, wpm, bestWord }),
+    );
+    markLocalBestSynced(difficulty);
+  } catch {
+    // noop
+  }
+}
+
+/**
+ * When the current nickname appears on a leaderboard, server score is the source of truth.
+ * Fixes inflated local BEST that never successfully uploaded.
+ */
+export function reconcileLocalBestFromEntries(
+  difficulty: Difficulty,
+  nickname: string,
+  entries: Array<{ nickname: string; score: number; wpm: number; best_word: string }>,
+): boolean {
+  const mine = entries.find((entry) => entry.nickname === nickname);
+  if (!mine || mine.score <= 0) return false;
+
+  const local = getLocalBestStats(difficulty);
+  const alreadyMatched =
+    local.score === mine.score
+    && local.wpm === mine.wpm
+    && local.bestWord === mine.best_word
+    && isLocalBestSynced(difficulty);
+  if (alreadyMatched) return false;
+
+  applyServerBest(difficulty, mine.score, mine.wpm, mine.best_word);
+  return true;
+}
+
 export function isLocalBestSynced(difficulty: Difficulty): boolean {
   try {
     return localStorage.getItem(`${SYNC_KEY_PREFIX}${difficulty}`) === '1';

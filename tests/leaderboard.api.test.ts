@@ -160,4 +160,28 @@ describe('leaderboard api', () => {
     expect(fetch).toHaveBeenCalledTimes(3);
     expect(fetch).toHaveBeenNthCalledWith(1, '/api/scores/bootstrap', expect.any(Object));
   });
+
+  it('reconciles local best when loading a leaderboard', async () => {
+    storage.set('word-hopper-best-hard', JSON.stringify({ score: 584, wpm: 40, bestWord: 'enterprise' }));
+    vi.mocked(fetch).mockResolvedValueOnce(jsonResponse({
+      difficulty: 'hard',
+      entries: [{
+        rank: 14,
+        nickname: 'Swift',
+        score: 186,
+        wpm: 32,
+        best_word: 'enterprise',
+        updated_at: 't',
+      }],
+    }));
+
+    await loadLeaderboardForDifficulty('Swift', 'hard', { refresh: true });
+
+    expect(JSON.parse(storage.get('word-hopper-best-hard')!)).toEqual({
+      score: 186,
+      wpm: 32,
+      bestWord: 'enterprise',
+    });
+    expect(storage.get('word-hopper-leaderboard-synced-hard')).toBe('1');
+  });
 });

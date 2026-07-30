@@ -1,5 +1,6 @@
 import type { Difficulty } from '../config/constants';
 import { getNickname } from '../config/nickname';
+import { reconcileLocalBestFromEntries } from '../config/localScores';
 import {
   getCachedLeaderboard,
   isLeaderboardCacheFresh,
@@ -123,6 +124,8 @@ function setStatus(message: string): void {
 
 function renderEntries(entries: LeaderboardEntry[]): void {
   if (!listEl) return;
+
+  reconcileLocalBestFromEntries(activeDifficulty, getNickname(), entries);
 
   listEl.replaceChildren();
   if (entries.length === 0) {
@@ -258,12 +261,15 @@ export function openLeaderboard(difficulty: Difficulty = activeDifficulty): void
   const element = getPanel();
   if (!element) return;
 
+  const wasOpen = isOpen;
   isOpen = true;
   element.hidden = false;
   document.body.classList.add('leaderboard-open');
   blurGameInput();
   setPhaserInputEnabled(false);
-  playSfx('ui', 0.35);
+  if (!wasOpen) {
+    playSfx('ui', 0.35);
+  }
   void loadLeaderboard(difficulty);
 }
 
