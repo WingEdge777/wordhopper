@@ -11,7 +11,9 @@ from leaderboard import (
     DEFAULT_LIMIT,
     LeaderboardStore,
     normalize_best_word,
+    normalize_challenge_date,
     normalize_difficulty,
+    normalize_mode,
     normalize_nickname,
     normalize_score,
     normalize_wpm,
@@ -75,6 +77,8 @@ class BootstrapScoresRequest(BaseModel):
 
 class StartRunRequest(BaseModel):
     difficulty: str
+    mode: str = "classic"
+    challenge_date: str = ""
 
 
 class FinishRunRequest(BaseModel):
@@ -88,6 +92,8 @@ class FinishRunRequest(BaseModel):
     max_combo: int = 0
     duration_sec: float = Field(gt=0)
     best_word: str = ""
+    mode: str = "classic"
+    challenge_date: str = ""
 
 
 def _require_store() -> LeaderboardStore:
@@ -124,8 +130,18 @@ async def translate(req: TranslateRequest):
 @app.post("/api/runs/start")
 async def start_run(req: StartRunRequest, request: Request):
     difficulty = normalize_difficulty(req.difficulty)
-    if difficulty is None:
-        raise HTTPException(status_code=400, detail="Invalid difficulty")
+    mode = normalize_mode(req.mode)
+    if difficulty is None or mode is None:
+        raise HTTPException(status_code=400, detail="Invalid difficulty or mode")
+
+    challenge_date = ""
+    if mode == "daily":
+        challenge_date = normalize_challenge_date(req.challenge_date) or ""
+        if not challenge_date:
+            raise HTTPException(status_code=400, detail="Invalid challenge date")
+        # Daily Challenge is fixed to easy.
+        if difficulty != "easy":
+            raise HTTPException(status_code=400, detail="Daily mode requires easy")
 
     runs = _require_run_store()
     client_ip = _client_ip(request)
@@ -133,13 +149,16 @@ async def start_run(req: StartRunRequest, request: Request):
         raise HTTPException(status_code=429, detail="Too many runs started")
 
     runs.purge_expired()
-    return runs.create_run(difficulty, client_ip)
+    return runs.create_run(
+        difficulty, client_ip, mode=mode, challenge_date=challenge_date
+    )
 
 
 @app.post("/api/runs/finish")
 async def finish_run(req: FinishRunRequest, request: Request):
     nickname = normalize_nickname(req.nickname)
     difficulty = normalize_difficulty(req.difficulty)
+    mode = normalize_mode(req.mode) or "classic"
     score = normalize_score(req.score)
     wpm = normalize_wpm(req.wpm)
     if nickname is None or difficulty is None or score is None or wpm is None:
@@ -147,16 +166,30 @@ async def finish_run(req: FinishRunRequest, request: Request):
     if score <= 0:
         raise HTTPException(status_code=400, detail="Score must be positive")
 
+    challenge_date = ""
+    if mode == "daily":
+        challenge_date = normalize_challenge_date(req.challenge_date) or ""
+        if not challenge_date:
+            raise HTTPException(status_code=400, detail="Invalid challenge date")
+        if difficulty != "easy":
+            raise HTTPException(status_code=400, detail="Daily mode requires easy")
+
     best_word = normalize_best_word(req.best_word)
     if best_word and not is_valid_best_word(difficulty, best_word):
         raise HTTPException(status_code=400, detail="Invalid best word")
 
     runs = _require_run_store()
-    valid, reason = runs.is_run_valid(req.run_id, difficulty)
+    valid, reason = runs.is_run_valid(
+        req.run_id, difficulty, mode=mode, challenge_date=challenge_date
+    )
     if not valid:
         raise HTTPException(status_code=400, detail=reason)
 
-    rate_key = f"finish:{nickname}:{difficulty}"
+    rate_key = (
+        f"finish:{mode}:{challenge_date}:{nickname}"
+        if mode == "daily"
+        else f"finish:{nickname}:{difficulty}"
+    )
     if not runs.check_rate_limit(rate_key, FINISH_COOLDOWN_SEC):
         raise HTTPException(status_code=429, detail="Submit too soon")
 
@@ -174,9 +207,13 @@ async def finish_run(req: FinishRunRequest, request: Request):
     except ValidationError as exc:
         raise HTTPException(status_code=400, detail=exc.detail) from exc
 
-    accepted = _require_store().upsert_score(
-        nickname, difficulty, score, wpm, best_word
-    )
+    board = _require_store()
+    if mode == "daily":
+        accepted = board.upsert_daily_score(
+            challenge_date, nickname, score, wpm, best_word
+        )
+    else:
+        accepted = board.upsert_score(nickname, difficulty, score, wpm, best_word)
     runs.mark_finished(req.run_id)
     return {"accepted": accepted}
 
@@ -216,3 +253,16 @@ async def get_leaderboard(
 
     entries = _require_store().get_leaderboard(normalized, limit)
     return {"difficulty": normalized, "entries": entries}
+
+
+@app.get("/api/daily/leaderboard")
+async def get_daily_leaderboard(
+    date: str = Query(..., description="UTC challenge date YYYY-MM-DD"),
+    limit: int = Query(DEFAULT_LIMIT, ge=1, le=100),
+):
+    challenge_date = normalize_challenge_date(date)
+    if challenge_date is None:
+        raise HTTPException(status_code=400, detail="Invalid challenge date")
+
+    entries = _require_store().get_daily_leaderboard(challenge_date, limit)
+    return {"challenge_date": challenge_date, "entries": entries}

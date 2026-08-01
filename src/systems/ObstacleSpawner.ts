@@ -12,6 +12,7 @@ import {
   Difficulty,
   DIFFICULTY_CONFIG,
 } from '../config/constants';
+import type { Rng } from '../config/rng';
 import { ObstacleConfig } from '../entities/Obstacle';
 import { WordSpawner } from './WordSpawner';
 import { SpeedManager } from './SpeedManager';
@@ -22,6 +23,7 @@ export class ObstacleSpawner {
   private wordSpawner: WordSpawner;
   private speedManager: SpeedManager;
   private difficulty: Difficulty = 'easy';
+  private rng: Rng = Math.random;
 
   constructor(wordSpawner: WordSpawner, speedManager: SpeedManager) {
     this.wordSpawner = wordSpawner;
@@ -30,6 +32,10 @@ export class ObstacleSpawner {
 
   setDifficulty(difficulty: Difficulty): void {
     this.difficulty = difficulty;
+  }
+
+  setRng(rng: Rng | null): void {
+    this.rng = rng ?? Math.random;
   }
 
   canSpawn(currentRightEdge: number): boolean {
@@ -44,7 +50,7 @@ export class ObstacleSpawner {
     const gapMax = tutorial ? diffConfig.gapMax * 1.5 * PLAYER_HEIGHT : diffConfig.gapMax * PLAYER_HEIGHT;
     const gapHeight = this.randomRange(gapMin, gapMax);
     const gapY = this.computeGapY(layout, gapHeight);
-    const obstacleType = OBSTACLE_TYPES[Math.floor(Math.random() * OBSTACLE_TYPES.length)];
+    const obstacleType = OBSTACLE_TYPES[Math.floor(this.rng() * OBSTACLE_TYPES.length)];
 
     const x = tutorial ? CANVAS_WIDTH * 0.6 : CANVAS_WIDTH + 50;
 
@@ -94,8 +100,8 @@ export class ObstacleSpawner {
   }
 
   private pickLayout(): ObstacleLayout {
-    if (Math.random() < SINGLE_OBSTACLE_CHANCE) {
-      return Math.random() < 0.5 ? ObstacleLayout.UpperOnly : ObstacleLayout.LowerOnly;
+    if (this.rng() < SINGLE_OBSTACLE_CHANCE) {
+      return this.rng() < 0.5 ? ObstacleLayout.UpperOnly : ObstacleLayout.LowerOnly;
     }
     return ObstacleLayout.UpperLower;
   }
@@ -114,6 +120,6 @@ export class ObstacleSpawner {
   }
 
   private randomRange(min: number, max: number): number {
-    return min + Math.random() * (max - min);
+    return min + this.rng() * (max - min);
   }
 }

@@ -1,9 +1,18 @@
 import type { Difficulty } from '../config/constants';
+import type { GameMode } from '../config/daily';
 import { apiUrl } from '../config/api';
 
 export interface RunSession {
   run_id: string;
   expires_at: string;
+  mode?: GameMode;
+  challenge_date?: string;
+}
+
+export interface StartRunOptions {
+  difficulty: Difficulty;
+  mode?: GameMode;
+  challengeDate?: string;
 }
 
 export interface FinishRunPayload {
@@ -17,6 +26,8 @@ export interface FinishRunPayload {
   max_combo: number;
   duration_sec: number;
   best_word: string;
+  mode?: GameMode;
+  challenge_date?: string;
 }
 
 async function parseJson<T>(response: Response): Promise<T> {
@@ -30,12 +41,20 @@ async function parseJson<T>(response: Response): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export async function startRun(difficulty: Difficulty): Promise<RunSession> {
+export async function startRun(options: StartRunOptions | Difficulty): Promise<RunSession> {
+  const payload = typeof options === 'string'
+    ? { difficulty: options, mode: 'classic' as const, challenge_date: '' }
+    : {
+        difficulty: options.difficulty,
+        mode: options.mode ?? 'classic',
+        challenge_date: options.challengeDate ?? '',
+      };
+
   return parseJson<RunSession>(
     await fetch(apiUrl('/runs/start'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ difficulty }),
+      body: JSON.stringify(payload),
     }),
   );
 }
@@ -44,7 +63,11 @@ export async function finishRun(payload: FinishRunPayload): Promise<boolean> {
   const response = await fetch(apiUrl('/runs/finish'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      ...payload,
+      mode: payload.mode ?? 'classic',
+      challenge_date: payload.challenge_date ?? '',
+    }),
   });
   if (!response.ok) {
     return false;

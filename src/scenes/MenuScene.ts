@@ -2,9 +2,11 @@ import Phaser from 'phaser';
 import { applyRenderZoom, isMobile } from '../config/display';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, Difficulty, SPRITE_KEYS } from '../config/constants';
 import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
+import { DAILY_DIFFICULTY, getUtcChallengeDate } from '../config/daily';
 import { addCrispText } from '../config/text';
 import { hex, darker } from '../config/utils';
 import { playSfx } from '../audio/SoundManager';
+import { DailyBoardPanel } from '../ui/DailyBoardPanel';
 
 export class MenuScene extends Phaser.Scene {
   private selectedDifficulty: Difficulty = 'easy';
@@ -12,6 +14,7 @@ export class MenuScene extends Phaser.Scene {
   private gameInputHandler: ((e: KeyboardEvent) => void) | null = null;
   private keyboardHandler: ((event: KeyboardEvent) => void) | null = null;
   private availableDifficulties: Difficulty[] = ['chill', 'easy', 'medium', 'hard'];
+  private dailyPanel: DailyBoardPanel | null = null;
 
   constructor() {
     super({ key: 'MenuScene' });
@@ -217,6 +220,16 @@ export class MenuScene extends Phaser.Scene {
 
     this.updateHighlight();
 
+    // Right-side daily board (desktop). Hidden on mobile preview layout.
+    if (!isMobile()) {
+      this.dailyPanel = new DailyBoardPanel({
+        scene: this,
+        x: CANVAS_WIDTH - 180,
+        y: 56,
+        onPlayDaily: () => this.startDaily(),
+      });
+    }
+
     if (isMobile()) {
       window.__wordhopper_jump = () => this.startGame();
     }
@@ -250,10 +263,24 @@ export class MenuScene extends Phaser.Scene {
 
   private startGame(): void {
     this.cleanup();
-    this.scene.start('GameScene', { difficulty: this.selectedDifficulty });
+    this.scene.start('GameScene', {
+      difficulty: this.selectedDifficulty,
+      mode: 'classic',
+    });
+  }
+
+  private startDaily(): void {
+    this.cleanup();
+    this.scene.start('GameScene', {
+      difficulty: DAILY_DIFFICULTY,
+      mode: 'daily',
+      challengeDate: getUtcChallengeDate(),
+    });
   }
 
   private cleanup(): void {
+    this.dailyPanel?.destroy();
+    this.dailyPanel = null;
     if (this.keyboardHandler) {
       this.input.keyboard?.off('keydown', this.keyboardHandler);
       this.keyboardHandler = null;

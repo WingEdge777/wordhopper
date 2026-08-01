@@ -5,6 +5,8 @@ import { Difficulty, CANVAS_WIDTH, CANVAS_HEIGHT, SPRITE_KEYS } from '../config/
 import { addCrispText } from '../config/text';
 import { hex, darker } from '../config/utils';
 import { getNickname } from '../config/nickname';
+import type { GameMode } from '../config/daily';
+import { getDailyLocalBest, setDailyLocalBest } from '../config/dailyScores';
 import {
   getLocalBestScore,
   isLocalBestSynced,
@@ -22,6 +24,13 @@ function isCompleteScore(data: DeathData): boolean {
 
 type SyncResult = 'skipped' | 'accepted' | 'rejected';
 
+function getPersonalBest(data: DeathData): number {
+  if (data.mode === 'daily' && data.challengeDate) {
+    return getDailyLocalBest(data.challengeDate);
+  }
+  return getLocalBestScore(data.difficulty);
+}
+
 /** Submit every complete run; server keeps the higher score. */
 function submitRunScore(
   data: DeathData,
@@ -31,6 +40,7 @@ function submitRunScore(
     onResult?.('skipped');
     return;
   }
+  const mode = data.mode ?? 'classic';
   void submitScore({
     run_id: data.runId,
     nickname: getNickname(),
@@ -42,9 +52,10 @@ function submitRunScore(
     max_combo: data.maxCombo,
     duration_sec: data.durationSec,
     best_word: data.bestWord,
+    mode,
+    challenge_date: data.challengeDate ?? '',
   }).then((accepted) => {
-    // Only mark local best synced when this score covers the stored best.
-    if (accepted && data.score >= getLocalBestScore(data.difficulty)) {
+    if (mode === 'classic' && accepted && data.score >= getLocalBestScore(data.difficulty)) {
       markLocalBestSynced(data.difficulty);
     }
     onResult?.(accepted ? 'accepted' : 'rejected');
@@ -63,6 +74,8 @@ export interface DeathData {
   durationSec: number;
   difficulty: Difficulty;
   runId: string | null;
+  mode?: GameMode;
+  challengeDate?: string;
 }
 
 export async function shareResult(data: { title: string; url: string }): Promise<boolean> {
@@ -91,6 +104,8 @@ export class DeathScene extends Phaser.Scene {
   private gameInputHandler: ((e: KeyboardEvent) => void) | null = null;
   private keyboardHandler: ((event: KeyboardEvent) => void) | null = null;
   private difficulty: Difficulty = 'easy';
+  private mode: GameMode = 'classic';
+  private challengeDate = '';
   private deathData: DeathData | null = null;
   private shareURL = '';
   private toastText: Phaser.GameObjects.Text | null = null;
@@ -102,6 +117,10 @@ export class DeathScene extends Phaser.Scene {
   create(data: DeathData): void {
     applyRenderZoom(this);
     this.difficulty = data.difficulty;
+    this.mode = data.mode === 'daily' ? 'daily' : 'classic';
+    this.challengeDate = data.challengeDate ?? '';
+    data.mode = this.mode;
+    data.challengeDate = this.challengeDate;
     this.deathData = data;
     this.shareURL = buildShareURL({
       score: data.score,
@@ -181,15 +200,21 @@ export class DeathScene extends Phaser.Scene {
       fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(10);
 
-    const cached = getCachedLeaderboard(data.difficulty);
-    if (cached) {
-      reconcileLocalBestFromEntries(data.difficulty, getNickname(), cached.entries);
+    if (this.mode === 'classic') {
+      const cached = getCachedLeaderboard(data.difficulty);
+      if (cached) {
+        reconcileLocalBestFromEntries(data.difficulty, getNickname(), cached.entries);
+      }
     }
 
-    const best = getLocalBestScore(data.difficulty);
+    const best = getPersonalBest(data);
     const isNewBest = data.score > best;
     if (isNewBest) {
-      setLocalBestScore(data.difficulty, data.score, data.wpm, data.bestWord);
+      if (this.mode === 'daily' && this.challengeDate) {
+        setDailyLocalBest(this.challengeDate, data.score);
+      } else {
+        setLocalBestScore(data.difficulty, data.score, data.wpm, data.bestWord);
+      }
       playSfx('newBest', 0.65);
     }
     const displayBest = isNewBest ? data.score : best;
@@ -298,8 +323,12 @@ export class DeathScene extends Phaser.Scene {
       || (displayBest > 0 && !isLocalBestSynced(data.difficulty));
 
     if (willUpload) {
-      setSyncHint('Syncing score…');
-    } else if (displayBest > 0 && !isLocalBestSynced(data.difficulty)) {
+      setSyncHint(this.mode === 'daily' ? 'Syncing daily score…' : 'Syncing score…');
+    } else if (
+      this.mode === 'classic'
+      && displayBest > 0
+      && !isLocalBestSynced(data.difficulty)
+    ) {
       setSyncHint('Local BEST not on leaderboard yet');
     } else {
       setSyncHint('');
@@ -307,12 +336,14 @@ export class DeathScene extends Phaser.Scene {
 
     submitRunScore(data, (result) => {
       if (result === 'accepted') {
-        if (data.score >= getLocalBestScore(data.difficulty)) {
-          setSyncHint('Synced to leaderboard');
-          return;
-        }
+        setSyncHint(this.mode === 'daily' ? 'Synced to daily board' : 'Synced to leaderboard');
+        return;
       }
-      if (getLocalBestScore(data.difficulty) > 0 && !isLocalBestSynced(data.difficulty)) {
+      if (
+        this.mode === 'classic'
+        && getLocalBestScore(data.difficulty) > 0
+        && !isLocalBestSynced(data.difficulty)
+      ) {
         setSyncHint('Local BEST not on leaderboard yet');
         return;
       }
@@ -355,7 +386,10 @@ export class DeathScene extends Phaser.Scene {
       }).setOrigin(0.5).setDepth(10);
     });
 
-    addCrispText(this, w / 2, cardsY + cardH + 18, `> ${data.difficulty.toUpperCase()} <`, {
+    const modeLabel = this.mode === 'daily'
+      ? `DAILY ${this.challengeDate.slice(5)} · EASY`
+      : data.difficulty.toUpperCase();
+    addCrispText(this, w / 2, cardsY + cardH + 18, `> ${modeLabel} <`, {
       fontSize: '10px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.TEXT_ON_LIGHT),
@@ -428,7 +462,11 @@ export class DeathScene extends Phaser.Scene {
 
   private retry(): void {
     this.cleanup();
-    this.scene.start('GameScene', { difficulty: this.difficulty });
+    this.scene.start('GameScene', {
+      difficulty: this.difficulty,
+      mode: this.mode,
+      challengeDate: this.challengeDate,
+    });
   }
 
   private async share(): Promise<void> {

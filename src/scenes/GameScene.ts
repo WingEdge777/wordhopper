@@ -2,6 +2,14 @@ import Phaser from 'phaser';
 import { applyRenderZoom, isMobile, isIOS } from '../config/display';
 import { Difficulty, DIFFICULTY_CONFIG, PLAYER_X, GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT, GRAVITY, GROUND_HEIGHT, SPRITE_KEYS } from '../config/constants';
 import { COLORS, FONT_BODY, FONT_TYPING, FONT_DISPLAY } from '../config/colors';
+import {
+  DAILY_DIFFICULTY,
+  createDailyRng,
+  getUtcChallengeDate,
+  type GameMode,
+} from '../config/daily';
+import { getDailyLocalBest } from '../config/dailyScores';
+import type { Rng } from '../config/rng';
 import { getTranslation } from '../data/translations';
 import { addCrispText } from '../config/text';
 import { getLocalBestScore } from '../config/localScores';
@@ -14,6 +22,12 @@ import { SpeedManager } from '../systems/SpeedManager';
 import { ObstacleSpawner } from '../systems/ObstacleSpawner';
 import { startRun } from '../api/runs';
 import { playSfx } from '../audio/SoundManager';
+
+export interface GameSceneData {
+  difficulty?: Difficulty;
+  mode?: GameMode;
+  challengeDate?: string;
+}
 
 const DEBUG_HITBOXES = false;
 const TUTORIAL_KEY = 'word-hopper-tutorial-done';
@@ -38,6 +52,9 @@ export class GameScene extends Phaser.Scene {
   private speedManager = new SpeedManager();
   private obstacleSpawner!: ObstacleSpawner;
   private difficulty: Difficulty = 'easy';
+  private mode: GameMode = 'classic';
+  private challengeDate = '';
+  private dailyRng: Rng | null = null;
   private gameInputHandler: ((e: KeyboardEvent) => void) | null = null;
   private inputInputHandler: ((e: InputEvent) => void) | null = null;
   private inputBlurHandler: (() => void) | null = null;
@@ -77,8 +94,17 @@ export class GameScene extends Phaser.Scene {
     super({ key: 'GameScene' });
   }
 
-  init(data: { difficulty: Difficulty }): void {
-    this.difficulty = data.difficulty || 'easy';
+  init(data: GameSceneData = {}): void {
+    this.mode = data.mode === 'daily' ? 'daily' : 'classic';
+    this.challengeDate = this.mode === 'daily'
+      ? (data.challengeDate || getUtcChallengeDate())
+      : '';
+    this.difficulty = this.mode === 'daily'
+      ? DAILY_DIFFICULTY
+      : (data.difficulty || 'easy');
+
+    this.dailyRng = this.mode === 'daily' ? createDailyRng(this.challengeDate) : null;
+    this.wordSpawner.setRng(this.dailyRng);
     this.wordSpawner.loadWords(this.difficulty);
   }
 
@@ -91,7 +117,8 @@ export class GameScene extends Phaser.Scene {
     this.obstacles = [];
     this.typingObstacle = null;
     this.wordReady = false;
-    this.tutorial = isTutorialNeeded();
+    // Daily must share the same seeded sequence — skip first-run tutorial.
+    this.tutorial = this.mode === 'classic' && isTutorialNeeded();
     this.tutorialStarted = false;
     this.scoreSystem.reset();
     this.speedManager.reset();
@@ -99,10 +126,17 @@ export class GameScene extends Phaser.Scene {
     this.typingSystem = new TypingSystem();
     this.obstacleSpawner = new ObstacleSpawner(this.wordSpawner, this.speedManager);
     this.obstacleSpawner.setDifficulty(this.difficulty);
-    this.storedLocalBest = getLocalBestScore(this.difficulty);
+    this.obstacleSpawner.setRng(this.dailyRng);
+    this.storedLocalBest = this.mode === 'daily'
+      ? getDailyLocalBest(this.challengeDate)
+      : getLocalBestScore(this.difficulty);
     this.bestBreathingActive = false;
     this.runId = null;
-    void startRun(this.difficulty).then((session) => {
+    void startRun({
+      difficulty: this.difficulty,
+      mode: this.mode,
+      challengeDate: this.challengeDate,
+    }).then((session) => {
       this.runId = session.run_id;
     }).catch(() => {
       this.runId = null;
@@ -618,6 +652,8 @@ export class GameScene extends Phaser.Scene {
         durationSec: this.elapsedTime,
         difficulty: this.difficulty,
         runId: this.runId,
+        mode: this.mode,
+        challengeDate: this.challengeDate,
       });
     });
   }

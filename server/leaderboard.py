@@ -6,12 +6,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 VALID_DIFFICULTIES = frozenset({"chill", "easy", "medium", "hard"})
+VALID_MODES = frozenset({"classic", "daily"})
 MAX_SCORE = 999_999_999
 MAX_WPM = 300
 MAX_NICKNAME_LEN = 16
 MAX_BEST_WORD_LEN = 32
 DEFAULT_LIMIT = 50
 MAX_LIMIT = 100
+_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 _NICKNAME_RE = re.compile(r"^[\w \-.]+$", re.UNICODE)
 
@@ -32,6 +34,20 @@ def normalize_difficulty(raw: str) -> str | None:
     if difficulty not in VALID_DIFFICULTIES:
         return None
     return difficulty
+
+
+def normalize_mode(raw: str) -> str | None:
+    mode = raw.strip().lower()
+    if mode not in VALID_MODES:
+        return None
+    return mode
+
+
+def normalize_challenge_date(raw: str) -> str | None:
+    date = raw.strip()
+    if not _DATE_RE.match(date):
+        return None
+    return date
 
 
 def normalize_score(score: int) -> int | None:
@@ -83,6 +99,25 @@ class LeaderboardStore:
                 """
                 CREATE INDEX IF NOT EXISTS idx_leaderboard_board
                 ON leaderboard (difficulty, score DESC, updated_at ASC)
+                """
+            )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS daily_leaderboard (
+                    challenge_date TEXT NOT NULL,
+                    nickname TEXT NOT NULL,
+                    score INTEGER NOT NULL,
+                    wpm INTEGER NOT NULL DEFAULT 0,
+                    best_word TEXT NOT NULL DEFAULT '',
+                    updated_at TEXT NOT NULL,
+                    PRIMARY KEY (challenge_date, nickname)
+                )
+                """
+            )
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_daily_leaderboard_board
+                ON daily_leaderboard (challenge_date, score DESC, updated_at ASC)
                 """
             )
 
@@ -197,6 +232,90 @@ class LeaderboardStore:
                 LIMIT ?
                 """,
                 (difficulty, safe_limit),
+            ).fetchall()
+
+        return [
+            {
+                "rank": index,
+                "nickname": row["nickname"],
+                "score": row["score"],
+                "wpm": row["wpm"],
+                "best_word": row["best_word"],
+                "updated_at": row["updated_at"],
+            }
+            for index, row in enumerate(rows, start=1)
+        ]
+
+    def upsert_daily_score(
+        self,
+        challenge_date: str,
+        nickname: str,
+        score: int,
+        wpm: int,
+        best_word: str = "",
+    ) -> bool:
+        with self._connect() as conn:
+            row = conn.execute(
+                """
+                SELECT score, wpm, best_word FROM daily_leaderboard
+                WHERE challenge_date = ? AND nickname = ?
+                """,
+                (challenge_date, nickname),
+            ).fetchone()
+            if row:
+                if row["score"] > score:
+                    return False
+                if row["score"] == score:
+                    improved_wpm = wpm > row["wpm"] or (row["wpm"] == 0 and wpm > 0)
+                    improved_word = len(best_word) > len(row["best_word"] or "")
+                    if not improved_wpm and not improved_word:
+                        return False
+                    conn.execute(
+                        """
+                        UPDATE daily_leaderboard
+                        SET wpm = ?, best_word = ?, updated_at = ?
+                        WHERE challenge_date = ? AND nickname = ?
+                        """,
+                        (
+                            max(wpm, row["wpm"]),
+                            best_word or row["best_word"],
+                            _utc_now(),
+                            challenge_date,
+                            nickname,
+                        ),
+                    )
+                    return True
+
+            conn.execute(
+                """
+                INSERT INTO daily_leaderboard
+                    (challenge_date, nickname, score, wpm, best_word, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(challenge_date, nickname) DO UPDATE SET
+                    score = excluded.score,
+                    wpm = excluded.wpm,
+                    best_word = excluded.best_word,
+                    updated_at = excluded.updated_at
+                WHERE excluded.score > daily_leaderboard.score
+                """,
+                (challenge_date, nickname, score, wpm, best_word, _utc_now()),
+            )
+            return True
+
+    def get_daily_leaderboard(
+        self, challenge_date: str, limit: int = DEFAULT_LIMIT
+    ) -> list[dict[str, object]]:
+        safe_limit = max(1, min(limit, MAX_LIMIT))
+        with self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT nickname, score, wpm, best_word, updated_at
+                FROM daily_leaderboard
+                WHERE challenge_date = ?
+                ORDER BY score DESC, updated_at ASC
+                LIMIT ?
+                """,
+                (challenge_date, safe_limit),
             ).fetchall()
 
         return [

@@ -1,4 +1,6 @@
 import { Difficulty } from '../config/constants';
+import type { Rng } from '../config/rng';
+import { shuffleWithRng } from '../config/rng';
 import easyWords from '../data/words-easy.json';
 import mediumWords from '../data/words-medium.json';
 import hardWords from '../data/words-hard.json';
@@ -31,6 +33,11 @@ export class WordSpawner {
   private lastPicked = '';
   private difficulty: Difficulty = 'easy';
   private obstaclesCleared = 0;
+  private rng: Rng = Math.random;
+
+  setRng(rng: Rng | null): void {
+    this.rng = rng ?? Math.random;
+  }
 
   loadWords(difficulty: Difficulty): void {
     this.difficulty = difficulty;
@@ -84,7 +91,7 @@ export class WordSpawner {
     }
     if (!word) {
       const fallback = this.getPool().filter(matches);
-      word = fallback[Math.floor(Math.random() * fallback.length)] || this.words[0] || '';
+      word = fallback[Math.floor(this.rng() * fallback.length)] || this.words[0] || '';
     }
 
     this.lastPicked = word;
@@ -92,17 +99,9 @@ export class WordSpawner {
   }
 
   private reshuffleDeck(): void {
-    this.deck = this.shuffle([...this.getPool()]);
+    this.deck = shuffleWithRng([...this.getPool()], this.rng);
     if (this.lastPicked && this.deck.length > 1 && this.deck[0] === this.lastPicked) {
       [this.deck[0], this.deck[1]] = [this.deck[1], this.deck[0]];
     }
-  }
-
-  private shuffle(items: string[]): string[] {
-    for (let i = items.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [items[i], items[j]] = [items[j], items[i]];
-    }
-    return items;
   }
 }

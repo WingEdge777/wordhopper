@@ -27,7 +27,33 @@ describe('runs api', () => {
 
     const session = await startRun('easy');
     expect(session.run_id).toBe('run-1');
-    expect(fetch).toHaveBeenCalledWith('/api/runs/start', expect.objectContaining({ method: 'POST' }));
+    expect(fetch).toHaveBeenCalledWith('/api/runs/start', expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({ difficulty: 'easy', mode: 'classic', challenge_date: '' }),
+    }));
+  });
+
+  it('starts a daily run session', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(jsonResponse({
+      run_id: 'run-daily',
+      expires_at: '2099-01-01T00:00:00+00:00',
+      mode: 'daily',
+      challenge_date: '2026-08-07',
+    }));
+
+    const session = await startRun({
+      difficulty: 'easy',
+      mode: 'daily',
+      challengeDate: '2026-08-07',
+    });
+    expect(session.run_id).toBe('run-daily');
+    expect(fetch).toHaveBeenCalledWith('/api/runs/start', expect.objectContaining({
+      body: JSON.stringify({
+        difficulty: 'easy',
+        mode: 'daily',
+        challenge_date: '2026-08-07',
+      }),
+    }));
   });
 
   it('finishes a run session', async () => {

@@ -1,6 +1,8 @@
 import type { Difficulty } from '../config/constants';
 import { apiUrl } from '../config/api';
 import { finishRun } from './runs';
+import { invalidateDailyLeaderboardCache } from './daily';
+import type { GameMode } from '../config/daily';
 import {
   getUnsyncedLocalBests,
   markLocalBestSynced,
@@ -32,6 +34,8 @@ export interface SubmitScorePayload {
   max_combo: number;
   duration_sec: number;
   best_word: string;
+  mode?: GameMode;
+  challenge_date?: string;
 }
 
 const CACHE_TTL_MS = 60_000;
@@ -113,6 +117,7 @@ export async function prefetchLeaderboards(
 }
 
 export async function submitScore(payload: SubmitScorePayload): Promise<boolean> {
+  const mode = payload.mode ?? 'classic';
   const accepted = await finishRun({
     run_id: payload.run_id,
     nickname: payload.nickname,
@@ -124,9 +129,15 @@ export async function submitScore(payload: SubmitScorePayload): Promise<boolean>
     max_combo: payload.max_combo,
     duration_sec: payload.duration_sec,
     best_word: payload.best_word,
+    mode,
+    challenge_date: payload.challenge_date ?? '',
   });
   if (accepted) {
-    invalidateLeaderboardCache(payload.difficulty);
+    if (mode === 'daily') {
+      invalidateDailyLeaderboardCache();
+    } else {
+      invalidateLeaderboardCache(payload.difficulty);
+    }
   }
   return accepted;
 }
