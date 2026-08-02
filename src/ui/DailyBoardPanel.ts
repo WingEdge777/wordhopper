@@ -8,10 +8,10 @@ import { fetchDailyLeaderboard } from '../api/daily';
 import type { LeaderboardEntry } from '../api/leaderboard';
 import { playSfx } from '../audio/SoundManager';
 
-const PANEL_W = 168;
-const PANEL_H = 320;
+export const DAILY_PANEL_W = 176;
+export const DAILY_PANEL_H = 292;
 const ROW_H = 22;
-const MAX_ROWS = 8;
+const MAX_ROWS = 6;
 
 export interface DailyBoardPanelOptions {
   scene: Phaser.Scene;
@@ -21,8 +21,7 @@ export interface DailyBoardPanelOptions {
 }
 
 /**
- * Right-side daily leaderboard overlay for the menu canvas.
- * Independent of the centered classic difficulty column.
+ * Menu-right daily board — same muted pill language as difficulty rows.
  */
 export class DailyBoardPanel {
   private readonly scene: Phaser.Scene;
@@ -41,21 +40,21 @@ export class DailyBoardPanel {
     this.root = this.scene.add.container(x, y).setDepth(20);
 
     const bg = this.scene.add.graphics();
-    bg.fillStyle(COLORS.SURFACE, 0.92);
-    bg.fillRoundedRect(0, 0, PANEL_W, PANEL_H, 14);
-    bg.lineStyle(1.5, COLORS.PRIMARY, 0.25);
-    bg.strokeRoundedRect(0, 0, PANEL_W, PANEL_H, 14);
+    bg.fillStyle(COLORS.MUTED_DARK, 0.55);
+    bg.fillRoundedRect(0, 0, DAILY_PANEL_W, DAILY_PANEL_H, 14);
+    bg.lineStyle(1.5, COLORS.PRIMARY, 0.18);
+    bg.strokeRoundedRect(0, 0, DAILY_PANEL_W, DAILY_PANEL_H, 14);
     this.root.add(bg);
 
-    const title = addCrispText(this.scene, PANEL_W / 2, 16, formatDailyTitle(this.challengeDate), {
-      fontSize: '14px',
+    const title = addCrispText(this.scene, DAILY_PANEL_W / 2, 18, formatDailyTitle(this.challengeDate), {
+      fontSize: '16px',
       fontFamily: FONT_DISPLAY,
       color: hex(COLORS.PRIMARY),
       fontStyle: 'bold',
     }).setOrigin(0.5);
     this.root.add(title);
 
-    const subtitle = addCrispText(this.scene, PANEL_W / 2, 34, 'EASY · same words today', {
+    const subtitle = addCrispText(this.scene, DAILY_PANEL_W / 2, 36, 'EASY · shared seed', {
       fontSize: '9px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.TEXT_MUTED),
@@ -63,8 +62,9 @@ export class DailyBoardPanel {
     }).setOrigin(0.5);
     this.root.add(subtitle);
 
+    const listTop = 56;
     for (let i = 0; i < MAX_ROWS; i++) {
-      const row = addCrispText(this.scene, 10, 52 + i * ROW_H, '', {
+      const row = addCrispText(this.scene, 12, listTop + i * ROW_H, '', {
         fontSize: '11px',
         fontFamily: FONT_BODY,
         color: hex(COLORS.TEXT_ON_LIGHT),
@@ -74,15 +74,21 @@ export class DailyBoardPanel {
       this.root.add(row);
     }
 
-    this.statusText = addCrispText(this.scene, PANEL_W / 2, 52 + MAX_ROWS * ROW_H + 4, 'Loading…', {
-      fontSize: '10px',
-      fontFamily: FONT_BODY,
-      color: hex(COLORS.TEXT_MUTED),
-      fontStyle: 'bold',
-    }).setOrigin(0.5);
+    this.statusText = addCrispText(
+      this.scene,
+      DAILY_PANEL_W / 2,
+      listTop + MAX_ROWS * ROW_H + 2,
+      'Loading…',
+      {
+        fontSize: '10px',
+        fontFamily: FONT_BODY,
+        color: hex(COLORS.TEXT_MUTED),
+        fontStyle: 'bold',
+      },
+    ).setOrigin(0.5);
     this.root.add(this.statusText);
 
-    this.selfText = addCrispText(this.scene, PANEL_W / 2, PANEL_H - 52, '', {
+    this.selfText = addCrispText(this.scene, DAILY_PANEL_W / 2, DAILY_PANEL_H - 54, '', {
       fontSize: '10px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.PRIMARY),
@@ -90,24 +96,33 @@ export class DailyBoardPanel {
     }).setOrigin(0.5);
     this.root.add(this.selfText);
 
+    // Match classic "TYPE + SPACE" accent chip — not a solid primary brick.
     const playBg = this.scene.add.graphics();
-    playBg.fillStyle(COLORS.PRIMARY, 1);
-    playBg.fillRoundedRect(14, PANEL_H - 36, PANEL_W - 28, 26, 10);
+    playBg.fillStyle(COLORS.ACCENT, 0.14);
+    playBg.fillRoundedRect(12, DAILY_PANEL_H - 38, DAILY_PANEL_W - 24, 28, 10);
     this.root.add(playBg);
 
-    const playLabel = addCrispText(this.scene, PANEL_W / 2, PANEL_H - 23, 'PLAY DAILY', {
+    const playLabel = addCrispText(this.scene, DAILY_PANEL_W / 2, DAILY_PANEL_H - 24, '> PLAY DAILY <', {
       fontSize: '12px',
       fontFamily: FONT_BODY,
-      color: '#FFFFFF',
+      color: hex(COLORS.ACCENT),
       fontStyle: 'bold',
     }).setOrigin(0.5);
     this.root.add(playLabel);
 
+    this.scene.tweens.add({
+      targets: playLabel,
+      alpha: 0.35,
+      duration: 900,
+      yoyo: true,
+      repeat: -1,
+    });
+
     const hit = this.scene.add.rectangle(
-      PANEL_W / 2,
-      PANEL_H - 23,
-      PANEL_W - 28,
-      26,
+      DAILY_PANEL_W / 2,
+      DAILY_PANEL_H - 24,
+      DAILY_PANEL_W - 24,
+      28,
       0x000000,
       0,
     ).setInteractive({ useHandCursor: true });
@@ -134,9 +149,9 @@ export class DailyBoardPanel {
       this.render(data.entries);
     } catch {
       if (this.destroyed) return;
-      this.statusText.setText('Board offline');
+      this.statusText.setText('Be the first today!');
       for (const row of this.listTexts) row.setText('');
-      this.selfText.setText('');
+      this.selfText.setText('You · —');
     }
   }
 
@@ -149,18 +164,26 @@ export class DailyBoardPanel {
         row.setText('');
         continue;
       }
-      const medal = entry.rank === 1 ? '🥇' : entry.rank === 2 ? '🥈' : entry.rank === 3 ? '🥉' : `#${entry.rank}`;
-      const name = entry.nickname.length > 9
-        ? `${entry.nickname.slice(0, 8)}…`
+      const medal = entry.rank === 1
+        ? '🥇'
+        : entry.rank === 2
+          ? '🥈'
+          : entry.rank === 3
+            ? '🥉'
+            : `#${entry.rank}`;
+      const name = entry.nickname.length > 8
+        ? `${entry.nickname.slice(0, 7)}…`
         : entry.nickname;
       row.setText(`${medal} ${name}  ${entry.score}`);
-      row.setColor(entry.nickname === nickname ? hex(COLORS.PRIMARY) : hex(COLORS.TEXT_ON_LIGHT));
+      row.setColor(
+        entry.nickname === nickname ? hex(COLORS.PRIMARY) : hex(COLORS.TEXT_ON_LIGHT),
+      );
     }
 
     this.statusText.setText(
       entries.length === 0
         ? 'Be the first today!'
-        : `${entries.length} player${entries.length === 1 ? '' : 's'}`,
+        : `${entries.length} today`,
     );
 
     const mine = entries.find((entry) => entry.nickname === nickname);
