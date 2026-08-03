@@ -392,7 +392,7 @@ body.ios-layout {
 
 .lb-tabs {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 6px;
   padding: 0 16px 12px;
 }
@@ -403,9 +403,9 @@ body.ios-layout {
   background: rgba(236, 253, 245, 0.8);
   color: #166534;
   font-family: Quicksand, sans-serif;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  padding: 8px 4px;
+  padding: 8px 2px;
   cursor: pointer;
 }
 

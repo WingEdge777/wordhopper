@@ -1,6 +1,8 @@
 import type { Difficulty } from '../config/constants';
+import { formatDailyTitle, getUtcChallengeDate } from '../config/daily';
 import { getNickname } from '../config/nickname';
 import { reconcileLocalBestFromEntries } from '../config/localScores';
+import { fetchDailyLeaderboard } from '../api/daily';
 import {
   getCachedLeaderboard,
   isLeaderboardCacheFresh,
@@ -11,11 +13,17 @@ import {
 import { playSfx } from '../audio/SoundManager';
 
 const DIFFICULTIES: Difficulty[] = ['chill', 'easy', 'medium', 'hard'];
+export type LeaderboardTab = 'daily' | Difficulty;
+
+const ALL_TABS: LeaderboardTab[] = ['daily', ...DIFFICULTIES];
 
 /** Inject overlay markup when a cached index.html predates the leaderboard UI. */
 export function ensureLeaderboardDom(): HTMLElement {
   const existing = document.getElementById('leaderboard-panel');
-  if (existing) return existing;
+  if (existing) {
+    ensureDailyTab(existing);
+    return existing;
+  }
 
   const panel = document.createElement('div');
   panel.id = 'leaderboard-panel';
@@ -48,20 +56,20 @@ export function ensureLeaderboardDom(): HTMLElement {
   const tabs = document.createElement('div');
   tabs.className = 'lb-tabs';
   tabs.setAttribute('role', 'tablist');
-  tabs.setAttribute('aria-label', 'Difficulty');
+  tabs.setAttribute('aria-label', 'Leaderboard boards');
 
-  for (const difficulty of DIFFICULTIES) {
-    const tab = document.createElement('button');
-    tab.type = 'button';
-    tab.className = 'lb-tab';
-    tab.dataset.lbDifficulty = difficulty;
-    tab.setAttribute('role', 'tab');
-    tab.textContent = difficulty.toUpperCase();
-    if (difficulty === 'easy') {
-      tab.classList.add('active');
-      tab.setAttribute('aria-selected', 'true');
+  for (const tab of ALL_TABS) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'lb-tab';
+    button.dataset.lbTab = tab;
+    button.setAttribute('role', 'tab');
+    button.textContent = tab === 'daily' ? 'DAILY' : tab.toUpperCase();
+    if (tab === 'easy') {
+      button.classList.add('active');
+      button.setAttribute('aria-selected', 'true');
     }
-    tabs.appendChild(tab);
+    tabs.appendChild(button);
   }
 
   const listHead = document.createElement('div');
@@ -87,10 +95,31 @@ export function ensureLeaderboardDom(): HTMLElement {
   return panel;
 }
 
+function ensureDailyTab(panel: HTMLElement): void {
+  if (typeof panel.querySelector !== 'function') return;
+  const tabs = panel.querySelector('.lb-tabs');
+  if (!tabs || tabs.querySelector('[data-lb-tab="daily"]')) return;
+
+  // Migrate legacy difficulty-only tabs.
+  tabs.querySelectorAll<HTMLButtonElement>('[data-lb-difficulty]').forEach((tab) => {
+    if (!tab.dataset.lbTab) {
+      tab.dataset.lbTab = tab.dataset.lbDifficulty;
+    }
+  });
+
+  const daily = document.createElement('button');
+  daily.type = 'button';
+  daily.className = 'lb-tab';
+  daily.dataset.lbTab = 'daily';
+  daily.setAttribute('role', 'tab');
+  daily.textContent = 'DAILY';
+  tabs.insertBefore(daily, tabs.firstChild);
+}
+
 let panel: HTMLElement | null = null;
 let listEl: HTMLElement | null = null;
 let statusEl: HTMLElement | null = null;
-let activeDifficulty: Difficulty = 'easy';
+let activeTab: LeaderboardTab = 'easy';
 let isOpen = false;
 let loadToken = 0;
 let prefetchStarted = false;
@@ -122,16 +151,20 @@ function setStatus(message: string): void {
   }
 }
 
-function renderEntries(entries: LeaderboardEntry[]): void {
+function renderEntries(entries: LeaderboardEntry[], options?: { reconcileDifficulty?: Difficulty }): void {
   if (!listEl) return;
 
-  reconcileLocalBestFromEntries(activeDifficulty, getNickname(), entries);
+  if (options?.reconcileDifficulty) {
+    reconcileLocalBestFromEntries(options.reconcileDifficulty, getNickname(), entries);
+  }
 
   listEl.replaceChildren();
   if (entries.length === 0) {
     const empty = document.createElement('li');
     empty.className = 'lb-empty-row';
-    empty.textContent = 'No scores yet. Be the first!';
+    empty.textContent = activeTab === 'daily'
+      ? 'No daily scores yet. Be the first!'
+      : 'No scores yet. Be the first!';
     listEl.appendChild(empty);
     return;
   }
@@ -182,18 +215,25 @@ function renderEntries(entries: LeaderboardEntry[]): void {
 function showCachedEntries(difficulty: Difficulty): boolean {
   const cached = getCachedLeaderboard(difficulty);
   if (!cached) return false;
-  renderEntries(cached.entries);
+  renderEntries(cached.entries, { reconcileDifficulty: difficulty });
   setStatus(`${cached.entries.length} player${cached.entries.length === 1 ? '' : 's'}`);
   return true;
 }
 
 function updateTabs(): void {
-  const tabs = document.querySelectorAll<HTMLButtonElement>('[data-lb-difficulty]');
+  const tabs = document.querySelectorAll<HTMLButtonElement>('[data-lb-tab]');
   tabs.forEach((tab) => {
-    const selected = tab.dataset.lbDifficulty === activeDifficulty;
+    const selected = tab.dataset.lbTab === activeTab;
     tab.classList.toggle('active', selected);
     tab.setAttribute('aria-selected', selected ? 'true' : 'false');
   });
+
+  const title = document.getElementById('lb-title');
+  if (title) {
+    title.textContent = activeTab === 'daily'
+      ? formatDailyTitle(getUtcChallengeDate())
+      : 'Leaderboard';
+  }
 }
 
 function warmRemainingLeaderboards(current: Difficulty): void {
@@ -203,9 +243,38 @@ function warmRemainingLeaderboards(current: Difficulty): void {
   void prefetchLeaderboards(getNickname(), others);
 }
 
-async function loadLeaderboard(difficulty: Difficulty): Promise<void> {
+async function loadDailyBoard(): Promise<void> {
   const token = ++loadToken;
-  activeDifficulty = difficulty;
+  activeTab = 'daily';
+  updateTabs();
+  setStatus('Loading...');
+  if (listEl) listEl.replaceChildren();
+
+  try {
+    const data = await fetchDailyLeaderboard(getUtcChallengeDate(), 50, { refresh: true });
+    if (!isOpen || token !== loadToken) return;
+    renderEntries(data.entries);
+    setStatus(
+      data.entries.length === 0
+        ? 'Be the first today!'
+        : `${data.entries.length} player${data.entries.length === 1 ? '' : 's'} today`,
+    );
+  } catch {
+    if (!isOpen || token !== loadToken) return;
+    setStatus('Could not load daily board');
+    if (listEl) {
+      listEl.replaceChildren();
+      const error = document.createElement('li');
+      error.className = 'lb-empty-row';
+      error.textContent = 'Server unavailable. Try again later.';
+      listEl.appendChild(error);
+    }
+  }
+}
+
+async function loadClassicBoard(difficulty: Difficulty): Promise<void> {
+  const token = ++loadToken;
+  activeTab = difficulty;
   updateTabs();
 
   const hasFreshCache = isLeaderboardCacheFresh(difficulty);
@@ -227,7 +296,7 @@ async function loadLeaderboard(difficulty: Difficulty): Promise<void> {
       { refresh: !hasFreshCache },
     );
     if (!isOpen || token !== loadToken) return;
-    renderEntries(data.entries);
+    renderEntries(data.entries, { reconcileDifficulty: difficulty });
     setStatus(`${data.entries.length} player${data.entries.length === 1 ? '' : 's'}`);
     warmRemainingLeaderboards(difficulty);
   } catch {
@@ -245,6 +314,14 @@ async function loadLeaderboard(difficulty: Difficulty): Promise<void> {
   }
 }
 
+async function loadBoard(tab: LeaderboardTab): Promise<void> {
+  if (tab === 'daily') {
+    await loadDailyBoard();
+    return;
+  }
+  await loadClassicBoard(tab);
+}
+
 export function closeLeaderboard(): void {
   const element = getPanel();
   if (!element || !isOpen) return;
@@ -257,7 +334,7 @@ export function closeLeaderboard(): void {
   playSfx('ui', 0.35);
 }
 
-export function openLeaderboard(difficulty: Difficulty = activeDifficulty): void {
+export function openLeaderboard(tab: LeaderboardTab = activeTab): void {
   const element = getPanel();
   if (!element) return;
 
@@ -270,7 +347,7 @@ export function openLeaderboard(difficulty: Difficulty = activeDifficulty): void
   if (!wasOpen) {
     playSfx('ui', 0.35);
   }
-  void loadLeaderboard(difficulty);
+  void loadBoard(tab);
 }
 
 export function setupLeaderboardOverlay(): void {
@@ -287,13 +364,25 @@ export function setupLeaderboardOverlay(): void {
     event.stopPropagation();
   });
 
-  document.querySelectorAll<HTMLButtonElement>('[data-lb-difficulty]').forEach((tab) => {
-    tab.addEventListener('click', () => {
-      const difficulty = tab.dataset.lbDifficulty as Difficulty | undefined;
-      if (!difficulty || !DIFFICULTIES.includes(difficulty)) return;
-      if (difficulty === activeDifficulty) return;
+  document.querySelectorAll<HTMLButtonElement>('[data-lb-tab]').forEach((tabBtn) => {
+    tabBtn.addEventListener('click', () => {
+      const tab = tabBtn.dataset.lbTab as LeaderboardTab | undefined;
+      if (!tab || !ALL_TABS.includes(tab)) return;
+      if (tab === activeTab) return;
       playSfx('ui', 0.35);
-      void loadLeaderboard(difficulty);
+      void loadBoard(tab);
+    });
+  });
+
+  // Legacy difficulty tabs (cached index.html).
+  document.querySelectorAll<HTMLButtonElement>('[data-lb-difficulty]').forEach((tabBtn) => {
+    if (tabBtn.dataset.lbTab) return;
+    tabBtn.addEventListener('click', () => {
+      const difficulty = tabBtn.dataset.lbDifficulty as Difficulty | undefined;
+      if (!difficulty || !DIFFICULTIES.includes(difficulty)) return;
+      if (difficulty === activeTab) return;
+      playSfx('ui', 0.35);
+      void loadClassicBoard(difficulty);
     });
   });
 
@@ -305,8 +394,8 @@ export function setupLeaderboardOverlay(): void {
     }
   });
 
-  window.__wordhopper_showLeaderboard = (difficulty?: Difficulty) => {
-    openLeaderboard(difficulty ?? activeDifficulty);
+  window.__wordhopper_showLeaderboard = (tab?: LeaderboardTab) => {
+    openLeaderboard(tab ?? (activeTab === 'daily' ? 'easy' : activeTab));
   };
   window.__wordhopper_closeLeaderboard = closeLeaderboard;
 }

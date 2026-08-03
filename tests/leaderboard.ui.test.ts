@@ -15,7 +15,8 @@ describe('leaderboard ui', () => {
     expect(panel.id).toBe('leaderboard-panel');
     expect(document.getElementById('lb-list')).not.toBeNull();
     expect(document.getElementById('lb-status')).not.toBeNull();
-    expect(document.querySelectorAll('[data-lb-difficulty]')).toHaveLength(4);
+    expect(document.querySelectorAll('[data-lb-tab]')).toHaveLength(5);
+    expect(document.querySelector('[data-lb-tab="daily"]')).not.toBeNull();
   });
 
   it('reuses existing overlay markup', () => {

@@ -2,11 +2,11 @@ import Phaser from 'phaser';
 import { applyRenderZoom, isMobile } from '../config/display';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, Difficulty, SPRITE_KEYS } from '../config/constants';
 import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
-import { DAILY_DIFFICULTY, getUtcChallengeDate } from '../config/daily';
+import { DAILY_DIFFICULTY, formatDailyTitle, getUtcChallengeDate } from '../config/daily';
 import { addCrispText } from '../config/text';
 import { hex, darker } from '../config/utils';
+import { fetchDailyLeaderboard } from '../api/daily';
 import { playSfx } from '../audio/SoundManager';
-import { DailyBoardPanel, DAILY_PANEL_W } from '../ui/DailyBoardPanel';
 
 export class MenuScene extends Phaser.Scene {
   private selectedDifficulty: Difficulty = 'easy';
@@ -14,7 +14,7 @@ export class MenuScene extends Phaser.Scene {
   private gameInputHandler: ((e: KeyboardEvent) => void) | null = null;
   private keyboardHandler: ((event: KeyboardEvent) => void) | null = null;
   private availableDifficulties: Difficulty[] = ['chill', 'easy', 'medium', 'hard'];
-  private dailyPanel: DailyBoardPanel | null = null;
+  private dailySummaryText: Phaser.GameObjects.Text | null = null;
 
   constructor() {
     super({ key: 'MenuScene' });
@@ -25,30 +25,22 @@ export class MenuScene extends Phaser.Scene {
     this.selectedDifficulty = 'easy';
     this.difficultyBtns = {} as Record<Difficulty, Phaser.GameObjects.Container>;
     const width = CANVAS_WIDTH;
-    const showDaily = !isMobile();
-    const classicColW = 220;
-    const colGap = 18;
-    // Twin-column block: classic + daily share one centered composition.
-    const blockW = showDaily ? classicColW + colGap + DAILY_PANEL_W : classicColW;
-    const blockLeft = (width - blockW) / 2;
-    const cx = blockLeft + classicColW / 2;
-    const dailyX = blockLeft + classicColW + colGap;
+    const cx = width / 2;
 
-    this.add.image(width / 2, CANVAS_HEIGHT / 2, SPRITE_KEYS.BG_SKY)
+    this.add.image(cx, CANVAS_HEIGHT / 2, SPRITE_KEYS.BG_SKY)
       .setDisplaySize(width, CANVAS_HEIGHT).setDepth(0);
 
     const titleBgY = 36;
     const titleBgH = 48;
-    const titleW = showDaily ? 220 : 260;
     const titleBg = this.add.graphics();
     titleBg.fillStyle(COLORS.PRIMARY, 1);
-    titleBg.fillRoundedRect(cx - titleW / 2, titleBgY, titleW, titleBgH, 14);
+    titleBg.fillRoundedRect(cx - 130, titleBgY, 260, titleBgH, 14);
     titleBg.fillStyle(darker(COLORS.PRIMARY, 0.15), 1);
-    titleBg.fillRoundedRect(cx - titleW / 2 + 2, titleBgY + titleBgH / 2, titleW - 4, titleBgH / 2, 12);
+    titleBg.fillRoundedRect(cx - 128, titleBgY + titleBgH / 2, 256, titleBgH / 2, 12);
     titleBg.setDepth(4);
 
     addCrispText(this, cx, titleBgY + titleBgH / 2, 'Word Hopper', {
-      fontSize: showDaily ? '30px' : '36px',
+      fontSize: '36px',
       fontFamily: FONT_DISPLAY,
       color: '#FFFFFF',
       fontStyle: 'bold',
@@ -57,28 +49,27 @@ export class MenuScene extends Phaser.Scene {
 
     const subtitleBgY = titleBgY + titleBgH + 14;
     const subtitleBgH = 24;
-    const subtitleW = showDaily ? 220 : 240;
     const subtitleGfx = this.add.graphics();
     subtitleGfx.fillStyle(COLORS.MUTED_DARK, 0.7);
-    subtitleGfx.fillRoundedRect(cx - subtitleW / 2, subtitleBgY, subtitleW, subtitleBgH, 12);
+    subtitleGfx.fillRoundedRect(cx - 120, subtitleBgY, 240, subtitleBgH, 12);
     subtitleGfx.setDepth(3);
 
     addCrispText(this, cx, subtitleBgY + subtitleBgH / 2, 'Type to survive. Jump to thrive.', {
-      fontSize: showDaily ? '13px' : '15px',
+      fontSize: '15px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.TEXT_ON_LIGHT),
       fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(5);
 
-    const liuY = subtitleBgY + subtitleBgH + 36;
+    const liuY = subtitleBgY + subtitleBgH + 28;
     const mound = this.add.graphics();
     mound.fillStyle(COLORS.SECONDARY, 0.15);
-    mound.fillEllipse(cx, liuY + 24, 200, 50);
+    mound.fillEllipse(cx, liuY + 24, 180, 44);
     mound.fillStyle(COLORS.SECONDARY, 0.08);
-    mound.fillEllipse(cx + 20, liuY + 20, 160, 35);
+    mound.fillEllipse(cx + 18, liuY + 18, 140, 30);
 
     const liu = this.add.sprite(cx, liuY, SPRITE_KEYS.PLAYER_RUN);
-    liu.setDisplaySize(64, 74);
+    liu.setDisplaySize(56, 64);
     liu.setDepth(5);
     liu.play(SPRITE_KEYS.PLAYER_RUN_ANIM);
 
@@ -108,8 +99,8 @@ export class MenuScene extends Phaser.Scene {
       this.selectedDifficulty = 'easy';
     }
 
-    const btnStartY = liuY + 68;
-    const btnStepY = 38;
+    const btnStartY = liuY + 54;
+    const btnStepY = 32;
 
     difficulties.forEach(({ key, label, desc }, i) => {
       const yPos = btnStartY + i * btnStepY;
@@ -152,15 +143,73 @@ export class MenuScene extends Phaser.Scene {
       this.difficultyBtns[key] = container;
     });
 
-    const promptBgH = 48;
-    const promptBgY = btnStartY + difficulties.length * btnStepY + 2;
-    const promptBg = this.add.graphics();
-    promptBg.fillStyle(COLORS.ACCENT, 0.12);
-    promptBg.fillRoundedRect(cx - 110, promptBgY, 220, promptBgH, 12);
-    promptBg.setDepth(4);
+    const rowW = 220;
+    const rowH = 30;
+    const rowGap = 5;
+    let rowY = btnStartY + difficulties.length * btnStepY + 6;
 
-    const startPrompt = addCrispText(this, cx, promptBgY + 14, '> TYPE + SPACE TO PLAY <', {
-      fontSize: '14px',
+    // Row 1: Daily mini strip
+    const dailyBg = this.add.graphics();
+    dailyBg.fillStyle(COLORS.MUTED_DARK, 0.7);
+    dailyBg.fillRoundedRect(cx - rowW / 2, rowY, rowW, rowH, 12);
+    dailyBg.setDepth(4);
+
+    const dailyDate = formatDailyTitle(getUtcChallengeDate());
+    addCrispText(this, cx - 98, rowY + rowH / 2, dailyDate, {
+      fontSize: '12px',
+      fontFamily: FONT_BODY,
+      color: hex(COLORS.PRIMARY),
+      fontStyle: 'bold',
+    }).setOrigin(0, 0.5).setDepth(5);
+
+    this.dailySummaryText = addCrispText(this, cx + 10, rowY + rowH / 2, '…', {
+      fontSize: '11px',
+      fontFamily: FONT_BODY,
+      color: hex(COLORS.TEXT_ON_LIGHT),
+      fontStyle: 'bold',
+    }).setOrigin(0.5, 0.5).setDepth(5);
+
+    const dailyPlay = addCrispText(this, cx + 98, rowY + rowH / 2, 'PLAY', {
+      fontSize: '12px',
+      fontFamily: FONT_BODY,
+      color: hex(COLORS.ACCENT),
+      fontStyle: 'bold',
+    }).setOrigin(1, 0.5).setDepth(5);
+
+    const dailyHit = this.add.rectangle(cx, rowY + rowH / 2, rowW, rowH, 0x000000, 0)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(6);
+    dailyHit.on('pointerover', () => { this.input.setDefaultCursor('pointer'); });
+    dailyHit.on('pointerout', () => { this.input.setDefaultCursor('default'); });
+    dailyHit.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      playSfx('ui', 0.35);
+      const localX = pointer.worldX - (cx - rowW / 2);
+      if (localX > 150) {
+        this.startDaily();
+      } else {
+        window.__wordhopper_showLeaderboard?.('daily');
+      }
+    });
+
+    this.tweens.add({
+      targets: dailyPlay,
+      alpha: 0.35,
+      duration: 900,
+      yoyo: true,
+      repeat: -1,
+    });
+
+    void this.refreshDailyStrip();
+
+    // Row 2: classic play prompt
+    rowY += rowH + rowGap;
+    const playBg = this.add.graphics();
+    playBg.fillStyle(COLORS.ACCENT, 0.12);
+    playBg.fillRoundedRect(cx - rowW / 2, rowY, rowW, rowH, 12);
+    playBg.setDepth(4);
+
+    const startPrompt = addCrispText(this, cx, rowY + rowH / 2, '> TYPE + SPACE TO PLAY <', {
+      fontSize: '13px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.ACCENT),
       fontStyle: 'bold',
@@ -174,8 +223,15 @@ export class MenuScene extends Phaser.Scene {
       repeat: -1,
     });
 
-    const leaderboardPrompt = addCrispText(this, cx, promptBgY + 34, '> LEADERBOARD <', {
-      fontSize: '12px',
+    // Row 3: leaderboard
+    rowY += rowH + rowGap;
+    const lbBg = this.add.graphics();
+    lbBg.fillStyle(COLORS.MUTED_DARK, 0.7);
+    lbBg.fillRoundedRect(cx - rowW / 2, rowY, rowW, rowH, 12);
+    lbBg.setDepth(4);
+
+    const leaderboardPrompt = addCrispText(this, cx, rowY + rowH / 2, '> LEADERBOARD <', {
+      fontSize: '13px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.PRIMARY),
       fontStyle: 'bold',
@@ -184,6 +240,7 @@ export class MenuScene extends Phaser.Scene {
     leaderboardPrompt.on('pointerover', () => { this.input.setDefaultCursor('pointer'); });
     leaderboardPrompt.on('pointerout', () => { this.input.setDefaultCursor('default'); });
     leaderboardPrompt.on('pointerdown', () => {
+      playSfx('ui', 0.35);
       window.__wordhopper_showLeaderboard?.(this.selectedDifficulty);
     });
 
@@ -229,17 +286,23 @@ export class MenuScene extends Phaser.Scene {
 
     this.updateHighlight();
 
-    if (showDaily) {
-      this.dailyPanel = new DailyBoardPanel({
-        scene: this,
-        x: dailyX,
-        y: titleBgY,
-        onPlayDaily: () => this.startDaily(),
-      });
-    }
-
     if (isMobile()) {
       window.__wordhopper_jump = () => this.startGame();
+    }
+  }
+
+  private async refreshDailyStrip(): Promise<void> {
+    if (!this.dailySummaryText) return;
+    try {
+      const data = await fetchDailyLeaderboard(getUtcChallengeDate(), 1, { refresh: true });
+      if (!this.dailySummaryText.active) return;
+      const top = data.entries[0];
+      this.dailySummaryText.setText(
+        top ? `🥇 ${top.nickname} ${top.score}` : 'Be first today',
+      );
+    } catch {
+      if (!this.dailySummaryText?.active) return;
+      this.dailySummaryText.setText('Be first today');
     }
   }
 
@@ -287,8 +350,7 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private cleanup(): void {
-    this.dailyPanel?.destroy();
-    this.dailyPanel = null;
+    this.dailySummaryText = null;
     if (this.keyboardHandler) {
       this.input.keyboard?.off('keydown', this.keyboardHandler);
       this.keyboardHandler = null;
