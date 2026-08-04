@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { applyRenderZoom, isMobile } from '../config/display';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, Difficulty, SPRITE_KEYS } from '../config/constants';
 import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
-import { DAILY_DIFFICULTY, formatDailyTitle, getUtcChallengeDate } from '../config/daily';
+import { DAILY_DIFFICULTY, getUtcChallengeDate } from '../config/daily';
 import { addCrispText } from '../config/text';
 import { hex, darker } from '../config/utils';
 import { fetchDailyLeaderboard } from '../api/daily';
@@ -148,28 +148,27 @@ export class MenuScene extends Phaser.Scene {
     const rowGap = 5;
     let rowY = btnStartY + difficulties.length * btnStepY + 6;
 
-    // Row 1: Daily mini strip
+    // Row 1: Daily — same layout language as difficulty rows.
     const dailyBg = this.add.graphics();
     dailyBg.fillStyle(COLORS.MUTED_DARK, 0.7);
     dailyBg.fillRoundedRect(cx - rowW / 2, rowY, rowW, rowH, 12);
     dailyBg.setDepth(4);
 
-    const dailyDate = formatDailyTitle(getUtcChallengeDate());
-    addCrispText(this, cx - 98, rowY + rowH / 2, dailyDate, {
-      fontSize: '12px',
-      fontFamily: FONT_BODY,
-      color: hex(COLORS.PRIMARY),
-      fontStyle: 'bold',
-    }).setOrigin(0, 0.5).setDepth(5);
-
-    this.dailySummaryText = addCrispText(this, cx + 10, rowY + rowH / 2, '…', {
-      fontSize: '11px',
+    addCrispText(this, cx - 85, rowY + rowH / 2, 'DAILY', {
+      fontSize: '15px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.TEXT_ON_LIGHT),
       fontStyle: 'bold',
-    }).setOrigin(0.5, 0.5).setDepth(5);
+    }).setOrigin(0, 0.5).setDepth(5);
 
-    const dailyPlay = addCrispText(this, cx + 98, rowY + rowH / 2, 'PLAY', {
+    this.dailySummaryText = addCrispText(this, cx + 52, rowY + rowH / 2, '…', {
+      fontSize: '12px',
+      fontFamily: FONT_BODY,
+      color: hex(COLORS.TEXT_MUTED),
+      fontStyle: 'bold',
+    }).setOrigin(1, 0.5).setDepth(5);
+
+    const dailyPlay = addCrispText(this, cx + 85, rowY + rowH / 2, 'PLAY', {
       fontSize: '12px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.ACCENT),
@@ -184,7 +183,7 @@ export class MenuScene extends Phaser.Scene {
     dailyHit.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       playSfx('ui', 0.35);
       const localX = pointer.worldX - (cx - rowW / 2);
-      if (localX > 150) {
+      if (localX > 155) {
         this.startDaily();
       } else {
         window.__wordhopper_showLeaderboard?.('daily');
@@ -193,7 +192,7 @@ export class MenuScene extends Phaser.Scene {
 
     this.tweens.add({
       targets: dailyPlay,
-      alpha: 0.35,
+      alpha: 0.4,
       duration: 900,
       yoyo: true,
       repeat: -1,
@@ -293,16 +292,17 @@ export class MenuScene extends Phaser.Scene {
 
   private async refreshDailyStrip(): Promise<void> {
     if (!this.dailySummaryText) return;
+    const dateShort = getUtcChallengeDate().slice(5);
     try {
       const data = await fetchDailyLeaderboard(getUtcChallengeDate(), 1, { refresh: true });
       if (!this.dailySummaryText.active) return;
       const top = data.entries[0];
       this.dailySummaryText.setText(
-        top ? `🥇 ${top.nickname} ${top.score}` : 'Be first today',
+        top ? `${dateShort} · ${top.score}` : dateShort,
       );
     } catch {
       if (!this.dailySummaryText?.active) return;
-      this.dailySummaryText.setText('Be first today');
+      this.dailySummaryText.setText(dateShort);
     }
   }
 
