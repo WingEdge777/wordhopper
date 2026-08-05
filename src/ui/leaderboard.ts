@@ -2,7 +2,11 @@ import type { Difficulty } from '../config/constants';
 import { formatDailyTitle, getUtcChallengeDate } from '../config/daily';
 import { getNickname } from '../config/nickname';
 import { reconcileLocalBestFromEntries } from '../config/localScores';
-import { fetchDailyLeaderboard } from '../api/daily';
+import {
+  fetchDailyLeaderboard,
+  getCachedDailyLeaderboard,
+  isDailyLeaderboardCacheFresh,
+} from '../api/daily';
 import {
   getCachedLeaderboard,
   isLeaderboardCacheFresh,
@@ -247,11 +251,25 @@ async function loadDailyBoard(): Promise<void> {
   const token = ++loadToken;
   activeTab = 'daily';
   updateTabs();
-  setStatus('Loading...');
-  if (listEl) listEl.replaceChildren();
+
+  const date = getUtcChallengeDate();
+  const fresh = isDailyLeaderboardCacheFresh(date);
+  const cached = getCachedDailyLeaderboard(date);
+  if (cached) {
+    renderEntries(cached.entries);
+    setStatus(
+      cached.entries.length === 0
+        ? 'Be the first today!'
+        : `${cached.entries.length} player${cached.entries.length === 1 ? '' : 's'} today`,
+    );
+    if (fresh) return;
+  } else {
+    setStatus('Loading...');
+    if (listEl) listEl.replaceChildren();
+  }
 
   try {
-    const data = await fetchDailyLeaderboard(getUtcChallengeDate(), 50, { refresh: true });
+    const data = await fetchDailyLeaderboard(date, 50, { refresh: !fresh });
     if (!isOpen || token !== loadToken) return;
     renderEntries(data.entries);
     setStatus(
@@ -261,13 +279,15 @@ async function loadDailyBoard(): Promise<void> {
     );
   } catch {
     if (!isOpen || token !== loadToken) return;
-    setStatus('Could not load daily board');
-    if (listEl) {
-      listEl.replaceChildren();
-      const error = document.createElement('li');
-      error.className = 'lb-empty-row';
-      error.textContent = 'Server unavailable. Try again later.';
-      listEl.appendChild(error);
+    if (!cached) {
+      setStatus('Could not load daily board');
+      if (listEl) {
+        listEl.replaceChildren();
+        const error = document.createElement('li');
+        error.className = 'lb-empty-row';
+        error.textContent = 'Server unavailable. Try again later.';
+        listEl.appendChild(error);
+      }
     }
   }
 }

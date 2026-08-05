@@ -5,7 +5,7 @@ import { COLORS, FONT_DISPLAY, FONT_BODY } from '../config/colors';
 import { DAILY_DIFFICULTY, getUtcChallengeDate } from '../config/daily';
 import { addCrispText } from '../config/text';
 import { hex, darker } from '../config/utils';
-import { fetchDailyLeaderboard } from '../api/daily';
+import { fetchDailyLeaderboard, prefetchDailyLeaderboard } from '../api/daily';
 import { playSfx } from '../audio/SoundManager';
 
 export class MenuScene extends Phaser.Scene {
@@ -198,6 +198,7 @@ export class MenuScene extends Phaser.Scene {
       repeat: -1,
     });
 
+    void prefetchDailyLeaderboard();
     void this.refreshDailyStrip();
 
     // Row 2: classic play prompt
@@ -294,7 +295,7 @@ export class MenuScene extends Phaser.Scene {
     if (!this.dailySummaryText) return;
     const dateShort = getUtcChallengeDate().slice(5);
     try {
-      const data = await fetchDailyLeaderboard(getUtcChallengeDate(), 1, { refresh: true });
+      const data = await fetchDailyLeaderboard(getUtcChallengeDate());
       if (!this.dailySummaryText.active) return;
       const top = data.entries[0];
       this.dailySummaryText.setText(
