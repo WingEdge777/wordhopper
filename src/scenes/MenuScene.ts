@@ -100,7 +100,13 @@ export class MenuScene extends Phaser.Scene {
     }
 
     const btnStartY = liuY + 54;
-    const btnStepY = 32;
+    const btnStepY = 34;
+    const rowW = 220;
+    const rowH = 32;
+    // Shared columns for all menu rows (label left / meta right).
+    const COL_LABEL_X = -82;
+    const COL_CARET_X = -96;
+    const COL_META_X = 96;
 
     difficulties.forEach(({ key, label, desc }, i) => {
       const yPos = btnStartY + i * btnStepY;
@@ -109,10 +115,18 @@ export class MenuScene extends Phaser.Scene {
 
       const bg = this.add.graphics();
       bg.fillStyle(COLORS.MUTED_DARK, 0.7);
-      bg.fillRoundedRect(-110, -16, 220, 32, 12);
+      bg.fillRoundedRect(-rowW / 2, -rowH / 2, rowW, rowH, 12);
       container.add(bg);
 
-      const labelText = addCrispText(this, -85, 0, label, {
+      const caret = addCrispText(this, COL_CARET_X, 0, '>', {
+        fontSize: '15px',
+        fontFamily: FONT_BODY,
+        color: hex(COLORS.PRIMARY),
+        fontStyle: 'bold',
+      }).setOrigin(0.5, 0.5).setVisible(false);
+      container.add(caret);
+
+      const labelText = addCrispText(this, COL_LABEL_X, 0, label, {
         fontSize: '15px',
         fontFamily: FONT_BODY,
         color: hex(COLORS.TEXT_ON_LIGHT),
@@ -120,7 +134,7 @@ export class MenuScene extends Phaser.Scene {
       }).setOrigin(0, 0.5);
       container.add(labelText);
 
-      const descText = addCrispText(this, 85, 0, desc, {
+      const descText = addCrispText(this, COL_META_X, 0, desc, {
         fontSize: '13px',
         fontFamily: FONT_BODY,
         color: hex(COLORS.TEXT_MUTED),
@@ -128,7 +142,7 @@ export class MenuScene extends Phaser.Scene {
       }).setOrigin(1, 0.5);
       container.add(descText);
 
-      container.setSize(220, 32);
+      container.setSize(rowW, rowH);
       container.setInteractive({ useHandCursor: true });
       container.on('pointerdown', () => {
         playSfx('ui', 0.4);
@@ -143,33 +157,31 @@ export class MenuScene extends Phaser.Scene {
       this.difficultyBtns[key] = container;
     });
 
-    const rowW = 220;
-    const rowH = 30;
-    const rowGap = 5;
+    const rowGap = 6;
     let rowY = btnStartY + difficulties.length * btnStepY + 6;
 
-    // Row 1: Daily — same layout language as difficulty rows.
+    // Row 1: Daily — same columns as difficulty rows.
     const dailyBg = this.add.graphics();
     dailyBg.fillStyle(COLORS.MUTED_DARK, 0.7);
     dailyBg.fillRoundedRect(cx - rowW / 2, rowY, rowW, rowH, 12);
     dailyBg.setDepth(4);
 
-    addCrispText(this, cx - 85, rowY + rowH / 2, 'DAILY', {
+    addCrispText(this, cx + COL_LABEL_X, rowY + rowH / 2, 'DAILY', {
       fontSize: '15px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.TEXT_ON_LIGHT),
       fontStyle: 'bold',
     }).setOrigin(0, 0.5).setDepth(5);
 
-    this.dailySummaryText = addCrispText(this, cx + 52, rowY + rowH / 2, '…', {
-      fontSize: '12px',
+    this.dailySummaryText = addCrispText(this, cx + 48, rowY + rowH / 2, '…', {
+      fontSize: '13px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.TEXT_MUTED),
       fontStyle: 'bold',
     }).setOrigin(1, 0.5).setDepth(5);
 
-    const dailyPlay = addCrispText(this, cx + 85, rowY + rowH / 2, 'PLAY', {
-      fontSize: '12px',
+    const dailyPlay = addCrispText(this, cx + COL_META_X, rowY + rowH / 2, 'PLAY', {
+      fontSize: '13px',
       fontFamily: FONT_BODY,
       color: hex(COLORS.ACCENT),
       fontStyle: 'bold',
@@ -308,22 +320,25 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private updateHighlight(): void {
+    const rowW = 220;
+    const rowH = 32;
     (Object.keys(this.difficultyBtns) as Difficulty[]).forEach((key) => {
       const container = this.difficultyBtns[key];
       const bg = container.getAt(0) as Phaser.GameObjects.Graphics;
-      const labelText = container.getAt(1) as Phaser.GameObjects.Text;
+      const caret = container.getAt(1) as Phaser.GameObjects.Text;
+      const labelText = container.getAt(2) as Phaser.GameObjects.Text;
       bg.clear();
       if (key === this.selectedDifficulty) {
         bg.fillStyle(COLORS.PRIMARY, 0.15);
-        bg.fillRoundedRect(-110, -16, 220, 32, 12);
+        bg.fillRoundedRect(-rowW / 2, -rowH / 2, rowW, rowH, 12);
         bg.lineStyle(2.5, COLORS.PRIMARY, 0.8);
-        bg.strokeRoundedRect(-110, -16, 220, 32, 12);
-        labelText.setText('> ' + key.toUpperCase());
+        bg.strokeRoundedRect(-rowW / 2, -rowH / 2, rowW, rowH, 12);
+        caret.setVisible(true);
         labelText.setColor(hex(COLORS.PRIMARY));
       } else {
         bg.fillStyle(COLORS.MUTED_DARK, 0.7);
-        bg.fillRoundedRect(-110, -16, 220, 32, 12);
-        labelText.setText('  ' + key.toUpperCase());
+        bg.fillRoundedRect(-rowW / 2, -rowH / 2, rowW, rowH, 12);
+        caret.setVisible(false);
         labelText.setColor(hex(COLORS.TEXT_ON_LIGHT));
       }
     });
