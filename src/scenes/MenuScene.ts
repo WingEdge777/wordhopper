@@ -30,8 +30,41 @@ export class MenuScene extends Phaser.Scene {
     this.add.image(cx, CANVAS_HEIGHT / 2, SPRITE_KEYS.BG_SKY)
       .setDisplaySize(width, CANVAS_HEIGHT).setDepth(0);
 
-    const titleBgY = 36;
+    const difficulties: { key: Difficulty; label: string; desc: string }[] = isMobile()
+      ? [
+          { key: 'chill', label: 'CHILL', desc: '3–5 chars, slow' },
+          { key: 'easy', label: 'EASY', desc: '3–5 chars' },
+        ]
+      : [
+          { key: 'chill', label: 'CHILL', desc: '3–5 chars, slow' },
+          { key: 'easy', label: 'EASY', desc: '3–5 chars' },
+          { key: 'medium', label: 'MEDIUM', desc: '6–8 chars' },
+          { key: 'hard', label: 'HARD', desc: '8+ chars' },
+        ];
+
+    this.availableDifficulties = difficulties.map((d) => d.key);
+    if (!this.availableDifficulties.includes(this.selectedDifficulty)) {
+      this.selectedDifficulty = 'easy';
+    }
+
+    // Layout constants — content block is vertically centered for equal top/bottom margins.
     const titleBgH = 48;
+    const subtitleGap = 14;
+    const subtitleBgH = 24;
+    const liuGap = 28;
+    const btnGap = 54;
+    const btnStepY = 34;
+    const rowW = 220;
+    const rowH = 32;
+    const rowGap = 6;
+    const footerTopGap = 6;
+    const footerRows = 3;
+    const contentH =
+      titleBgH + subtitleGap + subtitleBgH + liuGap + btnGap
+      + difficulties.length * btnStepY + footerTopGap
+      + footerRows * rowH + (footerRows - 1) * rowGap;
+    const titleBgY = Math.round((CANVAS_HEIGHT - contentH) / 2);
+
     const titleBg = this.add.graphics();
     titleBg.fillStyle(COLORS.PRIMARY, 1);
     titleBg.fillRoundedRect(cx - 130, titleBgY, 260, titleBgH, 14);
@@ -47,8 +80,7 @@ export class MenuScene extends Phaser.Scene {
       padding: { right: 8, left: 2, top: 2, bottom: 2 },
     }).setOrigin(0.5).setDepth(5);
 
-    const subtitleBgY = titleBgY + titleBgH + 14;
-    const subtitleBgH = 24;
+    const subtitleBgY = titleBgY + titleBgH + subtitleGap;
     const subtitleGfx = this.add.graphics();
     subtitleGfx.fillStyle(COLORS.MUTED_DARK, 0.7);
     subtitleGfx.fillRoundedRect(cx - 120, subtitleBgY, 240, subtitleBgH, 12);
@@ -61,7 +93,7 @@ export class MenuScene extends Phaser.Scene {
       fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(5);
 
-    const liuY = subtitleBgY + subtitleBgH + 28;
+    const liuY = subtitleBgY + subtitleBgH + liuGap;
     const mound = this.add.graphics();
     mound.fillStyle(COLORS.SECONDARY, 0.15);
     mound.fillEllipse(cx, liuY + 24, 180, 44);
@@ -82,27 +114,7 @@ export class MenuScene extends Phaser.Scene {
       ease: 'Sine.easeInOut',
     });
 
-    const difficulties: { key: Difficulty; label: string; desc: string }[] = isMobile()
-      ? [
-          { key: 'chill', label: 'CHILL', desc: '3–5 chars, slow' },
-          { key: 'easy', label: 'EASY', desc: '3–5 chars' },
-        ]
-      : [
-          { key: 'chill', label: 'CHILL', desc: '3–5 chars, slow' },
-          { key: 'easy', label: 'EASY', desc: '3–5 chars' },
-          { key: 'medium', label: 'MEDIUM', desc: '6–8 chars' },
-          { key: 'hard', label: 'HARD', desc: '8+ chars' },
-        ];
-
-    this.availableDifficulties = difficulties.map((d) => d.key);
-    if (!this.availableDifficulties.includes(this.selectedDifficulty)) {
-      this.selectedDifficulty = 'easy';
-    }
-
-    const btnStartY = liuY + 54;
-    const btnStepY = 34;
-    const rowW = 220;
-    const rowH = 32;
+    const btnStartY = liuY + btnGap;
     // Shared columns for all menu rows (label left / meta right).
     const COL_LABEL_X = -82;
     const COL_CARET_X = -96;
@@ -157,8 +169,7 @@ export class MenuScene extends Phaser.Scene {
       this.difficultyBtns[key] = container;
     });
 
-    const rowGap = 6;
-    let rowY = btnStartY + difficulties.length * btnStepY + 6;
+    let rowY = btnStartY + difficulties.length * btnStepY + footerTopGap;
 
     // Row 1: Daily — same columns as difficulty rows.
     const dailyBg = this.add.graphics();
