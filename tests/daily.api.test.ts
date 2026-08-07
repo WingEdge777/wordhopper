@@ -38,14 +38,16 @@ describe('daily leaderboard api', () => {
   });
 
   it('deduplicates concurrent fetches', async () => {
-    let resolveFetch: ((value: Response) => void) | null = null;
-    vi.mocked(fetch).mockImplementation(() => new Promise((resolve) => {
-      resolveFetch = resolve;
-    }));
+    let resolveFetch!: (value: Response) => void;
+    vi.mocked(fetch).mockImplementation(
+      () => new Promise<Response>((resolve) => {
+        resolveFetch = resolve;
+      }),
+    );
 
     const a = fetchDailyLeaderboard('2026-08-07');
     const b = fetchDailyLeaderboard('2026-08-07');
-    resolveFetch?.(jsonResponse({
+    resolveFetch(jsonResponse({
       challenge_date: '2026-08-07',
       entries: [],
     }));
