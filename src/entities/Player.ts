@@ -15,6 +15,7 @@ const BH = Math.round(PLAYER_HEIGHT * PLAYER_COLLISION_SHRINK);
 export class Player {
   private sprite: Phaser.Physics.Arcade.Sprite;
   private dead = false;
+  private readonly hitbox = new Phaser.Geom.Rectangle(0, 0, BW, BH);
 
   constructor(scene: Phaser.Scene) {
     this.sprite = scene.physics.add.sprite(PLAYER_X, GROUND_Y, SPRITE_KEYS.PLAYER_RUN);
@@ -37,12 +38,8 @@ export class Player {
   }
 
   getHitbox(): Phaser.Geom.Rectangle {
-    return new Phaser.Geom.Rectangle(
-      this.sprite.x - BW / 2,
-      this.sprite.y - BH,
-      BW,
-      BH
-    );
+    this.hitbox.setTo(this.sprite.x - BW / 2, this.sprite.y - BH, BW, BH);
+    return this.hitbox;
   }
 
   jumpTo(targetY: number): void {

@@ -15,6 +15,7 @@ export class MenuScene extends Phaser.Scene {
   private keyboardHandler: ((event: KeyboardEvent) => void) | null = null;
   private availableDifficulties: Difficulty[] = ['chill', 'easy', 'medium', 'hard'];
   private dailySummaryText: Phaser.GameObjects.Text | null = null;
+  private classicDifficultyText: Phaser.GameObjects.Text | null = null;
 
   constructor() {
     super({ key: 'MenuScene' });
@@ -171,42 +172,53 @@ export class MenuScene extends Phaser.Scene {
 
     let rowY = btnStartY + difficulties.length * btnStepY + footerTopGap;
 
-    // Row 1: Daily — same columns as difficulty rows.
+    // Row 1: Daily challenge hook — accent treatment so it reads as a CTA, not a difficulty row.
     const dailyBg = this.add.graphics();
-    dailyBg.fillStyle(COLORS.MUTED_DARK, 0.7);
+    dailyBg.fillStyle(COLORS.ACCENT, 0.16);
     dailyBg.fillRoundedRect(cx - rowW / 2, rowY, rowW, rowH, 12);
+    dailyBg.lineStyle(2, COLORS.ACCENT, 0.75);
+    dailyBg.strokeRoundedRect(cx - rowW / 2, rowY, rowW, rowH, 12);
     dailyBg.setDepth(4);
 
     addCrispText(this, cx + COL_LABEL_X, rowY + rowH / 2, 'DAILY', {
       fontSize: '15px',
       fontFamily: FONT_BODY,
-      color: hex(COLORS.TEXT_ON_LIGHT),
+      color: hex(COLORS.ACCENT),
       fontStyle: 'bold',
     }).setOrigin(0, 0.5).setDepth(5);
 
-    this.dailySummaryText = addCrispText(this, cx + 48, rowY + rowH / 2, '…', {
+    this.dailySummaryText = addCrispText(this, cx + 42, rowY + rowH / 2, '…', {
       fontSize: '13px',
       fontFamily: FONT_BODY,
-      color: hex(COLORS.TEXT_MUTED),
+      color: hex(COLORS.TEXT_ON_LIGHT),
       fontStyle: 'bold',
     }).setOrigin(1, 0.5).setDepth(5);
 
-    const dailyPlay = addCrispText(this, cx + COL_META_X, rowY + rowH / 2, 'PLAY', {
-      fontSize: '13px',
+    const playPillW = 50;
+    const playPillH = 22;
+    const playPillX = cx + COL_META_X - playPillW;
+    const playPillY = rowY + (rowH - playPillH) / 2;
+    const playPill = this.add.graphics();
+    playPill.fillStyle(COLORS.ACCENT, 1);
+    playPill.fillRoundedRect(playPillX, playPillY, playPillW, playPillH, 8);
+    playPill.setDepth(5);
+
+    const dailyPlay = addCrispText(this, playPillX + playPillW / 2, rowY + rowH / 2, 'PLAY', {
+      fontSize: '12px',
       fontFamily: FONT_BODY,
-      color: hex(COLORS.ACCENT),
+      color: '#FFFFFF',
       fontStyle: 'bold',
-    }).setOrigin(1, 0.5).setDepth(5);
+    }).setOrigin(0.5).setDepth(6);
 
     const dailyHit = this.add.rectangle(cx, rowY + rowH / 2, rowW, rowH, 0x000000, 0)
       .setInteractive({ useHandCursor: true })
-      .setDepth(6);
+      .setDepth(7);
     dailyHit.on('pointerover', () => { this.input.setDefaultCursor('pointer'); });
     dailyHit.on('pointerout', () => { this.input.setDefaultCursor('default'); });
     dailyHit.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       playSfx('ui', 0.35);
       const localX = pointer.worldX - (cx - rowW / 2);
-      if (localX > 155) {
+      if (localX > rowW - playPillW - 10) {
         this.startDaily();
       } else {
         window.__wordhopper_showLeaderboard?.('daily');
@@ -214,8 +226,8 @@ export class MenuScene extends Phaser.Scene {
     });
 
     this.tweens.add({
-      targets: dailyPlay,
-      alpha: 0.4,
+      targets: [playPill, dailyPlay],
+      alpha: 0.72,
       duration: 900,
       yoyo: true,
       repeat: -1,
@@ -224,24 +236,63 @@ export class MenuScene extends Phaser.Scene {
     void prefetchDailyLeaderboard();
     void this.refreshDailyStrip();
 
-    // Row 2: classic play prompt
+    // Row 2: Classic — same CTA shape as Daily (label + meta + PLAY pill).
     rowY += rowH + rowGap;
-    const playBg = this.add.graphics();
-    playBg.fillStyle(COLORS.ACCENT, 0.12);
-    playBg.fillRoundedRect(cx - rowW / 2, rowY, rowW, rowH, 12);
-    playBg.setDepth(4);
+    const classicBg = this.add.graphics();
+    classicBg.fillStyle(COLORS.PRIMARY, 0.12);
+    classicBg.fillRoundedRect(cx - rowW / 2, rowY, rowW, rowH, 12);
+    classicBg.lineStyle(2, COLORS.PRIMARY, 0.55);
+    classicBg.strokeRoundedRect(cx - rowW / 2, rowY, rowW, rowH, 12);
+    classicBg.setDepth(4);
 
-    const startPrompt = addCrispText(this, cx, rowY + rowH / 2, '> TYPE + SPACE TO PLAY <', {
-      fontSize: '13px',
+    addCrispText(this, cx + COL_LABEL_X, rowY + rowH / 2, 'CLASSIC', {
+      fontSize: '15px',
       fontFamily: FONT_BODY,
-      color: hex(COLORS.ACCENT),
+      color: hex(COLORS.PRIMARY),
       fontStyle: 'bold',
-    }).setOrigin(0.5).setDepth(5);
+    }).setOrigin(0, 0.5).setDepth(5);
+
+    this.classicDifficultyText = addCrispText(
+      this,
+      cx + 42,
+      rowY + rowH / 2,
+      this.selectedDifficulty.toUpperCase(),
+      {
+        fontSize: '13px',
+        fontFamily: FONT_BODY,
+        color: hex(COLORS.TEXT_ON_LIGHT),
+        fontStyle: 'bold',
+      },
+    ).setOrigin(1, 0.5).setDepth(5);
+
+    const classicPillX = cx + COL_META_X - playPillW;
+    const classicPillY = rowY + (rowH - playPillH) / 2;
+    const classicPill = this.add.graphics();
+    classicPill.fillStyle(COLORS.PRIMARY, 1);
+    classicPill.fillRoundedRect(classicPillX, classicPillY, playPillW, playPillH, 8);
+    classicPill.setDepth(5);
+
+    const classicPlay = addCrispText(this, classicPillX + playPillW / 2, rowY + rowH / 2, 'PLAY', {
+      fontSize: '12px',
+      fontFamily: FONT_BODY,
+      color: '#FFFFFF',
+      fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(6);
+
+    const classicHit = this.add.rectangle(cx, rowY + rowH / 2, rowW, rowH, 0x000000, 0)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(7);
+    classicHit.on('pointerover', () => { this.input.setDefaultCursor('pointer'); });
+    classicHit.on('pointerout', () => { this.input.setDefaultCursor('default'); });
+    classicHit.on('pointerdown', () => {
+      playSfx('ui', 0.35);
+      this.startGame();
+    });
 
     this.tweens.add({
-      targets: startPrompt,
-      alpha: 0.3,
-      duration: 800,
+      targets: [classicPill, classicPlay],
+      alpha: 0.72,
+      duration: 900,
       yoyo: true,
       repeat: -1,
     });
@@ -316,17 +367,14 @@ export class MenuScene extends Phaser.Scene {
 
   private async refreshDailyStrip(): Promise<void> {
     if (!this.dailySummaryText) return;
-    const dateShort = getUtcChallengeDate().slice(5);
     try {
       const data = await fetchDailyLeaderboard(getUtcChallengeDate());
       if (!this.dailySummaryText.active) return;
       const top = data.entries[0];
-      this.dailySummaryText.setText(
-        top ? `${dateShort} · ${top.score}` : dateShort,
-      );
+      this.dailySummaryText.setText(top ? `Beat ${top.score}` : 'Be first');
     } catch {
       if (!this.dailySummaryText?.active) return;
-      this.dailySummaryText.setText(dateShort);
+      this.dailySummaryText.setText('Today');
     }
   }
 
@@ -353,6 +401,7 @@ export class MenuScene extends Phaser.Scene {
         labelText.setColor(hex(COLORS.TEXT_ON_LIGHT));
       }
     });
+    this.classicDifficultyText?.setText(this.selectedDifficulty.toUpperCase());
   }
 
   shutdown(): void {
@@ -378,6 +427,7 @@ export class MenuScene extends Phaser.Scene {
 
   private cleanup(): void {
     this.dailySummaryText = null;
+    this.classicDifficultyText = null;
     if (this.keyboardHandler) {
       this.input.keyboard?.off('keydown', this.keyboardHandler);
       this.keyboardHandler = null;

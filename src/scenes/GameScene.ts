@@ -73,6 +73,10 @@ export class GameScene extends Phaser.Scene {
   private typedText!: Phaser.GameObjects.Text;
   private remainingText!: Phaser.GameObjects.Text;
   private timingLine!: Phaser.GameObjects.Graphics;
+  private timingLineDrawKey = '';
+  private lastHudScore = -1;
+  private lastHudBest = -1;
+  private lastHudSpeed = '';
   private flashGfx!: Phaser.GameObjects.Graphics;
   private flashAlpha = 0;
   private flashX = 0;
@@ -117,6 +121,10 @@ export class GameScene extends Phaser.Scene {
     this.obstacles = [];
     this.typingObstacle = null;
     this.wordReady = false;
+    this.timingLineDrawKey = '';
+    this.lastHudScore = -1;
+    this.lastHudBest = -1;
+    this.lastHudSpeed = '';
     // Daily must share the same seeded sequence — skip first-run tutorial.
     this.tutorial = this.mode === 'classic' && isTutorialNeeded();
     this.tutorialStarted = false;
@@ -659,14 +667,13 @@ export class GameScene extends Phaser.Scene {
   }
 
   private cleanupObstacles(): void {
-    this.obstacles = this.obstacles.filter(o => {
-      if (!o.isActive()) {
-        if (o === this.typingObstacle) this.typingObstacle = null;
-        o.destroy();
-        return false;
-      }
-      return true;
-    });
+    for (let i = this.obstacles.length - 1; i >= 0; i--) {
+      const o = this.obstacles[i];
+      if (o.isActive()) continue;
+      if (o === this.typingObstacle) this.typingObstacle = null;
+      o.destroy();
+      this.obstacles.splice(i, 1);
+    }
   }
 
   private checkSpawn(): void {
@@ -679,17 +686,32 @@ export class GameScene extends Phaser.Scene {
       }
       if (this.typingSystem.hasWords()) return;
     }
-    const rightEdge = Math.max(...this.obstacles.map(o => o.getX()), 0);
+    let rightEdge = 0;
+    for (const o of this.obstacles) {
+      const x = o.getX();
+      if (x > rightEdge) rightEdge = x;
+    }
     if (this.obstacleSpawner.canSpawn(rightEdge)) this.spawnObstacle();
   }
 
   private updateHUD(): void {
     const score = this.scoreSystem.getScore();
-    this.scoreText.setText(score.toLocaleString());
-    this.speedText.setText(`${this.speedManager.getSpeedMultiplier().toFixed(1)}x`);
+    if (score !== this.lastHudScore) {
+      this.lastHudScore = score;
+      this.scoreText.setText(score.toLocaleString());
+    }
+
+    const speedLabel = `${this.speedManager.getSpeedMultiplier().toFixed(1)}x`;
+    if (speedLabel !== this.lastHudSpeed) {
+      this.lastHudSpeed = speedLabel;
+      this.speedText.setText(speedLabel);
+    }
 
     const displayBest = Math.max(this.storedLocalBest, score);
-    this.bestText.setText(displayBest.toLocaleString());
+    if (displayBest !== this.lastHudBest) {
+      this.lastHudBest = displayBest;
+      this.bestText.setText(displayBest.toLocaleString());
+    }
 
     const approaching = this.storedLocalBest > 0
       && score >= this.storedLocalBest * BEST_APPROACH_RATIO
@@ -768,45 +790,69 @@ export class GameScene extends Phaser.Scene {
   }
 
   private updateTimingLine(speed: number): void {
-    this.timingLine.clear();
     const obs = this.typingObstacle;
-    if (!obs) return;
+    if (!obs) {
+      if (this.timingLineDrawKey !== '') {
+        this.timingLine.clear();
+        this.timingLineDrawKey = '';
+      }
+      this.timingLine.setAlpha(1);
+      return;
+    }
 
     const config = obs.getConfig();
-    const targetY = this.typingSystem.getProgress().selectedWord
-      ? (config.word1 === this.typingSystem.getProgress().selectedWord ? config.word1Y : config.word2Y)
+    const selected = this.typingSystem.getProgress().selectedWord;
+    const targetY = selected
+      ? (config.word1 === selected ? config.word1Y : config.word2Y)
       : config.word1Y;
 
     const jumpHeight = GROUND_Y - targetY;
-    if (jumpHeight <= 0) return;
+    if (jumpHeight <= 0) {
+      if (this.timingLineDrawKey !== '') {
+        this.timingLine.clear();
+        this.timingLineDrawKey = '';
+      }
+      return;
+    }
 
     const apexTime = Math.sqrt(2 * jumpHeight / GRAVITY);
     const idealX = obs.getX() - speed * apexTime;
-    if (idealX < PLAYER_X - 20 || idealX > CANVAS_WIDTH + 50) return;
+    if (idealX < PLAYER_X - 20 || idealX > CANVAS_WIDTH + 50) {
+      if (this.timingLineDrawKey !== '') {
+        this.timingLine.clear();
+        this.timingLineDrawKey = '';
+      }
+      return;
+    }
 
     const windowHalf = Math.max(30, speed * 0.18);
     const left = Math.max(PLAYER_X, idealX - windowHalf);
     const right = Math.min(CANVAS_WIDTH, idealX + windowHalf);
+    const lineWidth = this.wordReady ? 5 : 3;
+    const drawKey = `${idealX | 0}|${left | 0}|${right | 0}|${lineWidth}`;
 
-    const green = COLORS.PRIMARY_LIGHT;
+    // Redraw geometry only when the guide moved ~1px; breathe via alpha.
+    if (drawKey !== this.timingLineDrawKey) {
+      this.timingLineDrawKey = drawKey;
+      this.timingLine.clear();
+      const green = COLORS.PRIMARY_LIGHT;
+
+      // Solid thin rails instead of ~80 lineBetween dashes per frame.
+      this.timingLine.fillStyle(green, 0.3);
+      this.timingLine.fillRect(left, 0, 1, GROUND_Y);
+      this.timingLine.fillRect(right - 1, 0, 1, GROUND_Y);
+
+      this.timingLine.fillStyle(green, 0.04);
+      this.timingLine.fillRect(left, 0, Math.max(1, right - left), GROUND_Y);
+
+      this.timingLine.lineStyle(lineWidth, green, 1);
+      this.timingLine.lineBetween(idealX, 0, idealX, GROUND_Y);
+    }
+
     const breath = this.wordReady
       ? 0.4 + 0.6 * (0.5 + 0.5 * Math.sin((this.time.now / 800) * Math.PI))
       : 0.8;
-    const lineWidth = this.wordReady ? 5 : 3;
-
-    this.timingLine.lineStyle(1, green, 0.3);
-    const dashLen = 6;
-    const gapLen = 4;
-    for (let y = 0; y < GROUND_Y; y += dashLen + gapLen) {
-      this.timingLine.lineBetween(left, y, left, Math.min(y + dashLen, GROUND_Y));
-      this.timingLine.lineBetween(right, y, right, Math.min(y + dashLen, GROUND_Y));
-    }
-
-    this.timingLine.lineStyle(lineWidth, green, breath);
-    this.timingLine.lineBetween(idealX, 0, idealX, GROUND_Y);
-
-    this.timingLine.fillStyle(green, 0.04);
-    this.timingLine.fillRect(left, 0, right - left, GROUND_Y);
+    this.timingLine.setAlpha(breath);
   }
 
   shutdown(): void {

@@ -34,6 +34,12 @@ export class Obstacle {
   private word2Untyped: Phaser.GameObjects.Text | null = null;
   private config: ObstacleConfig;
   private active = true;
+  /** Cached text widths so scrolling does not re-measure Phaser.Text every frame. */
+  private word1TypedW = 0;
+  private word1UntypedW = 0;
+  private word2TypedW = 0;
+  private word2UntypedW = 0;
+  private readonly rectList: Phaser.Geom.Rectangle[] = [];
 
   constructor(scene: Phaser.Scene, config: ObstacleConfig, _scrollSpeed: number) {
     this.config = config;
@@ -114,6 +120,10 @@ export class Obstacle {
       this.word2Typed.setOrigin(0.5);
       this.word2Typed.setDepth(15);
     }
+
+    this.cacheWordWidths(1);
+    this.cacheWordWidths(2);
+    this.positionWords();
   }
 
   update(dt: number, currentSpeed: number): void {
@@ -125,8 +135,8 @@ export class Obstacle {
     if (this.upperRect) this.upperRect.x = this.config.x - OBSTACLE_BODY_WIDTH / 2;
     if (this.lowerRect) this.lowerRect.x = this.config.x - OBSTACLE_BODY_WIDTH / 2;
 
-    this.layoutWord(this.word1Typed, this.word1Untyped);
-    this.layoutWord(this.word2Typed, this.word2Untyped);
+    // Only reposition from cached widths — avoid Text.width reads every frame.
+    this.positionWords();
 
     if (this.config.x < -80) {
       this.active = false;
@@ -146,10 +156,10 @@ export class Obstacle {
   }
 
   getRects(): Phaser.Geom.Rectangle[] {
-    const list: Phaser.Geom.Rectangle[] = [];
-    if (this.upperRect) list.push(this.upperRect);
-    if (this.lowerRect) list.push(this.lowerRect);
-    return list;
+    this.rectList.length = 0;
+    if (this.upperRect) this.rectList.push(this.upperRect);
+    if (this.lowerRect) this.rectList.push(this.lowerRect);
+    return this.rectList;
   }
 
   highlightWord(_wordIndex: 1 | 2, charIndex: number): void {
@@ -164,19 +174,21 @@ export class Obstacle {
     typed.setColor('#4ade80');
     untyped.setText(rest);
     untyped.setColor(_wordIndex === 1 ? hex(COLORS.TEXT_ON_LIGHT) : hex(COLORS.TEXT_MUTED));
-    this.layoutWord(typed, untyped);
+    this.cacheWordWidths(_wordIndex);
+    this.positionWords();
   }
 
   resetWordDisplay(): void {
     const primaryColor = hex(COLORS.TEXT_ON_LIGHT);
     const secondaryColor = hex(COLORS.TEXT_MUTED);
 
-    this.word1Untyped?.setText(this.config.word1).setColor(primaryColor).setAlpha(1).setX(snapPixel(this.config.x));
+    this.word1Untyped?.setText(this.config.word1).setColor(primaryColor).setAlpha(1);
     this.word1Typed?.setText('').setColor('#4ade80').setAlpha(1);
-    this.word2Untyped?.setText(this.config.word2).setColor(secondaryColor).setAlpha(1).setX(snapPixel(this.config.x));
+    this.word2Untyped?.setText(this.config.word2).setColor(secondaryColor).setAlpha(1);
     this.word2Typed?.setText('').setColor('#4ade80').setAlpha(1);
-    this.layoutWord(this.word1Typed, this.word1Untyped);
-    this.layoutWord(this.word2Typed, this.word2Untyped);
+    this.cacheWordWidths(1);
+    this.cacheWordWidths(2);
+    this.positionWords();
   }
 
   flashWrong(_wordIndex: 1 | 2): void {
@@ -194,14 +206,10 @@ export class Obstacle {
   }
 
   clearWords(): void {
-    if (this.word1Untyped?.active) this.word1Untyped.destroy();
-    this.word1Untyped = null;
-    if (this.word1Typed?.active) this.word1Typed.destroy();
-    this.word1Typed = null;
-    if (this.word2Untyped?.active) this.word2Untyped.destroy();
-    this.word2Untyped = null;
-    if (this.word2Typed?.active) this.word2Typed.destroy();
-    this.word2Typed = null;
+    // Hide instead of destroy — avoids mid-jump Text GC hitch; destroy() cleans up later.
+    for (const text of [this.word1Untyped, this.word1Typed, this.word2Untyped, this.word2Typed]) {
+      text?.setVisible(false);
+    }
   }
 
   destroy(): void {
@@ -217,22 +225,50 @@ export class Obstacle {
     this.word2Typed = null;
   }
 
-  private layoutWord(
+  private cacheWordWidths(wordIndex: 1 | 2): void {
+    const typed = wordIndex === 1 ? this.word1Typed : this.word2Typed;
+    const untyped = wordIndex === 1 ? this.word1Untyped : this.word2Untyped;
+    if (!typed?.active || !untyped?.active) {
+      if (wordIndex === 1) {
+        this.word1TypedW = 0;
+        this.word1UntypedW = 0;
+      } else {
+        this.word2TypedW = 0;
+        this.word2UntypedW = 0;
+      }
+      return;
+    }
+    if (wordIndex === 1) {
+      this.word1TypedW = typed.width;
+      this.word1UntypedW = untyped.width;
+    } else {
+      this.word2TypedW = typed.width;
+      this.word2UntypedW = untyped.width;
+    }
+  }
+
+  private positionWords(): void {
+    this.positionWordPair(this.word1Typed, this.word1Untyped, this.word1TypedW, this.word1UntypedW);
+    this.positionWordPair(this.word2Typed, this.word2Untyped, this.word2TypedW, this.word2UntypedW);
+  }
+
+  private positionWordPair(
     typed: Phaser.GameObjects.Text | null,
-    untyped: Phaser.GameObjects.Text | null
+    untyped: Phaser.GameObjects.Text | null,
+    typedW: number,
+    untypedW: number,
   ): void {
-    if (!typed || !untyped || !typed.active || !untyped.active) {
+    if (!typed?.active || !untyped?.active || !typed.visible) return;
+
+    if (typedW === 0) {
+      const x = snapPixel(this.config.x);
+      typed.x = x;
+      untyped.x = x;
       return;
     }
 
-    if (typed.text.length === 0) {
-      typed.x = snapPixel(this.config.x);
-      untyped.x = snapPixel(this.config.x);
-      return;
-    }
-
-    const fullWidth = typed.width + untyped.width;
-    typed.x = snapPixel(this.config.x - fullWidth / 2 + typed.width / 2);
-    untyped.x = snapPixel(this.config.x - fullWidth / 2 + typed.width + untyped.width / 2);
+    const fullWidth = typedW + untypedW;
+    typed.x = snapPixel(this.config.x - fullWidth / 2 + typedW / 2);
+    untyped.x = snapPixel(this.config.x - fullWidth / 2 + typedW + untypedW / 2);
   }
 }
