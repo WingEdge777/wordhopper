@@ -7,7 +7,7 @@
 A free browser game that turns typing practice into a side-scrolling runner.
 Type the word on an obstacle, then press **SPACE** at the green timing line to jump through the gap.
 
-**Play now:** [https://wordhopper.wingedge777.com](https://wordhopper.wingedge777.com/)
+**Play now:** [https://wordhopper.baizeway.com](https://wordhopper.baizeway.com/)
 
 > Best played on **desktop with a physical keyboard**. Mobile is preview-only.
 

@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /assets/
 
-Sitemap: https://wordhopper.wingedge777.com/sitemap.xml
+Sitemap: https://wordhopper.baizeway.com/sitemap.xml

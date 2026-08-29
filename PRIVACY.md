@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Word Hopper** ([https://wordhopper.wingedge777.com](https://wordhopper.wingedge777.com/))
+**Word Hopper** ([https://wordhopper.baizeway.com](https://wordhopper.baizeway.com/))
 
 Last updated: July 10, 2026
 

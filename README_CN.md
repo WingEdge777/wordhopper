@@ -6,7 +6,7 @@
 
 把打字练习做成横版跑酷：打完障碍上的单词，在**绿色时机线**附近按空格起跳，穿过对应间隙。
 
-**在线游玩：** [https://wordhopper.wingedge777.com](https://wordhopper.wingedge777.com/)
+**在线游玩：** [https://wordhopper.baizeway.com](https://wordhopper.baizeway.com/)
 
 > 推荐在 **桌面端 + 实体键盘** 上游玩。移动端仅供预览。
 

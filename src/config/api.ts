@@ -1,4 +1,4 @@
-export const PRODUCTION_ORIGIN = 'https://wordhopper.wingedge777.com';
+export const PRODUCTION_ORIGIN = 'https://wordhopper.baizeway.com';
 
 /** Always same-origin `/api`. Dev traffic is proxied by Vite to production. */
 export function getApiBase(): string {
